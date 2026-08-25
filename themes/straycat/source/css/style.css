@@ -118,7 +118,7 @@ main{padding-top:12px;min-height:70vh}
 .about-aka{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-m);margin-bottom:40px}
 .about-poem{max-width:480px;margin:0 auto;font-family:var(--font-serif);font-size:20px;font-style:italic;color:var(--text-b);line-height:1.8;padding:32px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:56px 0;align-items:start}
-.about-bio p:first-of-type::first-letter{font-family:var(--font-serif);font-size:46px;float:left;line-height:1;margin-right:8px;margin-top:6px;color:var(--accent)}
+.about-bio p:first-of-type::first-letter{font-family:inherit;font-size:inherit;float:none;line-height:inherit;margin:0;color:inherit}
 .about-stat{display:flex;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border)}
 .about-stat-num{font-family:var(--font-serif);font-size:36px;font-weight:300;color:var(--text-p)}
 .about-stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-m);text-align:right;align-self:center}
