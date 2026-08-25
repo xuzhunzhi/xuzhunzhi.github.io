@@ -3,7 +3,6 @@ name: Deploy Hexo Site
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 # 允许部署到 GitHub Pages
 permissions:
