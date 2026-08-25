@@ -132,9 +132,9 @@ main{padding-top:12px;min-height:70vh}
 .watching-status{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-dim);margin-top:6px}
 .watching-note{font-size:13px;color:var(--text-m);margin-top:6px;line-height:1.6}
 .contact-line{color:var(--text-m);font-size:13px;margin-bottom:24px}
-.home-layout{display:grid;grid-template-columns:1fr 280px;gap:44px;align-items:start}
-.home-side{position:sticky;top:24px}
-.author-card{border:1px solid var(--border);padding:28px 24px;text-align:center;background:var(--surface);border-radius:14px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin:40px 0 44px}
+.topbar .hero{flex:1;min-width:0;margin:0}
+.author-card{border:1px solid var(--border);padding:26px 22px;text-align:center;background:var(--surface);border-radius:14px;flex-shrink:0;min-width:220px}
 .author-avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:1px solid var(--border)}
 .author-name{font-family:var(--font-serif);font-size:22px;color:var(--text-p)}
 .author-bio{font-size:13px;color:var(--text-m);margin:6px 0 20px}
@@ -255,8 +255,9 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
   .footer-bottom{flex-direction:column;gap:12px}
   .img-waterfall{column-count:2}
   .collection-grid{grid-template-columns:1fr}
-  .home-layout{grid-template-columns:1fr}
-  .home-side{position:static}
+  .topbar{flex-direction:column;gap:28px}
+  .author-card{min-width:0}
+  .topbar .hero{margin:0}
 }
 @media(max-width:480px){
   .hero-title{font-size:28px}

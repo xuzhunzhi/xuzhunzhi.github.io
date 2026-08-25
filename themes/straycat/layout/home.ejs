@@ -1,43 +1,39 @@
-<section class="hero">
-  <h1 class="hero-title">流浪猫的<em>避难所</em></h1>
-  <p class="hero-sub">一只被抛弃在尘世之中的猫。<br>感谢尘世还有那些值得猫眷恋的。<br>希望这里成为流浪猫的坟茔。</p>
+<section class="topbar">
+  <div class="hero">
+    <h1 class="hero-title">流浪猫的<em>避难所</em></h1>
+    <p class="hero-sub">一只被抛弃在尘世之中的猫。<br>感谢尘世还有那些值得猫眷恋的。<br>希望这里成为流浪猫的坟茔。</p>
+  </div>
+  <aside class="author-card">
+    <img class="author-avatar" src="/images/avatar.jpg" alt="流浪猫不是LLM">
+    <div class="author-name">流浪猫不是LLM</div>
+    <div class="author-bio">我习于冷，志于成冰</div>
+    <% var articleCount = 0, dynCount = 0; site.posts.each(function(p){ var isDyn=false; if(p.categories) p.categories.each(function(c){ if(c.name.indexOf('碎碎念')>-1) isDyn=true; }); if(isDyn) dynCount++; else articleCount++; }); %>
+    <% var photoCount = 0; (site.data.gallery.albums||[]).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>
+    <div class="author-stats">
+      <div class="author-stat"><span class="num"><%= articleCount %></span><span class="lbl">文章</span></div>
+      <div class="author-stat"><span class="num"><%= dynCount %></span><span class="lbl">动态</span></div>
+      <div class="author-stat"><span class="num"><%= photoCount %></span><span class="lbl">照片</span></div>
+    </div>
+    <a class="author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a>
+  </aside>
 </section>
 
-<div class="home-layout">
-  <div class="home-main">
-    <div class="sec-hd"><span class="sec-num">feed</span><span class="sec-title">Latest</span><span class="sec-line"></span></div>
-    <div class="feed-list">
-      <% if (site.posts && site.posts.length) { %>
-        <% site.posts.sort('date', -1).each(function(post){ %>
-          <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
-          <% var t = cat.indexOf('碎碎念') > -1 ? 'rant' : (cat.indexOf('自设') > -1 ? 'image' : 'article'); %>
-          <% var label = t === 'rant' ? '动态' : (t === 'image' ? '自设' : '文章'); %>
-          <article class="post-card">
-            <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-            <span class="feed-type" data-type="<%= t %>"><%= label %></span>
-            <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
-            <span class="post-arrow">→</span>
-          </article>
-        <% }) %>
-      <% } else { %>
-        <p class="empty">还没有内容。欢迎来到流浪猫的避难所 —— 去「关于」认识一下，或从本地加一篇吧。</p>
-      <% } %>
-    </div>
-  </div>
+<div class="sec-hd"><span class="sec-num">feed</span><span class="sec-title">Latest</span><span class="sec-line"></span></div>
 
-  <aside class="home-side">
-    <div class="author-card">
-      <img class="author-avatar" src="/images/avatar.jpg" alt="许纯之">
-      <div class="author-name">流浪猫不是LLM</div>
-      <div class="author-bio">我习于冷，志于成冰</div>
-      <% var articleCount = 0, dynCount = 0; site.posts.each(function(p){ var isDyn=false; if(p.categories) p.categories.each(function(c){ if(c.name.indexOf('碎碎念')>-1) isDyn=true; }); if(isDyn) dynCount++; else articleCount++; }); %>
-      <% var photoCount = 0; (site.data.gallery.albums||[]).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>
-      <div class="author-stats">
-        <div class="author-stat"><span class="num"><%= articleCount %></span><span class="lbl">文章</span></div>
-        <div class="author-stat"><span class="num"><%= dynCount %></span><span class="lbl">动态</span></div>
-        <div class="author-stat"><span class="num"><%= photoCount %></span><span class="lbl">照片</span></div>
-      </div>
-      <a class="author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a>
-    </div>
-  </aside>
+<div class="feed-list">
+  <% if (site.posts && site.posts.length) { %>
+    <% site.posts.sort('date', -1).each(function(post){ %>
+      <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
+      <% var t = cat.indexOf('碎碎念') > -1 ? 'rant' : (cat.indexOf('自设') > -1 ? 'image' : 'article'); %>
+      <% var label = t === 'rant' ? '动态' : (t === 'image' ? '自设' : '文章'); %>
+      <article class="post-card">
+        <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        <span class="feed-type" data-type="<%= t %>"><%= label %></span>
+        <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+        <span class="post-arrow">→</span>
+      </article>
+    <% }) %>
+  <% } else { %>
+    <p class="empty">还没有内容。欢迎来到流浪猫的避难所 —— 去「关于」认识一下，或从本地加一篇吧。</p>
+  <% } %>
 </div>
