@@ -1,3 +1,8 @@
+<section class="hero">
+  <h1 class="hero-title">Latest <em>Updates</em></h1>
+  <p class="hero-sub">流浪猫的避难所 —— 代码、像素与深夜的碎碎念。</p>
+</section>
+
 <section class="post-list">
   <% if (page.posts && page.posts.length) { %>
     <% page.posts.each(function(post){ %>
@@ -5,7 +10,7 @@
         <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
         <div class="post-meta">
           <time datetime="<%= date(post.date, 'YYYY-MM-DD') %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
-          <% if (post.categories && post.categories.length) { %> · <%= post.categories.map(function(c){return c.name;}).join(' / ') %><% } %>
+          <% if (post.categories && post.categories.length) { %> · <% post.categories.each(function(c){ %><a class="meta-tag" href="<%= url_for('/categories/' + encodeURIComponent(c.name)) %>"><%= c.name %></a><% }) %><% } %>
         </div>
         <p class="post-excerpt"><%= post.excerpt ? post.excerpt : strip_html(post.content).substring(0, 180) %></p>
       </article>

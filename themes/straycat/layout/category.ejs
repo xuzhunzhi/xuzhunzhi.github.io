@@ -1,0 +1,17 @@
+<% if (page.posts && page.posts.length) { %>
+  <h1 class="archive-title"><%= page.category ? page.category.name : '分类' %></h1>
+  <ul class="archive-list">
+    <% page.posts.each(function(post){ %>
+      <li><span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span><a href="<%= url_for(post.path) %>"><%= post.title %></a></li>
+    <% }) %>
+  </ul>
+<% } else if (page.categories && page.categories.length) { %>
+  <h1 class="archive-title">分类</h1>
+  <ul class="archive-list">
+    <% page.categories.forEach(function(cat){ %>
+      <li><a href="<%= url_for(cat.path) %>"><%= cat.name %></a> <span class="count">(<%= cat.length %>)</span></li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="empty">暂无分类。</p>
+<% } %>

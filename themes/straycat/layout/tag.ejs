@@ -1,0 +1,17 @@
+<% if (page.posts && page.posts.length) { %>
+  <h1 class="archive-title"><%= page.tag ? page.tag.name : '标签' %></h1>
+  <ul class="archive-list">
+    <% page.posts.each(function(post){ %>
+      <li><span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span><a href="<%= url_for(post.path) %>"><%= post.title %></a></li>
+    <% }) %>
+  </ul>
+<% } else if (page.tags && page.tags.length) { %>
+  <h1 class="archive-title">标签</h1>
+  <ul class="archive-list">
+    <% page.tags.forEach(function(tag){ %>
+      <li><a href="<%= url_for(tag.path) %>"><%= tag.name %></a> <span class="count">(<%= tag.length %>)</span></li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p class="empty">暂无标签。</p>
+<% } %>
