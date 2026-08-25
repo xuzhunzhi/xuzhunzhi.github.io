@@ -1,0 +1,12 @@
+{
+  "name": "straycat-admin",
+  "version": "1.0.0",
+  "description": "流浪猫的避难所 · 本地管理面板 (Electron GUI)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

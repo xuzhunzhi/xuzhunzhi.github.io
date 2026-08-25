@@ -22,6 +22,7 @@ function arr(v) {
   v = (v || '').replace(/^\[|\]$/g, '').trim();
   return v ? '[' + v + ']' : '';
 }
+function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function parseFM(md) {
   const m = md.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) return { fm: {}, body: md };
@@ -78,6 +79,31 @@ const server = http.createServer(async (req, res) => {
       if (body.file) fs.unlinkSync(path.join(POSTS_DIR, body.file));
       return json(res, 200, { ok: true });
     }
+    if (p === '/api/upload' && req.method === 'POST') {
+      const body = await readBody(req);
+      ensure();
+      const slugName = slug(body.title || 'post');
+      let content = body.content || '';
+      const refs = [...content.matchAll(/!\[[^\]]*\]\((.+?)\)/g)].map(m => m[1]);
+      const imgDir = path.join(ROOT, 'source', 'images', 'posts', slugName);
+      fs.mkdirSync(imgDir, { recursive: true });
+      const saved = [];
+      refs.forEach(ref => {
+        const clean = decodeURIComponent(ref.split('?')[0]).trim();
+        const base = path.basename(clean);
+        const img = (body.images || []).find(i => path.basename(i.name) === base);
+        if (img) {
+          const data = img.data.replace(/^data:.*?;base64,/, '');
+          fs.writeFileSync(path.join(imgDir, base), Buffer.from(data, 'base64'));
+          content = content.replace(new RegExp('\\(' + escapeRegExp(ref) + '\\)'), '(/' + ['images', 'posts', slugName, base].join('/') + ')');
+          saved.push(base);
+        }
+      });
+      const lines = ['---', `title: ${body.title || slugName}`, `date: ${body.date || new Date().toISOString().slice(0, 10)}`, '---', '', content.trim()];
+      const file = slugName + '.md';
+      fs.writeFileSync(path.join(POSTS_DIR, file), lines.join('\n'), 'utf8');
+      return json(res, 200, { ok: true, file, saved, msg: '已保存文章与 ' + saved.length + ' 张图片' });
+    }
     if (p === '/api/publish' && req.method === 'POST') {
       exec('git add . && git commit -m "admin publish" && git push', { cwd: ROOT }, (err, stdout, stderr) => {
         if (err) return json(res, 500, { ok: false, msg: (stderr || err.message).slice(0, 800) });
@@ -91,7 +117,15 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`\n▶ 流浪猫管理面板已启动：http://localhost:${PORT}\n   文章目录：${POSTS_DIR}\n   按 Ctrl+C 停止\n`));
+function startAdmin(port) {
+  server.listen(port, () => console.log('\n▶ 流浪猫管理面板已启动：http://localhost:' + port + '\n   文章目录：' + POSTS_DIR + '\n   按 Ctrl+C 停止\n'));
+  return server;
+}
+if (require.main === module) {
+  startAdmin(PORT);
+} else {
+  module.exports = { startAdmin, ROOT, POSTS_DIR };
+}
 
 // ---------- 管理界面 UI（内嵌） ----------
 const UI = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>流浪猫管理面板</title><style>
@@ -133,6 +167,15 @@ button{font-size:13px;padding:11px 24px;border:none;cursor:pointer;letter-spacin
 <div class="layout">
   <div class="list"><h2>文章</h2><div id="posts"></div><button class="newbtn" onclick="newPost()">＋ 新建文章</button></div>
   <div class="form">
+    <div class="up">
+      <label>上传本地文章</label>
+      <input type="file" id="up_md" accept=".md,text/markdown,text/plain">
+      <label style="margin-top:6px">图片（Markdown 里引用的，可多选）</label>
+      <input type="file" id="up_imgs" accept="image/*" multiple>
+      <div style="margin-top:12px"><button class="btn-pub" onclick="uploadPost()">上传并保存</button></div>
+      <div class="status" id="upStatus"></div>
+      <hr style="border:none;border-top:1px solid rgba(107,103,96,.15);margin:18px 0">
+    </div>
     <input type="hidden" id="f_file">
     <label>标题</label><input id="f_title" placeholder="文章标题">
     <div class="row"><div><label>日期</label><input id="f_date" placeholder="2026-08-20 00:00:00"></div><div><label>分类（逗号分隔）</label><input id="f_cats" placeholder="RTS设计笔记, 王者荣耀自设"></div></div>
@@ -155,6 +198,20 @@ async function savePost(){const body={file:document.getElementById('f_file').val
 async function delPost(file){if(!confirm('确定删除这篇？'))return;const body={file:file||document.getElementById('f_file').value};await api('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});show('已删除');load()}
 async function publish(){show('正在提交并推送…',true);const d=await api('/api/publish',{method:'POST'});show(d.msg||'完成',d.ok)}
 function preview(){const t=document.getElementById('f_content').value;const el=document.getElementById('preview');if(!t.trim()){el.style.display='none';return}el.style.display='block';el.innerHTML='<h2>'+esc(document.getElementById('f_title').value)+'</h2>'+md(t)}
+function showUp(s,ok){const el=document.getElementById('upStatus');el.style.color=ok?'#7a9e7e':'#c47a8b';el.textContent=s}
+function readAsDataURL(f){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
+async function uploadPost(){
+  const mdInput=document.getElementById('up_md');
+  if(!mdInput.files.length){showUp('请选择 .md 文件',false);return}
+  const fname=mdInput.files[0].name.replace(/\.md$/i,'');
+  const mdContent=await mdInput.files[0].text();
+  const images=[];
+  for(const f of document.getElementById('up_imgs').files){images.push({name:f.name,data:await readAsDataURL(f)})}
+  showUp('正在上传…',true);
+  const d=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:fname,content:mdContent,images})});
+  showUp(d.msg||'完成',d.ok);
+  if(d.ok){load()}
+}
 document.getElementById('f_content').addEventListener('input',preview);
 load();
 </script></body></html>`;
