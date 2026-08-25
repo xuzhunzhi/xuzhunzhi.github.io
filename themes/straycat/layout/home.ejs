@@ -28,8 +28,8 @@
   <aside class="home-side">
     <div class="author-card">
       <img class="author-avatar" src="/images/avatar.jpg" alt="许纯之">
-      <div class="author-name">许纯之</div>
-      <div class="author-bio">流浪猫的避难所 · 写字 &amp; 折腾</div>
+      <div class="author-name">流浪猫不是LLM</div>
+      <div class="author-bio">我习于冷，志于成冰</div>
       <% var articleCount = 0, dynCount = 0; site.posts.each(function(p){ var isDyn=false; if(p.categories) p.categories.each(function(c){ if(c.name.indexOf('碎碎念')>-1) isDyn=true; }); if(isDyn) dynCount++; else articleCount++; }); %>
       <% var photoCount = 0; (site.data.gallery.albums||[]).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>
       <div class="author-stats">
