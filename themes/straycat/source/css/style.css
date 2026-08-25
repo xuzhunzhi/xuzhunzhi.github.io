@@ -132,14 +132,18 @@ main{padding-top:12px;min-height:70vh}
 .watching-status{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-dim);margin-top:6px}
 .watching-note{font-size:13px;color:var(--text-m);margin-top:6px;line-height:1.6}
 .contact-line{color:var(--text-m);font-size:13px;margin-bottom:24px}
-.hero-row{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
-.hero-left{flex:1;min-width:0}
-.github-side{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.github-avatar{display:block;border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:border-color .3s,transform .3s}
-.github-avatar img{width:72px;height:72px;display:block;object-fit:cover}
-.github-avatar:hover{border-color:var(--accent);transform:translateY(-2px)}
-.github-follow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-m)}
-.github-follow:hover{color:var(--accent)}
+.home-layout{display:grid;grid-template-columns:1fr 280px;gap:44px;align-items:start}
+.home-side{position:sticky;top:24px}
+.author-card{border:1px solid var(--border);padding:28px 24px;text-align:center;background:var(--surface);border-radius:14px}
+.author-avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:1px solid var(--border)}
+.author-name{font-family:var(--font-serif);font-size:22px;color:var(--text-p)}
+.author-bio{font-size:13px;color:var(--text-m);margin:6px 0 20px}
+.author-stats{display:flex;justify-content:center;gap:28px;padding:16px 0 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:22px}
+.author-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+.author-stat .num{font-family:var(--font-serif);font-size:24px;color:var(--text-p)}
+.author-stat .lbl{font-size:11px;color:var(--text-m);letter-spacing:.1em}
+.author-follow{display:inline-block;padding:10px 26px;border:1px solid var(--accent);color:var(--accent);font-size:12px;letter-spacing:.08em;transition:.3s}
+.author-follow:hover{background:var(--accent);color:var(--bg)}
 .credit-note{color:var(--text-m);font-size:13px;line-height:1.9;margin-bottom:24px}
 .credit-note a{color:var(--accent);border-bottom:1px solid rgba(212,162,78,.3)}
 .credit-note a:hover{border-color:var(--accent)}
@@ -250,6 +254,8 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
   .footer-bottom{flex-direction:column;gap:12px}
   .img-waterfall{column-count:2}
   .collection-grid{grid-template-columns:1fr}
+  .home-layout{grid-template-columns:1fr}
+  .home-side{position:static}
 }
 @media(max-width:480px){
   .hero-title{font-size:28px}
