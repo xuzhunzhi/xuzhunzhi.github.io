@@ -1,0 +1,24 @@
+<section class="hero">
+  <h1 class="hero-title">流浪猫的<em>避难所</em></h1>
+  <p class="hero-sub">代码、像素与深夜碎碎念 —— 一个在代码与像素之间流浪的人。</p>
+</section>
+
+<div class="sec-hd"><span class="sec-num">feed</span><span class="sec-title">Latest</span><span class="sec-line"></span></div>
+
+<div class="feed-list">
+  <% if (site.posts && site.posts.length) { %>
+    <% site.posts.sort('date', -1).each(function(post){ %>
+      <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
+      <% var t = cat.indexOf('碎碎念') > -1 ? 'rant' : (cat.indexOf('自设') > -1 ? 'image' : 'article'); %>
+      <% var label = t === 'rant' ? '动态' : (t === 'image' ? '自设' : '文章'); %>
+      <article class="post-card">
+        <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        <span class="feed-type" data-type="<%= t %>"><%= label %></span>
+        <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+        <span class="post-arrow">→</span>
+      </article>
+    <% }) %>
+  <% } else { %>
+    <p class="empty">还没有内容。欢迎来到流浪猫的避难所 —— 去「关于」认识一下，或从本地加一篇吧。</p>
+  <% } %>
+</div>
