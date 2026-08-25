@@ -1,5 +1,25 @@
-# 主题配置（可选，供模板引用）
+# 主题配置（供模板引用）
 menu:
   首页: /
   归档: /archives/
   关于: /about/
+
+# 背景音乐：url 填 MP3 直链；留空则尝试同目录 music.mp3
+music:
+  url: ''
+  title: 心之旋律
+
+# 友链 / Friends
+friends:
+  - name: 月球表面
+    url: ''
+    desc: 独立游戏开发者
+  - name: 像素旅人
+    url: ''
+    desc: 数字插画 & 摄影
+  - name: 代码诗人
+    url: ''
+    desc: 前端 & 创意编程
+  - name: 深夜电台
+    url: ''
+    desc: 音乐 & 文字

@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= page.title ? page.title + ' · ' : '' %><%= config.title %></title>
   <meta name="description" content="<%= page.description || config.description %>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<%= url_for('/css/style.css') %>">
 </head>
 <body>
@@ -22,7 +25,37 @@
     <%- body %>
   </main>
   <footer class="site-footer">
-    <div class="wrap">© <%= new Date().getFullYear() %> <%= config.title %></div>
+    <div class="wrap">
+      <% if (theme.friends && theme.friends.length) { %>
+        <div class="footer-friends">
+          <span class="friends-label">友链 / Friends</span>
+          <div class="friends-list">
+            <% theme.friends.forEach(function(f){ %>
+              <a class="friend" href="<%= f.url || '#' %>" target="_blank" rel="noopener"><%= f.name %></a>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+      <div class="footer-bottom">© <%= new Date().getFullYear() %> <%= config.title %> · 流浪猫不需要和家猫走一样的路</div>
+    </div>
   </footer>
+
+  <% if (theme.music) { %>
+    <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="播放/暂停背景音乐" aria-label="背景音乐"><span class="music-note">♪</span></button>
+    <div class="music-hint" id="musicHint"></div>
+    <audio id="bgMusic" preload="none"></audio>
+    <script>
+      (function(){
+        var btn=document.getElementById('musicBtn'),a=document.getElementById('bgMusic'),hint=document.getElementById('musicHint');
+        a.src = '<%- theme.music.url || '' %>' || 'music.mp3';
+        var showHint=function(t){ if(!hint) return; hint.textContent=t; hint.classList.add('show'); clearTimeout(hint._t); hint._t=setTimeout(function(){hint.classList.remove('show')},3000); };
+        a.addEventListener('play',function(){btn.classList.add('playing')});
+        a.addEventListener('pause',function(){btn.classList.remove('playing')});
+        a.addEventListener('ended',function(){btn.classList.remove('playing')});
+        a.addEventListener('error',function(){ btn.classList.remove('playing'); showHint('无法播放，请在主题配置里填写背景音乐地址'); });
+        window.toggleMusic=function(){ if(a.paused){ a.play().catch(function(){ showHint('无法播放，请检查背景音乐地址'); }); } else { a.pause(); } };
+      })();
+    </script>
+  <% } %>
 </body>
 </html>
