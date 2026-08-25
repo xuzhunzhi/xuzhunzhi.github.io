@@ -18,6 +18,30 @@
   </aside>
 </section>
 
+<% var pinned = site.data.pinned || []; %>
+<% if (pinned.length) { %>
+<div class="sec-hd"><span class="sec-num">pin</span><span class="sec-title">置顶</span><span class="sec-line"></span></div>
+<div class="pinned-wrap">
+  <div class="pinned-track" id="pinnedTrack">
+    <% pinned.forEach(function(it){ if(it.type==='post'){ var post=null; site.posts.filter(function(p){return (p.source||'').indexOf(it.file)>-1}).each(function(p){if(!post)post=p}); if(post){ %>
+      <a class="pin-card" href="<%= url_for(post.path) %>">
+        <div class="pin-kind">文章</div>
+        <div class="pin-title"><%= post.title %></div>
+        <div class="pin-meta"><%= date(post.date,'YYYY-MM-DD') %> <% if(post.categories && post.categories.length){ %>· <%= post.categories.first().name %><% } %></div>
+      </a>
+    <% } } else if(it.type==='dynamic'){ var dyn=(site.data.dynamics||[])[it.index]; if(dyn){ %>
+      <div class="pin-card">
+        <div class="pin-kind">动态</div>
+        <div class="pin-text"><%= dyn.text %></div>
+        <% if(dyn.image){ %><img class="pin-img" src="<%= dyn.image %>" alt=""><% } %>
+      </div>
+    <% } } }) %>
+  </div>
+  <button class="pin-nav pin-prev" onclick="pinScroll(-1)" aria-label="上一个">‹</button>
+  <button class="pin-nav pin-next" onclick="pinScroll(1)" aria-label="下一个">›</button>
+</div>
+<% } %>
+
 <div class="sec-hd"><span class="sec-num">feed</span><span class="sec-title">Latest</span><span class="sec-line"></span></div>
 
 <div class="feed-list">

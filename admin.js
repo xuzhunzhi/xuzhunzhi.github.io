@@ -156,6 +156,18 @@ const server = http.createServer(async (req, res) => {
     const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
     const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
+    const PINNED_PATH = path.join(ROOT, 'source', '_data', 'pinned.json');
+    if (p === '/api/pinned' && req.method === 'GET') {
+      let data = [];
+      try { data = JSON.parse(fs.readFileSync(PINNED_PATH, 'utf8')); } catch (e) {}
+      return json(res, 200, { pinned: data });
+    }
+    if (p === '/api/pinned' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(PINNED_PATH), { recursive: true });
+      fs.writeFileSync(PINNED_PATH, JSON.stringify((body.pinned || []).slice(0, 8), null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
     if (p === '/api/dynamics' && req.method === 'GET') {
       let data = [];
       try { data = JSON.parse(fs.readFileSync(DYNAMICS_PATH, 'utf8')); } catch (e) {}
@@ -264,6 +276,8 @@ select:focus{border-color:var(--accent)}
 .dd-item{padding:10px 12px;color:var(--text-b);cursor:pointer;font-size:14px;display:block}
 .dd-item:hover{background:#1c1c18;color:var(--text-p)}
 .dd-item.sel{color:var(--accent)}
+.pinrow{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border)}
+.pinrow input{width:auto;margin:0;flex-shrink:0}
 input[type=file]{padding:6px 8px;color:var(--text-m);cursor:pointer}
 input[type=file]::file-selector-button{background:transparent;border:1px solid var(--border);color:var(--text-b);font-size:12px;padding:8px 14px;margin-right:10px;cursor:pointer;border-radius:6px;transition:.2s}
 input[type=file]::file-selector-button:hover{border-color:var(--accent);color:var(--accent)}
@@ -301,6 +315,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   <span class="brand">避难所<em>管理台</em></span>
   <div class="navlinks">
     <a class="nav-link active" data-tab="posts" onclick="t('posts')">文章</a>
+    <a class="nav-link" data-tab="home" onclick="t('home')">首页</a>
     <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
     <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
@@ -330,6 +345,19 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <input type="hidden" id="f_file"><input type="hidden" id="f_content"><input type="hidden" id="f_catsave">
     <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button></div>
     <div class="status" id="status"></div>
+  </div>
+</section>
+
+<section id="tab-home" class="tabpage">
+  <h1>首页 <em>置顶</em></h1>
+  <p class="sub">选择要置顶的内容（文章 + 动态），最多 8 篇，首页会用横向卡片展示。</p>
+  <div class="card">
+    <div class="list-hd"><span>已选 <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
+    <label style="margin-top:12px">文章</label>
+    <div id="pin_posts"></div>
+    <label style="margin-top:16px">动态</label>
+    <div id="pin_dyns"></div>
+    <div class="status" id="pinStatus"></div>
   </div>
 </section>
 

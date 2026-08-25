@@ -70,4 +70,11 @@ function delDyn(i){dynamics.splice(i,1);renderDyn()}
 function upDynImg(input,i){var file=input.files[0];if(!file)return;readAsDataURL(file).then(function(data){api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:file.name,album:'dynamics',data:data})}).then(function(d){dynamics[i].image=d.src;renderDyn()})})}
 async function saveDyn(){await api('/api/dynamics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dynamics:dynamics})});show('dynStatus','已保存动态',true)}
 
-load();loadCollections();loadGallery();loadWatch();loadDyn();
+/* ---- 首页置顶 ---- */
+var allPosts=[],allDyns=[],selPin={};
+async function loadPinHome(){var d=await api('/api/posts');allPosts=d.posts||[];var dv=await api('/api/dynamics');allDyns=dv.dynamics||[];var pv=await api('/api/pinned');selPin={};(pv.pinned||[]).forEach(function(it){var key;if(it.type==='post'){key='post:'+allPosts.findIndex(function(p){return p.file===it.file})}else{key='dyn:'+it.index}selPin[key]=true});renderPin()}
+function renderPin(){document.getElementById('pin_posts').innerHTML=allPosts.map(function(p,i){return '<div class="pinrow"><input type="checkbox" '+(selPin['post:'+i]?'checked':'')+' onchange="togglePin(\'post:'+i+'\',this)"><span>'+esc(p.title)+'</span></div>'}).join('')||'<div class="small">还没有文章</div>';document.getElementById('pin_dyns').innerHTML=allDyns.map(function(d,i){return '<div class="pinrow"><input type="checkbox" '+(selPin['dyn:'+i]?'checked':'')+' onchange="togglePin(\'dyn:'+i+'\',this)"><span>'+esc(d.text||'')+'</span></div>'}).join('')||'<div class="small">还没有动态</div>';document.getElementById('pinCount').textContent=Object.keys(selPin).length}
+function togglePin(key,cb){if(cb.checked){if(Object.keys(selPin).length>=8){cb.checked=false;alert('最多选 8 篇');return}selPin[key]=true}else{delete selPin[key]}document.getElementById('pinCount').textContent=Object.keys(selPin).length}
+async function savePin(){var pinned=[];allPosts.forEach(function(p,i){if(selPin['post:'+i])pinned.push({type:'post',file:p.file})});allDyns.forEach(function(d,i){if(selPin['dyn:'+i])pinned.push({type:'dynamic',index:i})});await api('/api/pinned',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:pinned})});show('pinStatus','已保存置顶',true)}
+
+load();loadCollections();loadGallery();loadWatch();loadDyn();loadPinHome();
