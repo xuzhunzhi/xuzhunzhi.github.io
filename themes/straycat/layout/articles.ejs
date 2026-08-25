@@ -33,12 +33,15 @@
     <div class="collection-grid">
       <% var cats = {}; var names = []; %>
       <% site.posts.each(function(post){ if(post.categories) post.categories.each(function(c){ if(!cats[c.name]){cats[c.name]=[]; names.push(c.name);} cats[c.name].push(post); }); }); %>
-      <% names.forEach(function(name){ var posts=cats[name]; %>
+      <% var grads = ['linear-gradient(135deg,#1a2a1a,#0d1a0d,#1a1a0d)','linear-gradient(135deg,#1a0d1a,#0d0d1a,#1a0d0d)','linear-gradient(135deg,#0d1a1a,#0d0d1a,#1a0d0d)','linear-gradient(135deg,#1a1a0d,#0d1a0d,#0d1a1a)']; %>
+      <% names.forEach(function(name, ni){ var posts=cats[name]; %>
         <a class="collection-card" href="<%= url_for('/categories/' + encodeURIComponent(name)) %>">
-          <div class="collection-count"><%= posts.length %></div>
-          <div class="collection-name"><%= name %></div>
-          <div class="collection-desc"><%= posts.length %> 篇文章</div>
-          <ul class="collection-items"><% posts.slice(0,4).forEach(function(p){ %><li><%= p.title %></li><% }) %></ul>
+          <div class="collection-cover" style="background:<%= grads[ni % grads.length] %>"><span class="collection-count"><%= posts.length %></span></div>
+          <div class="collection-body">
+            <div class="collection-name"><%= name %></div>
+            <div class="collection-desc"><%= posts.length %> 篇</div>
+            <ul class="collection-items"><% posts.slice(0,4).forEach(function(p){ %><li><%= p.title %></li><% }) %></ul>
+          </div>
         </a>
       <% }) %>
     </div>
