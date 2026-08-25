@@ -24,11 +24,9 @@
   <% if (site.posts && site.posts.length) { %>
     <% site.posts.sort('date', -1).each(function(post){ %>
       <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
-      <% var t = cat.indexOf('碎碎念') > -1 ? 'rant' : (cat.indexOf('自设') > -1 ? 'image' : 'article'); %>
-      <% var label = t === 'rant' ? '动态' : (t === 'image' ? '自设' : '文章'); %>
       <article class="post-card">
         <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-        <span class="feed-type" data-type="<%= t %>"><%= label %></span>
+        <span class="feed-type" data-type="collection"><%= cat || '文章' %></span>
         <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
         <span class="post-arrow">→</span>
       </article>
