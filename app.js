@@ -58,5 +58,14 @@ function addWatch(){watching.push({title:'',status:'',note:''});renderWatch()}
 function delWatch(i){watching.splice(i,1);renderWatch()}
 async function saveWatch(){await api('/api/watching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({watching:watching})});show('watchStatus','已保存番剧',true)}
 
+/* ---- 动态 ---- */
+var dynamics=[];
+async function loadDyn(){var d=await api('/api/dynamics');dynamics=d.dynamics||[];renderDyn()}
+function renderDyn(){var el=document.getElementById('dynlist');el.innerHTML=dynamics.map(function(d,i){return '<div class="dynrow"><textarea rows="2" placeholder="动态内容" onchange="dynamics['+i+'].text=this.value">'+esc(d.text||'')+'</textarea><div class="row" style="margin-top:8px"><input value="'+esc(d.date||'')+'" placeholder="日期" onchange="dynamics['+i+'].date=this.value"><div style="display:flex;gap:6px;align-items:center"><input value="'+esc(d.image||'')+'" placeholder="图片地址(可选)" onchange="dynamics['+i+'].image=this.value"><button class="btn btn-ghost" onclick="upDynImg(this,'+i+')">传图</button></div></div><div style="margin-top:8px"><button class="btn btn-del" onclick="delDyn('+i+')">删</button></div></div>'}).join('')||'<div class="small" style="padding:8px 0">还没有动态</div>'}
+function addDyn(){dynamics.unshift({text:'',date:new Date().toISOString().slice(0,10),image:''});renderDyn()}
+function delDyn(i){dynamics.splice(i,1);renderDyn()}
+function upDynImg(input,i){var file=input.files[0];if(!file)return;readAsDataURL(file).then(function(data){api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:file.name,album:'dynamics',data:data})}).then(function(d){dynamics[i].image=d.src;renderDyn()})})}
+async function saveDyn(){await api('/api/dynamics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dynamics:dynamics})});show('dynStatus','已保存动态',true)}
+
 document.getElementById('f_content').addEventListener('input',preview);
-load();loadGallery();loadWatch();
+load();loadGallery();loadWatch();loadDyn();

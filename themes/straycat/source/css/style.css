@@ -231,6 +231,7 @@ main{padding-top:12px;min-height:70vh}
 .moment-title{font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text-p);margin-bottom:10px}
 .moment-title a:hover{color:var(--accent)}
 .moment-content{color:var(--text-b);line-height:1.8;font-size:14px}
+.moment-img{max-width:100%;margin-top:12px;border:1px solid var(--border);border-radius:8px}
 
 /* ===== 关于-优化 ===== */
 .about-hero{padding:44px 0 12px}
