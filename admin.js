@@ -210,7 +210,7 @@ if (require.main === module) {
 const UI = `<!DOCTYPE html>
 <html lang="zh-CN"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>流浪猫管理台</title>
+<title>避难所管理台</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0a08;--surface:#141412;--surface2:#1c1c18;--accent:#d4a24e;--text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;--border:rgba(107,103,96,.15);--rose:#c47a8b}
@@ -265,7 +265,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 </style>
 </head><body>
 <nav class="topnav"><div class="navwrap">
-  <span class="brand">流浪猫<em>管理台</em></span>
+  <span class="brand">避难所<em>管理台</em></span>
   <div class="navlinks">
     <a class="nav-link active" data-tab="posts" onclick="t('posts')">文章</a>
     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
