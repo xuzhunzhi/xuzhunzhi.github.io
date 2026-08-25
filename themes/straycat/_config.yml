@@ -24,11 +24,3 @@ friends:
   - name: 深夜电台
     url: ''
     desc: 音乐 & 文字
-
-# 在追的番 / Watching（已删占位，按下面格式添加即可）
-watching: []
-# 格式参考：
-# watching:
-#   - title: 葬送的芙莉莲
-#     status: 已看完 第一季
-#     note: 时间与告别的动画诗
