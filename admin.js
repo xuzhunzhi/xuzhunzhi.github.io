@@ -255,6 +255,15 @@ label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.15em
 input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text-p);font-size:14px;padding:10px 12px;outline:none;border-radius:6px;font-family:inherit}
 select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b0a99a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 select:focus{border-color:var(--accent)}
+.dd{position:relative}
+.dd-btn{width:100%;display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--border);color:var(--text-p);font-size:14px;padding:10px 12px;border-radius:6px;cursor:pointer;font-family:inherit;appearance:none}
+.dd-btn:hover,.dd-btn:focus{border-color:var(--accent)}
+.dd-arrow{transition:transform .2s;opacity:.6;flex-shrink:0;margin-left:8px}
+.dd.open .dd-arrow{transform:rotate(180deg)}
+.dd-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#141412;border:1px solid var(--border);border-radius:8px;z-index:50;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.35);max-height:200px;overflow-y:auto}
+.dd-item{padding:10px 12px;color:var(--text-b);cursor:pointer;font-size:14px;display:block}
+.dd-item:hover{background:#1c1c18;color:var(--text-p)}
+.dd-item.sel{color:var(--accent)}
 input[type=file]{padding:6px 8px;color:var(--text-m);cursor:pointer}
 input[type=file]::file-selector-button{background:transparent;border:1px solid var(--border);color:var(--text-b);font-size:12px;padding:8px 14px;margin-right:10px;cursor:pointer;border-radius:6px;transition:.2s}
 input[type=file]::file-selector-button:hover{border-color:var(--accent);color:var(--accent)}
@@ -305,13 +314,13 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <div class="plist" id="posts"></div>
   </div>
   <div class="card">
-    <label>选择文档（.md + 图片的文件夹；编辑时再上传 = 替换内容）</label>
-    <input type="file" id="up_folder" webkitdirectory directory>
+    <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label>
+    <input type="file" id="up_folder" multiple>
     <div class="status" id="upStatus"></div>
     <label>标题</label><input id="f_title" placeholder="文章标题">
     <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
     <div class="row">
-      <div><label>合集</label><select id="f_collection"></select></div>
+      <div><label>合集</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDD()"><span id="col_label">无合集</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="col_menu" style="display:none"></div></div><input type="hidden" id="f_collection"></div>
       <div><label>发布日期（自动 = 现在）</label><input id="f_date" placeholder="自动"></div>
     </div>
     <div id="f_newcol" style="display:none;margin-top:8px"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
