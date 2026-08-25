@@ -1,0 +1,40 @@
+<section class="hero">
+  <h1 class="hero-title">Fragments <em>of Light</em></h1>
+  <p class="hero-sub">随手拍的、画的，时间线或相册两种看法。</p>
+</section>
+
+<div class="ptoggle">
+  <div class="view-toggle">
+    <button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button>
+    <button class="toggle-btn" data-view="album" onclick="switchView(this,'album')">相册</button>
+  </div>
+
+  <div class="view-panel" id="view-timeline">
+    <div class="img-waterfall">
+      <% var all = []; (page.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push(im); }); }); %>
+      <% all.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).forEach(function(im){ %>
+        <figure class="img-card" onclick="openLightbox('<%= im.src %>')">
+          <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')">
+          <figcaption class="img-card-caption"><%= im.date ? im.date : '' %> · <%= im.caption %></figcaption>
+        </figure>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="view-panel" id="view-album" style="display:none">
+    <% (page.albums || []).forEach(function(a){ %>
+      <section class="album">
+        <h2 class="album-name"><%= a.name %></h2>
+        <% if (a.desc) { %><p class="album-desc"><%= a.desc %></p><% } %>
+        <div class="album-grid">
+          <% (a.images || []).forEach(function(im){ %>
+            <figure class="gallery-item">
+              <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')" onclick="openLightbox('<%= im.src %>')">
+              <figcaption><%= im.caption %></figcaption>
+            </figure>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+  </div>
+</div>

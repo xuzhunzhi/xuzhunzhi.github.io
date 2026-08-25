@@ -1,0 +1,46 @@
+<section class="hero">
+  <h1 class="hero-title">Notes &amp; <em>Essays</em></h1>
+  <p class="hero-sub">文章与设计笔记，按时间或合集浏览。</p>
+</section>
+
+<div class="ptoggle">
+  <div class="view-toggle">
+    <button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button>
+    <button class="toggle-btn" data-view="collection" onclick="switchView(this,'collection')">合集</button>
+  </div>
+
+  <div class="view-panel" id="view-timeline">
+    <div class="articles-timeline">
+      <% var years = {}; %>
+      <% site.posts.sort('date', -1).each(function(post){ var d=new Date(post.date); var y=d.getFullYear(); var m=d.getMonth()+1; if(!years[y])years[y]={}; if(!years[y][m])years[y][m]=[]; years[y][m].push(post); }); %>
+      <% Object.keys(years).sort(function(a,b){return b-a}).forEach(function(y){ %>
+        <div class="articles-year">
+          <div class="year-label"><%= y %></div>
+          <% Object.keys(years[y]).sort(function(a,b){return b-a}).forEach(function(m){ %>
+            <div class="year-month">
+              <div class="month-label"><%= ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][m] %></div>
+              <% years[y][m].forEach(function(post){ %>
+                <a class="month-item" href="<%= url_for(post.path) %>"><span class="month-item-day"><%= new Date(post.date).getDate() %>日</span><span class="month-item-title"><%= post.title %></span></a>
+              <% }) %>
+            </div>
+          <% }) %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="view-panel" id="view-collection" style="display:none">
+    <div class="collection-grid">
+      <% var cats = {}; var names = []; %>
+      <% site.posts.each(function(post){ if(post.categories) post.categories.each(function(c){ if(!cats[c.name]){cats[c.name]=[]; names.push(c.name);} cats[c.name].push(post); }); }); %>
+      <% names.forEach(function(name){ var posts=cats[name]; %>
+        <a class="collection-card" href="<%= url_for('/categories/' + encodeURIComponent(name)) %>">
+          <div class="collection-count"><%= posts.length %></div>
+          <div class="collection-name"><%= name %></div>
+          <div class="collection-desc"><%= posts.length %> 篇文章</div>
+          <ul class="collection-items"><% posts.slice(0,4).forEach(function(p){ %><li><%= p.title %></li><% }) %></ul>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</div>

@@ -16,9 +16,10 @@
       <a class="brand" href="<%= url_for('/') %>"><%= config.title %></a>
       <nav class="site-nav">
         <a href="<%= url_for('/') %>">首页</a>
-        <a href="<%= url_for('/photos/') %>">相册</a>
+        <a href="<%= url_for('/articles/') %>">文章</a>
+        <a href="<%= url_for('/images/') %>">图片</a>
+        <a href="<%= url_for('/dynamics/') %>">动态</a>
         <a href="<%= url_for('/anime/') %>">番剧</a>
-        <a href="<%= url_for('/archives/') %>">归档</a>
         <a href="<%= url_for('/about/') %>">关于</a>
       </nav>
     </div>
@@ -38,7 +39,10 @@
           </div>
         </div>
       <% } %>
-      <div class="footer-bottom">© <%= new Date().getFullYear() %> <%= config.title %> · 流浪猫不需要和家猫走一样的路</div>
+      <div class="footer-bottom">
+        <span>© <%= new Date().getFullYear() %> <%= config.title %></span>
+        <span>流浪猫不需要和家猫走一样的路</span>
+      </div>
     </div>
   </footer>
 
@@ -59,5 +63,21 @@
       })();
     </script>
   <% } %>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" alt=""></div>
+
+  <script>
+    function switchView(btn, name){
+      var root = btn.closest('.ptoggle'); if(!root) return;
+      root.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); });
+      root.querySelectorAll('.view-panel').forEach(function(p){ p.style.display = p.id === ('view-'+name) ? '' : 'none'; });
+    }
+    function openLightbox(src){
+      var lb=document.getElementById('lightbox'),im=document.getElementById('lightboxImg');
+      if(!lb||!im) return; im.src=src; lb.classList.add('show');
+    }
+    function closeLightbox(){ var lb=document.getElementById('lightbox'); if(lb) lb.classList.remove('show'); }
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeLightbox(); });
+  </script>
 </body>
 </html>

@@ -1,0 +1,21 @@
+<section class="hero">
+  <h1 class="hero-title">深夜 <em>碎碎念</em></h1>
+  <p class="hero-sub">一些没头没尾的想法，按时间排。</p>
+</section>
+
+<div class="sec-hd"><span class="sec-num">live</span><span class="sec-title">动态</span><span class="sec-line"></span></div>
+
+<div class="moment-feed">
+  <% var hasDyn = false; %>
+  <% site.posts.sort('date', -1).each(function(post){ %>
+    <% var isDyn = false; if (post.categories) post.categories.each(function(c){ if (c.name.indexOf('碎碎念') > -1) isDyn = true; }); %>
+    <% if (isDyn) { hasDyn = true; %>
+      <article class="moment">
+        <div class="moment-head"><span class="feed-type" data-type="rant">动态</span><span class="moment-date"><%= date(post.date, 'YYYY-MM-DD') %></span></div>
+        <h2 class="moment-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+        <div class="moment-content"><%= post.excerpt ? post.excerpt : strip_html(post.content).substring(0, 160) %></div>
+      </article>
+    <% } %>
+  <% }) %>
+  <% if (!hasDyn) { %><p class="empty">还没有动态。</p><% } %>
+</div>
