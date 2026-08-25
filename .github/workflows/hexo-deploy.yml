@@ -34,6 +34,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Copy self-hosted fonts
+        run: |
+          mkdir -p themes/straycat/source/fonts
+          cp node_modules/@fontsource/cormorant-garamond/files/*.woff2 themes/straycat/source/fonts/ || true
+          cp node_modules/@fontsource/syne/files/*.woff2 themes/straycat/source/fonts/ || true
+          cp node_modules/@fontsource/dm-mono/files/*.woff2 themes/straycat/source/fonts/ || true
+
       - name: Generate site
         run: npx hexo generate
 

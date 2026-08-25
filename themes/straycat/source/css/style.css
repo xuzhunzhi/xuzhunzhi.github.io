@@ -5,10 +5,19 @@
   --text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;
   --border:rgba(107,103,96,.15);
   --font-sans:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --font-serif:Georgia,"Songti SC","STSong","Noto Serif SC","SimSun",serif;
-  --font-syne:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-  --font-mono:"SF Mono",Consolas,"Liberation Mono","Courier New",monospace;
+  --font-serif:'Cormorant Garamond',Georgia,"Songti SC","STSong",serif;
+  --font-syne:'Syne',-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-mono:'DM Mono',"SF Mono",Consolas,"Courier New",monospace;
 }
+
+/* ===== 自托管字体 (fontsource) ===== */
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:400;src:url('/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;src:url('/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;src:url('/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Syne';font-style:normal;font-weight:600;src:url('/fonts/syne-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Syne';font-style:normal;font-weight:700;src:url('/fonts/syne-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:300;src:url('/fonts/dm-mono-latin-300-normal.woff2') format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;src:url('/fonts/dm-mono-latin-400-normal.woff2') format('woff2')}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
