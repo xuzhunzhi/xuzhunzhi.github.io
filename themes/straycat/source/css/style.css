@@ -256,6 +256,8 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
 .pinned-track::-webkit-scrollbar-thumb{background:rgba(107,103,96,.3);border-radius:3px}
 .pin-card{flex:0 0 auto;width:280px;scroll-snap-align:start;border:1px solid var(--border);border-radius:12px;padding:20px;background:var(--surface);display:flex;flex-direction:column;transition:.3s}
 .pin-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pin-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.pin-head .pin-title{flex:1}
 .pin-top{display:flex;justify-content:flex-end;margin-bottom:12px}
 .pin-kind{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-dim)}
 .pin-title{font-family:var(--font-serif);font-size:20px;font-weight:600;color:var(--text-p);line-height:1.4;margin-bottom:8px}
