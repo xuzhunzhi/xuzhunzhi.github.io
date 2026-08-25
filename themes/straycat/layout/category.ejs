@@ -1,10 +1,26 @@
 <% if (page.posts && page.posts.length) { %>
-  <h1 class="archive-title"><%= page.category ? page.category.name : '分类' %></h1>
-  <ul class="archive-list">
+  <% var colName = page.category ? page.category.name : ''; %>
+  <% var col = null; (site.data.collections || []).forEach(function(c){ if(c.name===colName) col=c; }); %>
+  <section class="cat-hero">
+    <% if (col && col.cover) { %><div class="cat-cover" style="background-image:url('<%= col.cover %>')"></div><% } %>
+    <div class="cat-body">
+      <div class="cat-kind">合集</div>
+      <h1 class="cat-name"><%= colName %></h1>
+      <% if (col && col.desc) { %><p class="cat-desc"><%= col.desc %></p><% } %>
+      <p class="cat-count">共 <%= page.posts.length %> 篇</p>
+    </div>
+  </section>
+  <div class="sec-hd"><span class="sec-num">posts</span><span class="sec-title">文章</span><span class="sec-line"></span></div>
+  <div class="feed-list">
     <% page.posts.each(function(post){ %>
-      <li><span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span><a href="<%= url_for(post.path) %>"><%= post.title %></a></li>
+      <article class="post-card">
+        <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        <span class="feed-type" data-type="collection"><%= colName %></span>
+        <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+        <span class="post-arrow">→</span>
+      </article>
     <% }) %>
-  </ul>
+  </div>
 <% } else if (page.categories && page.categories.length) { %>
   <h1 class="archive-title">分类</h1>
   <ul class="archive-list">

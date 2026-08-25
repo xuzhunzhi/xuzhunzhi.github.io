@@ -265,6 +265,15 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
 .pin-prev{left:-14px}
 .pin-next{right:-14px}
 
+/* ===== 合集分类页 ===== */
+.cat-hero{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:36px;background:var(--surface)}
+.cat-cover{height:200px;background-size:cover;background-position:center;border-bottom:1px solid var(--border)}
+.cat-body{padding:28px 30px}
+.cat-kind{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--accent-dim);margin-bottom:10px}
+.cat-name{font-family:var(--font-serif);font-weight:300;font-size:clamp(28px,4vw,44px);color:var(--text-p);line-height:1.1;margin-bottom:10px}
+.cat-desc{color:var(--text-b);font-size:15px;max-width:640px;line-height:1.8}
+.cat-count{font-family:var(--font-mono);font-size:12px;color:var(--text-m);margin-top:14px}
+
 @media(max-width:900px){
   .wrap{padding:0 20px}
   .post-card{grid-template-columns:1fr;gap:6px;padding:18px 0}

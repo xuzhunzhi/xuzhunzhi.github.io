@@ -154,6 +154,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
+    const COLLECTIONS_PATH = path.join(ROOT, 'source', '_data', 'collections.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
     const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
     const PINNED_PATH = path.join(ROOT, 'source', '_data', 'pinned.json');
@@ -180,9 +181,18 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/collections' && req.method === 'GET') {
+      let meta = [];
+      try { meta = JSON.parse(fs.readFileSync(COLLECTIONS_PATH, 'utf8')); } catch (e) {}
       const set = new Set();
       listPosts().forEach(po => { (po.categories || '').split(/[,，]/).forEach(c => { c = c.trim().replace(/^\[|\]$/g, ''); if (c) set.add(c); }); });
-      return json(res, 200, { collections: Array.from(set) });
+      const names = meta.map(c => c.name).concat(Array.from(set).filter(n => !meta.some(c => c.name === n)));
+      return json(res, 200, { collections: meta, names });
+    }
+    if (p === '/api/collections' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(COLLECTIONS_PATH), { recursive: true });
+      fs.writeFileSync(COLLECTIONS_PATH, JSON.stringify(body.collections || [], null, 2), 'utf8');
+      return json(res, 200, { ok: true });
     }
     if (p === '/api/gallery' && req.method === 'GET') {
       let data = { albums: [] };
@@ -278,6 +288,9 @@ select:focus{border-color:var(--accent)}
 .dd-item.sel{color:var(--accent)}
 .pinrow{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border)}
 .pinrow input{width:auto;margin:0;flex-shrink:0}
+.collrow{border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;background:#0a0a08}
+.collrow input{padding:8px 10px;font-size:13px}
+.coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
 input[type=file]{padding:6px 8px;color:var(--text-m);cursor:pointer}
 input[type=file]::file-selector-button{background:transparent;border:1px solid var(--border);color:var(--text-b);font-size:12px;padding:8px 14px;margin-right:10px;cursor:pointer;border-radius:6px;transition:.2s}
 input[type=file]::file-selector-button:hover{border-color:var(--accent);color:var(--accent)}
@@ -345,6 +358,12 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <input type="hidden" id="f_file"><input type="hidden" id="f_content"><input type="hidden" id="f_catsave">
     <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button></div>
     <div class="status" id="status"></div>
+  </div>
+  <div class="card">
+    <div class="list-hd"><span>合集管理（封面 / 名字 / 简介）</span></div>
+    <div id="collist"></div>
+    <div style="margin-top:12px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveColls()">保存合集</button><button class="btn btn-ghost" onclick="addColl()">＋ 添加合集</button></div>
+    <div class="status" id="collStatus"></div>
   </div>
 </section>
 
