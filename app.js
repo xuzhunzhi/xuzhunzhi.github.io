@@ -21,16 +21,24 @@ function newPost(){document.getElementById('f_file').value='';document.getElemen
 function cancelEdit(){newPost()}
 async function openPost(file){var d=await api('/api/post?file='+file);var sel=document.getElementById('f_collection');document.getElementById('f_file').value=d.file;document.getElementById('f_catsave').value=d.categories;document.getElementById('f_title').value=d.title;document.getElementById('f_summary').value=d.description||'';document.getElementById('f_content').value=d.content;document.getElementById('f_date').value=nowStr();document.getElementById('form_hd').textContent='正在编辑：'+d.title;document.getElementById('cancelEdit').style.display='inline-block';if(d.categories&&collections.indexOf(d.categories)<0)collections.push(d.categories);renderColMenu();sel.value=d.categories;document.getElementById('f_newcol').style.display=sel.value==='__new__'?'block':'none'}
 async function readFolder(){var input=document.getElementById('up_folder');if(!input.files.length){show('upStatus','请选择文档文件夹',false);return null}var files=Array.from(input.files);var mdFile=files.find(function(f){return /\.md$/i.test(f.name)});if(!mdFile){show('upStatus','文件夹里没找到 .md 文件',false);return null}var mdContent=await mdFile.text();var images=[];for(var i=0;i<files.length;i++){var f=files[i];if(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f.name)){images.push({name:f.name,path:f.webkitRelativePath||f.name,data:await readAsDataURL(f)})}}show('upStatus','正在读入…',true);var d=await api('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:mdFile.name.replace(/\.md$/i,''),content:mdContent,images:images,mdPath:mdFile.webkitRelativePath||mdFile.name})});if(!d.ok){show('upStatus',d.msg||'读入失败',false);return null}document.getElementById('f_content').value=d.content;show('upStatus',d.msg||'已读入',true);return d}
+function clearForm(){document.getElementById('up_folder').value='';document.getElementById('f_file').value='';document.getElementById('f_catsave').value='';document.getElementById('f_title').value='';document.getElementById('f_summary').value='';document.getElementById('f_content').value='';document.getElementById('f_newcolname').value='';document.getElementById('f_date').value=nowStr();document.getElementById('form_hd').textContent='发布新文章';document.getElementById('cancelEdit').style.display='none';renderColMenu()}
 async function publishPost(){
-  var file=document.getElementById('f_file').value;var hasUp=document.getElementById('up_folder').files.length>0;
-  if(hasUp&&file&&!confirm('检测到上传文档，确定替换《'+document.getElementById('f_title').value+'》的正文吗？'))return;
-  if(hasUp){var rd=await readFolder();if(!rd)return}
-  var title=document.getElementById('f_title').value.trim();if(!title){show('status','请输入标题',false);return}
-  var sel=document.getElementById('f_collection');var cat=sel.value;var newcol='';
-  if(cat==='__new__'){newcol=document.getElementById('f_newcolname').value.trim();if(!newcol){show('status','请输入新合集名',false);return}cat=newcol;collections.push(cat)}
-  var body={file:file,title:title,date:nowStr(),categories:cat,description:document.getElementById('f_summary').value.trim(),content:document.getElementById('f_content').value};
-  var d=await api('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});document.getElementById('f_file').value=d.file;document.getElementById('f_catsave').value=cat;
-  var p=await api('/api/publish',{method:'POST'});show('status',p.msg||'已发布',p.ok);load();loadCollections();
+  var btn=document.getElementById('pubBtn');if(btn)btn.disabled=true;
+  try{
+    var file=document.getElementById('f_file').value;var hasUp=document.getElementById('up_folder').files.length>0;
+    if(hasUp&&file&&!confirm('检测到上传文档，确定替换《'+document.getElementById('f_title').value+'》的正文吗？'))return;
+    if(hasUp){var rd=await readFolder();if(!rd)return}
+    var title=document.getElementById('f_title').value.trim();if(!title){show('status','请输入标题',false);return}
+    var sel=document.getElementById('f_collection');var cat=sel.value;var newcol='';
+    if(cat==='__new__'){newcol=document.getElementById('f_newcolname').value.trim();if(!newcol){show('status','请输入新合集名',false);return}cat=newcol;collections.push(cat)}
+    var body={file:file,title:title,date:nowStr(),categories:cat,description:document.getElementById('f_summary').value.trim(),content:document.getElementById('f_content').value};
+    var d=await api('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});document.getElementById('f_file').value=d.file;
+    show('status','正在提交并推送…',true);
+    var p=await api('/api/publish',{method:'POST'});
+    if(p.ok){clearForm();show('status','已发布并推送',true);load();loadCollections();}
+    else{show('status',p.msg||'发布失败',false)}
+  }catch(e){show('status','发布出错:'+e.message,false)}
+  finally{if(btn)btn.disabled=false}
 }
 async function delPost(file){if(!confirm('确定删除这篇？'))return;var body={file:file||document.getElementById('f_file').value};await api('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});show('status','已删除',true);load()}
 

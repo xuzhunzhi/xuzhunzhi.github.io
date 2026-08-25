@@ -328,7 +328,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     </div>
     <div id="f_newcol" style="display:none;margin-top:8px"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
     <input type="hidden" id="f_file"><input type="hidden" id="f_content"><input type="hidden" id="f_catsave">
-    <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" onclick="publishPost()">发布</button></div>
+    <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button></div>
     <div class="status" id="status"></div>
   </div>
 </section>
