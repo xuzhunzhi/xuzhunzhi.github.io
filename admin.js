@@ -84,16 +84,21 @@ const server = http.createServer(async (req, res) => {
       ensure();
       const slugName = slug(body.title || 'post');
       let content = body.content || '';
-      const refs = [...content.matchAll(/!\[[^\]]*\]\((.+?)\)/g)].map(m => m[1]);
       const imgDir = path.join(ROOT, 'source', 'images', 'posts', slugName);
       fs.mkdirSync(imgDir, { recursive: true });
+      const inFolder = p => { const parts = (p || '').split(/[\\/]/); return parts.slice(1).join('/'); };
+      const mdDir = path.posix.dirname(inFolder(body.mdPath));
+      const imgs = body.images || [];
       const saved = [];
+      const refs = [...content.matchAll(/!\[[^\]]*\]\((.+?)\)/g)].map(m => m[1]);
       refs.forEach(ref => {
-        const clean = decodeURIComponent(ref.split('?')[0]).trim();
-        const base = path.basename(clean);
-        const img = (body.images || []).find(i => path.basename(i.name) === base);
+        const clean = decodeURIComponent(ref.split('?')[0].trim());
+        if (/^(https?:)?\/\//.test(clean) || clean.startsWith('/')) return;
+        const base = path.posix.basename(clean);
+        const norm = path.posix.normalize(path.posix.join(mdDir, clean.replace(/^\.\//, '')));
+        const img = imgs.find(i => inFolder(i.path || i.name) === norm) || imgs.find(i => path.posix.basename(i.name) === base);
         if (img) {
-          const data = img.data.replace(/^data:.*?;base64,/, '');
+          const data = String(img.data).replace(/^data:.*?;base64,/, '');
           fs.writeFileSync(path.join(imgDir, base), Buffer.from(data, 'base64'));
           content = content.replace(new RegExp('\\(' + escapeRegExp(ref) + '\\)'), '(/' + ['images', 'posts', slugName, base].join('/') + ')');
           saved.push(base);
@@ -175,10 +180,8 @@ button{font-size:13px;padding:11px 24px;border:none;cursor:pointer;letter-spacin
   <div class="list"><h2>文章</h2><div id="posts"></div><button class="newbtn" onclick="newPost()">＋ 新建文章</button></div>
   <div class="form">
     <div class="up">
-      <label>上传本地文章</label>
-      <input type="file" id="up_md" accept=".md,text/markdown,text/plain">
-      <label style="margin-top:6px">图片（Markdown 里引用的，可多选）</label>
-      <input type="file" id="up_imgs" accept="image/*" multiple>
+      <label>上传本地文章（选择包含 .md 和图片的文件夹）</label>
+      <input type="file" id="up_folder" webkitdirectory directory>
       <div style="margin-top:12px"><button class="btn-pub" onclick="uploadPost()">上传并保存</button></div>
       <div class="status" id="upStatus"></div>
       <hr style="border:none;border-top:1px solid rgba(107,103,96,.15);margin:18px 0">
@@ -208,14 +211,16 @@ function preview(){const t=document.getElementById('f_content').value;const el=d
 function showUp(s,ok){const el=document.getElementById('upStatus');el.style.color=ok?'#7a9e7e':'#c47a8b';el.textContent=s}
 function readAsDataURL(f){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
 async function uploadPost(){
-  const mdInput=document.getElementById('up_md');
-  if(!mdInput.files.length){showUp('请选择 .md 文件',false);return}
-  const fname=mdInput.files[0].name.replace(/\.md$/i,'');
-  const mdContent=await mdInput.files[0].text();
+  const input=document.getElementById('up_folder');
+  if(!input.files.length){showUp('请选择文章文件夹',false);return}
+  const files=Array.from(input.files);
+  const mdFile=files.find(f=>/\.md$/i.test(f.name));
+  if(!mdFile){showUp('文件夹里没找到 .md 文件',false);return}
+  const mdContent=await mdFile.text();
   const images=[];
-  for(const f of document.getElementById('up_imgs').files){images.push({name:f.name,data:await readAsDataURL(f)})}
+  for(const f of files){ if(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f.name)){ images.push({name:f.name,path:f.webkitRelativePath||f.name,data:await readAsDataURL(f)}) } }
   showUp('正在上传…',true);
-  const d=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:fname,content:mdContent,images})});
+  const d=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:mdFile.name.replace(/\.md$/i,''),content:mdContent,images,mdPath:mdFile.webkitRelativePath||mdFile.name})});
   showUp(d.msg||'完成',d.ok);
   if(d.ok){load()}
 }
