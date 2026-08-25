@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 流浪猫的避难所 · 本地管理面板 (纯 Node，零依赖)
 // 运行：node admin.js  然后浏览器打开 http://localhost:4001
 // 功能：新建/编辑/删除文章（Markdown + 预览），一键 git 提交推送发布
@@ -47,7 +47,7 @@ function listPosts() {
 function readPost(file) {
   const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
   const { fm, body } = parseFM(raw);
-  return { file, title: fm.title || '', date: fm.date || '', categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, ''), content: body.trim() };
+  return { file, title: fm.title || '', date: fm.date || '', categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, ''), description: fm.description || '', content: body.trim() };
 }
 
 // ---------- HTTP ----------
@@ -68,6 +68,7 @@ const server = http.createServer(async (req, res) => {
       let file = body.file || (slug(body.title) + '.md');
       if (!file.endsWith('.md')) file += '.md';
       const lines = ['---', `title: ${body.title || ''}`, `date: ${body.date || ''}`];
+      if (body.description) lines.push(`description: ${body.description}`);
       const cats = arr(body.categories); if (cats) lines.push(`categories: ${cats}`);
       const tags = arr(body.tags); if (tags) lines.push(`tags: ${tags}`);
       lines.push('---', '', body.content || '');
@@ -115,6 +116,35 @@ const server = http.createServer(async (req, res) => {
       const file = slugName + '.md';
       fs.writeFileSync(path.join(POSTS_DIR, file), finalContent + '\n', 'utf8');
       return json(res, 200, { ok: true, file, saved, msg: '已保存文章与 ' + saved.length + ' 张图片' });
+    }
+    if (p === '/api/preview' && req.method === 'POST') {
+      const body = await readBody(req);
+      let content = body.content || '';
+      const imgDir = path.join(ROOT, 'source', 'images', 'posts', (body.slug || 'draft'));
+      fs.mkdirSync(imgDir, { recursive: true });
+      const inFolder = p => { const parts = (p || '').split(/[\\/]/); return parts.slice(1).join('/'); };
+      const mdDir = path.posix.dirname(inFolder(body.mdPath));
+      const imgs = body.images || [];
+      const saved = [];
+      const refs = [...content.matchAll(/!\[[^\]]*\]\((.+?)\)/g)].map(m => m[1]);
+      refs.forEach(ref => {
+        const clean = decodeURIComponent(ref.split('?')[0].trim());
+        if (/^(https?:)?\/\//.test(clean) || clean.startsWith('/')) return;
+        const base = path.posix.basename(clean);
+        const norm = path.posix.normalize(path.posix.join(mdDir, clean.replace(/^\.\//, '')));
+        const img = imgs.find(i => inFolder(i.path || i.name) === norm) || imgs.find(i => path.posix.basename(i.name) === base);
+        if (img) {
+          const data = String(img.data).replace(/^data:.*?;base64,/, '');
+          fs.writeFileSync(path.join(imgDir, base), Buffer.from(data, 'base64'));
+          content = content.replace(new RegExp('\\(' + escapeRegExp(ref) + '\\)'), '(/' + ['images', 'posts', (body.slug || 'draft'), base].join('/') + ')');
+          saved.push(base);
+        }
+      });
+      let title = body.title || '文章';
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
+      if (fmMatch) { const t = fmMatch[1].match(/title:\s*(.+)/); if (t) title = t[1].replace(/^['"]|['"]$/g, ''); content = content.slice(fmMatch[0].length); }
+      else { const h = content.match(/^#\s+(.+)$/m); if (h) title = h[1]; }
+      return json(res, 200, { ok: true, title, content: content.trim(), saved, msg: '已读入文章，识别标题「' + title + '」。' });
     }
     if (p === '/api/publish' && req.method === 'POST') {
       exec('git add . && git commit -m "admin publish" && git push', { cwd: ROOT }, (err, stdout, stderr) => {
@@ -266,6 +296,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
       <div><label>分类（逗号分隔）</label><input id="f_cats" placeholder="RTS设计笔记, 王者荣耀自设。填「碎碎念」=动态"></div>
     </div>
     <label>标签（逗号分隔）</label><input id="f_tags" placeholder="RTS, 设计">
+    <label>简介（摘要，可选）</label><input id="f_summary" placeholder="一句话简介">
     <label>正文（Markdown）</label><textarea id="f_content" placeholder="写点什么…"></textarea>
     <div style="display:flex;gap:12px;margin-top:20px">
       <button class="btn btn-ghost" onclick="savePost()">保存</button>

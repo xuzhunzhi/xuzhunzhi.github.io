@@ -11,9 +11,9 @@ function readAsDataURL(f){return new Promise(function(r){var fr=new FileReader()
 /* ---- 文章 ---- */
 async function load(){const d=await api('/api/posts');const el=document.getElementById('posts');el.innerHTML=d.posts.map(function(p){return '<div class="pitem" data-f="'+encodeURIComponent(p.file)+'"><span>'+esc(p.title)+'</span><span class="x">×</span></div>'}).join('')||'<div class="small" style="padding:8px 0">还没有文章</div>';}
 document.getElementById('posts').addEventListener('click',function(e){var it=e.target.closest('.pitem');if(!it)return;var f=decodeURIComponent(it.dataset.f);if(e.target.classList.contains('x')){delPost(f)}else{openPost(f)}});
-function newPost(){document.getElementById('f_file').value='';document.getElementById('f_title').value='';document.getElementById('f_date').value=new Date().toISOString().slice(0,10)+' 00:00:00';document.getElementById('f_cats').value='';document.getElementById('f_tags').value='';document.getElementById('f_content').value='';document.getElementById('preview').style.display='none'}
-async function openPost(file){var d=await api('/api/post?file='+file);document.getElementById('f_file').value=d.file;document.getElementById('f_title').value=d.title;document.getElementById('f_date').value=d.date;document.getElementById('f_cats').value=d.categories;document.getElementById('f_tags').value=d.tags;document.getElementById('f_content').value=d.content;preview()}
-async function savePost(){var body={file:document.getElementById('f_file').value,title:document.getElementById('f_title').value.trim(),date:document.getElementById('f_date').value.trim(),categories:document.getElementById('f_cats').value.trim(),tags:document.getElementById('f_tags').value.trim(),content:document.getElementById('f_content').value};var d=await api('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});document.getElementById('f_file').value=d.file;show('status','已保存',true);load()}
+function newPost(){document.getElementById('f_file').value='';document.getElementById('f_title').value='';document.getElementById('f_date').value=new Date().toISOString().slice(0,10)+' 00:00:00';document.getElementById('f_cats').value='';document.getElementById('f_tags').value='';document.getElementById('f_summary').value='';document.getElementById('f_content').value='';document.getElementById('preview').style.display='none'}
+async function openPost(file){var d=await api('/api/post?file='+file);document.getElementById('f_file').value=d.file;document.getElementById('f_title').value=d.title;document.getElementById('f_date').value=d.date;document.getElementById('f_cats').value=d.categories;document.getElementById('f_tags').value=d.tags;document.getElementById('f_summary').value=d.description||'';document.getElementById('f_content').value=d.content;preview()}
+async function savePost(){var body={file:document.getElementById('f_file').value,title:document.getElementById('f_title').value.trim(),date:document.getElementById('f_date').value.trim(),categories:document.getElementById('f_cats').value.trim(),tags:document.getElementById('f_tags').value.trim(),description:document.getElementById('f_summary').value.trim(),content:document.getElementById('f_content').value};var d=await api('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});document.getElementById('f_file').value=d.file;show('status','已保存',true);load()}
 async function delPost(file){if(!confirm('确定删除这篇？'))return;var body={file:file||document.getElementById('f_file').value};await api('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});show('status','已删除',true);load()}
 async function publish(){show('status','正在提交并推送…',true);var d=await api('/api/publish',{method:'POST'});show('status',d.msg||'完成',d.ok)}
 function md(t){let h=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h2>$1</h2>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>').replace(/^---$/gm,'<hr>').replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/((?:<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>');return h.split('\n\n').map(function(b){b=b.trim();if(!b)return '';if(/^<[a-z]/.test(b))return b;return '<p>'+b.replace(/\n/g,'<br>')+'</p>'}).join('\n')}
@@ -26,9 +26,17 @@ async function uploadPost(){
   if(!mdFile){show('upStatus','文件夹里没找到 .md 文件',false);return}
   var mdContent=await mdFile.text();var images=[];
   for(var i=0;i<files.length;i++){var f=files[i];if(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(f.name)){images.push({name:f.name,path:f.webkitRelativePath||f.name,data:await readAsDataURL(f)})}}
-  show('upStatus','正在上传…',true);
-  var d=await api('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:mdFile.name.replace(/\.md$/i,''),content:mdContent,images:images,mdPath:mdFile.webkitRelativePath||mdFile.name})});
-  show('upStatus',d.msg||'完成',d.ok); if(d.ok){load()}
+  show('upStatus','正在读入…',true);
+  var d=await api('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:mdFile.name.replace(/\.md$/i,''),content:mdContent,images:images,mdPath:mdFile.webkitRelativePath||mdFile.name})});
+  if(!d.ok){show('upStatus',d.msg||'读入失败',false);return}
+  document.getElementById('f_file').value='';
+  document.getElementById('f_title').value=d.title;
+  document.getElementById('f_date').value=new Date().toISOString().slice(0,10)+' 00:00:00';
+  document.getElementById('f_cats').value='';
+  document.getElementById('f_tags').value='';
+  document.getElementById('f_summary').value='';
+  document.getElementById('f_content').value=d.content;
+  show('upStatus',d.msg||'已读入',true); preview();
 }
 
 /* ---- 图片（相册） ---- */
