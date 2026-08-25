@@ -26,7 +26,7 @@
       <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
       <article class="post-card">
         <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-        <span class="feed-type" data-type="collection"><%= cat || '文章' %></span>
+        <span class="post-collection"><%= cat ? '· ' + cat : '' %></span>
         <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
         <span class="post-arrow">→</span>
       </article>
