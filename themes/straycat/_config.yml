@@ -25,14 +25,10 @@ friends:
     url: ''
     desc: 音乐 & 文字
 
-# 在追的番 / Watching
-watching:
-  - title: 葬送的芙莉莲
-    status: 已看完 第一季
-    note: 时间与告别的动画诗
-  - title: 迷宫饭
-    status: 更新至 4/24
-    note: 一边吃饭，一边下本
-  - title: 赛博朋克：边缘行者
-    status: 已看完
-    note: 今晚、我不再爱人了
+# 在追的番 / Watching（已删占位，按下面格式添加即可）
+watching: []
+# 格式参考：
+# watching:
+#   - title: 葬送的芙莉莲
+#     status: 已看完 第一季
+#     note: 时间与告别的动画诗
