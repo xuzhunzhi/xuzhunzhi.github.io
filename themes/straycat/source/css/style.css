@@ -52,10 +52,9 @@ main{padding-top:12px;min-height:70vh}
 .post-card{display:grid;grid-template-columns:96px auto 1fr auto;gap:24px;align-items:center;padding:24px 0;border-bottom:1px solid var(--border);transition:padding-left .3s ease;cursor:pointer}
 .post-card:hover{padding-left:12px}
 .post-card .post-date{font-size:12px;color:var(--text-m);font-variant-numeric:tabular-nums}
-.post-card .post-collection{font-size:12px;color:var(--text-m);white-space:nowrap;opacity:.75}
 .feed-type{font-size:10px;text-transform:uppercase;letter-spacing:.15em;padding:3px 10px;border:1px solid;text-align:center;white-space:nowrap}
 .feed-type[data-type="article"]{color:var(--accent);border-color:rgba(212,162,78,.4)}
-.feed-type[data-type="collection"]{color:var(--accent);border-color:rgba(212,162,78,.4);max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.feed-type[data-type="collection"]{color:var(--accent);border-color:rgba(212,162,78,.4);white-space:nowrap}
 .feed-type[data-type="rant"]{color:var(--green);border-color:rgba(122,158,126,.4)}
 .feed-type[data-type="image"]{color:var(--purple);border-color:rgba(139,122,196,.4)}
 .post-title{font-family:var(--font-serif);font-size:20px;font-weight:600;color:var(--text-p);transition:color .3s}
