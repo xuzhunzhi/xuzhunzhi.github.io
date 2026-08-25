@@ -10,7 +10,7 @@
   </div>
 
   <div class="view-panel" id="view-timeline">
-    <% var all = []; (page.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); %>
+    <% var all = []; (site.data.gallery.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); %>
     <% if (!all.length) { %>
       <p class="empty">还没有图片，往 source/images/ 里放图吧。</p>
     <% } else { %>
@@ -26,10 +26,10 @@
   </div>
 
   <div class="view-panel" id="view-album" style="display:none">
-    <% if (!page.albums || !page.albums.length) { %>
+    <% if (!site.data.gallery.albums || !site.data.gallery.albums.length) { %>
       <p class="empty">还没有相册，往 source/images/ 里放图吧。</p>
     <% } %>
-    <% (page.albums || []).forEach(function(a){ %>
+    <% (site.data.gallery.albums || []).forEach(function(a){ %>
       <section class="album">
         <h2 class="album-name"><%= a.name %></h2>
         <% if (a.desc) { %><p class="album-desc"><%= a.desc %></p><% } %>
