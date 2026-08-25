@@ -1,0 +1,13 @@
+<div class="archive">
+  <h1 class="archive-title"><%= page.title || '归档' %></h1>
+  <% if (page.posts && page.posts.length) { %>
+    <ul class="archive-list">
+      <% page.posts.each(function(post){ %>
+        <li>
+          <span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+          <a href="<%= url_for(post.path) %>"><%= post.title %></a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>

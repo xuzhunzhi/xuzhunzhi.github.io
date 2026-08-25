@@ -1,0 +1,72 @@
+# ===================== Site =====================
+title: 流浪猫的避难所
+subtitle: 代码与像素之间的猫
+description: 一个在代码与像素之间流浪的人，记录游戏设计、原创角色与深夜碎碎念。
+keywords: 流浪猫, 游戏设计, 王者荣耀, RTS, 博客
+author: 许纯之
+language: zh-CN
+timezone: Asia/Shanghai
+
+# ===================== URL =====================
+# 因为你用的是 <用户名>.github.io 仓库，站点在根路径，root 用 "/"
+url: https://xuzhunzhi.github.io/
+root: /
+permalink: :year/:month/:title/
+permalink_defaults:
+
+# ===================== Directory =====================
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+# ===================== Writing =====================
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude: ''
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+relative_link: false
+future: true
+syntax_highlighter: highlight.js
+highlight:
+  line_number: true
+  auto_detect: false
+  tab_replace: ''
+  wrap: true
+  hljs: false
+prismjs:
+  preprocess: true
+  line_number: true
+  tab_replace: ''
+
+# ===================== Home page =====================
+index_generator:
+  path: ''
+  per_page: 10
+  order_by: -date
+
+# ===================== Archive =====================
+archive_generator:
+  per_page: 20
+  yearly: true
+  monthly: true
+  daily: false
+
+# ===================== Category & Tag =====================
+category_generator:
+  per_page: 20
+tag_generator:
+  per_page: 20
+
+# ===================== Extensions =====================
+theme: straycat

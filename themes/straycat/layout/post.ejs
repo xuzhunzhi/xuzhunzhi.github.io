@@ -1,0 +1,12 @@
+<article class="post-single">
+  <h1 class="post-title"><%= page.title %></h1>
+  <div class="post-meta">
+    <time datetime="<%= date(page.date, 'YYYY-MM-DD') %>"><%= date(page.date, 'YYYY-MM-DD') %></time>
+    <% if (page.categories && page.categories.length) { %> · <%= page.categories.map(function(c){return c.name;}).join(' / ') %><% } %>
+  </div>
+  <div class="post-content"><%- page.content %></div>
+  <nav class="post-nav">
+    <% if (page.prev) { %><span>上一篇：<a href="<%= url_for(page.prev.path) %>"><%= page.prev.title %></a></span><% } %>
+    <% if (page.next) { %><span>下一篇：<a href="<%= url_for(page.next.path) %>"><%= page.next.title %></a></span><% } %>
+  </nav>
+</article>
