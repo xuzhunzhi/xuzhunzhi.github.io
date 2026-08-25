@@ -4,10 +4,10 @@
   --green:#7a9e7e;--purple:#8b7ac4;--rose:#c47a8b;
   --text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;
   --border:rgba(107,103,96,.15);
-  --font-sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-  --font-serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
-  --font-syne:'Syne',sans-serif;
-  --font-mono:'DM Mono',Consolas,monospace;
+  --font-sans:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-serif:Georgia,"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  --font-syne:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-mono:"SF Mono",Consolas,"Liberation Mono","Courier New",monospace;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
