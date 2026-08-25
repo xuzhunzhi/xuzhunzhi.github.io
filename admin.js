@@ -315,7 +315,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   </div>
   <div class="card">
     <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label>
-    <input type="file" id="up_folder" multiple>
+    <input type="file" id="up_folder" multiple onchange="onFilesChanged()">
     <div class="status" id="upStatus"></div>
     <label>标题</label><input id="f_title" placeholder="文章标题">
     <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
