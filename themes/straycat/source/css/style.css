@@ -132,6 +132,10 @@ main{padding-top:12px;min-height:70vh}
 .watching-status{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-dim);margin-top:6px}
 .watching-note{font-size:13px;color:var(--text-m);margin-top:6px;line-height:1.6}
 .contact-line{color:var(--text-m);font-size:13px;margin-bottom:24px}
+.github-btn-wrap{margin-bottom:32px}
+.github-btn{display:inline-flex;align-items:center;gap:9px;padding:10px 22px;border:1px solid var(--border);color:var(--text-b);font-size:13px;letter-spacing:.04em;transition:.3s}
+.github-btn svg{display:block}
+.github-btn:hover{border-color:var(--accent);color:var(--accent)}
 .credit-note{color:var(--text-m);font-size:13px;line-height:1.9;margin-bottom:24px}
 .credit-note a{color:var(--accent);border-bottom:1px solid rgba(212,162,78,.3)}
 .credit-note a:hover{border-color:var(--accent)}
