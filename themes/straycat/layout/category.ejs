@@ -15,7 +15,6 @@
     <% page.posts.each(function(post){ %>
       <article class="post-card">
         <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-        <span class="feed-type" data-type="collection"><%= colName %></span>
         <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
         <span class="post-arrow">→</span>
       </article>
