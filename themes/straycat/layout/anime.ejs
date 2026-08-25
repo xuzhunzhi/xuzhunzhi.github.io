@@ -1,0 +1,22 @@
+<section class="hero">
+  <h1 class="hero-title">Now <em>Watching</em></h1>
+  <p class="hero-sub">最近在追的番，慢慢地补。</p>
+</section>
+
+<div class="sec-hd"><span class="sec-num">watching</span><span class="sec-title">在追的番</span><span class="sec-line"></span></div>
+<div class="watching-grid">
+  <% if (theme.watching && theme.watching.length) { %>
+    <% theme.watching.forEach(function(w){ %>
+      <div class="watching-card">
+        <div class="watching-cover">♪</div>
+        <div class="watching-body">
+          <div class="watching-title"><%= w.title %></div>
+          <% if (w.status) { %><div class="watching-status"><%= w.status %></div><% } %>
+          <% if (w.note) { %><div class="watching-note"><%= w.note %></div><% } %>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p class="empty">暂无在追的番。</p>
+  <% } %>
+</div>
