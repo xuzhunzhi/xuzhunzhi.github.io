@@ -155,18 +155,6 @@ const server = http.createServer(async (req, res) => {
     }
     const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
-    const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
-    if (p === '/api/dynamics' && req.method === 'GET') {
-      let data = [];
-      try { data = JSON.parse(fs.readFileSync(DYNAMICS_PATH, 'utf8')); } catch (e) {}
-      return json(res, 200, { dynamics: data });
-    }
-    if (p === '/api/dynamics' && req.method === 'POST') {
-      const body = await readBody(req);
-      fs.mkdirSync(path.dirname(DYNAMICS_PATH), { recursive: true });
-      fs.writeFileSync(DYNAMICS_PATH, JSON.stringify(body.dynamics || [], null, 2), 'utf8');
-      return json(res, 200, { ok: true });
-    }
     if (p === '/api/gallery' && req.method === 'GET') {
       let data = { albums: [] };
       try { data = JSON.parse(fs.readFileSync(GALLERY_PATH, 'utf8')); } catch (e) {}
@@ -272,8 +260,6 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .imgrow input{padding:8px 10px;font-size:13px}
 .wrow{display:grid;grid-template-columns:1.4fr 1fr 1.4fr auto;gap:8px;margin-top:10px}
 .wrow input{padding:8px 10px;font-size:13px}
-.dynrow{margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:#0a0a08}
-.dynrow textarea{min-height:0;height:64px;margin-top:0}
 .img-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
 @media(max-width:760px){.row,.imgrow,.wrow{grid-template-columns:1fr}.navlinks{gap:16px}}
 </style>
@@ -282,7 +268,6 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   <span class="brand">流浪猫<em>管理台</em></span>
   <div class="navlinks">
     <a class="nav-link active" data-tab="posts" onclick="t('posts')">文章</a>
-    <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
     <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
   </div>
@@ -342,17 +327,6 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <div id="watchlist"></div>
     <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveWatch()">保存番剧</button><button class="btn btn-ghost" onclick="loadWatch()">读取当前</button></div>
     <div class="status" id="watchStatus"></div>
-  </div>
-</section>
-
-<section id="tab-dynamics" class="tabpage">
-  <h1>动态 <em>会动</em></h1>
-  <p class="sub">QQ 空间式短动态：一句话 + 可选图片。</p>
-  <div class="card">
-    <div class="list-hd"><span>列表</span><button class="btn btn-ghost" onclick="addDyn()">＋ 添加动态</button></div>
-    <div id="dynlist"></div>
-    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveDyn()">保存动态</button><button class="btn btn-ghost" onclick="loadDyn()">读取当前</button></div>
-    <div class="status" id="dynStatus"></div>
   </div>
 </section>
 

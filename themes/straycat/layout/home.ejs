@@ -7,7 +7,7 @@
     <img class="author-avatar" src="/images/avatar.jpg" alt="流浪猫不是LLM">
     <div class="author-name">流浪猫不是LLM</div>
     <div class="author-bio">我习于冷，志于成冰</div>
-    <% var articleCount = site.posts.length; var dynCount = (site.data.dynamics || []).length; %>
+    <% var articleCount = 0, dynCount = 0; site.posts.each(function(p){ var isDyn=false; if(p.categories) p.categories.each(function(c){ if(c.name.indexOf('碎碎念')>-1) isDyn=true; }); if(isDyn) dynCount++; else articleCount++; }); %>
     <% var photoCount = 0; (site.data.gallery.albums||[]).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>
     <div class="author-stats">
       <div class="author-stat"><span class="num"><%= articleCount %></span><span class="lbl">文章</span></div>
