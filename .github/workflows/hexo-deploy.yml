@@ -14,7 +14,7 @@ permissions:
 # 同一时间只跑一个部署，避免互相覆盖
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
