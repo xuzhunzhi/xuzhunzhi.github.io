@@ -191,7 +191,7 @@ main{padding-top:12px;min-height:70vh}
 
 /* ===== 图片-瀑布流 ===== */
 .img-waterfall{column-count:4;column-gap:14px}
-.img-card{break-inside:avoid;margin-bottom:14px;position:relative;overflow:hidden;cursor:zoom-in;border:1px solid var(--border);background:linear-gradient(135deg,#1a1a2d,#12261a,#2d1a1a)}
+.img-card{break-inside:avoid;margin-bottom:14px;position:relative;overflow:hidden;cursor:zoom-in;border:1px solid var(--border);background:linear-gradient(135deg,#1a1a2d,#12261a,#2d1a1a);aspect-ratio:4/3;min-height:160px}
 .img-card img{width:100%;display:block;transition:transform .3s}
 .img-card img.ph{opacity:0}
 .img-card:hover img{transform:scale(1.04)}
