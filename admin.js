@@ -284,6 +284,8 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .pitem .x{color:var(--rose);font-size:15px;padding:0 4px}
 .list-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .list-hd span{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--text-m)}
+.form-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#form_hd{font-weight:600;color:var(--text-p);font-size:15px}
 
 /* 相册/番剧条目 */
 .album{border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;background:#0a0a08}
@@ -314,6 +316,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <div class="plist" id="posts"></div>
   </div>
   <div class="card">
+    <div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" style="display:none" onclick="cancelEdit()">取消编辑</button></div>
     <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label>
     <input type="file" id="up_folder" multiple onchange="onFilesChanged()">
     <div class="status" id="upStatus"></div>
