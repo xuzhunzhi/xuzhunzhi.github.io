@@ -123,6 +123,38 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
+    const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
+    const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
+    if (p === '/api/gallery' && req.method === 'GET') {
+      let data = { albums: [] };
+      try { data = JSON.parse(fs.readFileSync(GALLERY_PATH, 'utf8')); } catch (e) {}
+      return json(res, 200, data);
+    }
+    if (p === '/api/gallery' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(GALLERY_PATH), { recursive: true });
+      fs.writeFileSync(GALLERY_PATH, JSON.stringify({ albums: body.albums || [] }, null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
+    if (p === '/api/watching' && req.method === 'GET') {
+      let data = [];
+      try { data = JSON.parse(fs.readFileSync(WATCHING_PATH, 'utf8')); } catch (e) {}
+      return json(res, 200, { watching: data });
+    }
+    if (p === '/api/watching' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(WATCHING_PATH), { recursive: true });
+      fs.writeFileSync(WATCHING_PATH, JSON.stringify(body.watching || [], null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
+    if (p === '/api/img' && req.method === 'POST') {
+      const body = await readBody(req);
+      const albumDir = path.join(ROOT, 'source', 'images', (body.album || 'misc').replace(/[\\/:*?"<>|]/g, '_'));
+      fs.mkdirSync(albumDir, { recursive: true });
+      const fname = (body.file || 'img.png').replace(/[\\/:*?"<>|]/g, '_');
+      fs.writeFileSync(path.join(albumDir, fname), Buffer.from(String(body.data).replace(/^data:.*?;base64,/, ''), 'base64'));
+      return json(res, 200, { ok: true, src: '/images/' + (body.album || 'misc') + '/' + fname });
+    }
     res.writeHead(404); res.end();
   } catch (e) {
     json(res, 500, { ok: false, msg: String(e && e.message || e) });
@@ -195,7 +227,24 @@ button{font-size:13px;padding:11px 24px;border:none;cursor:pointer;letter-spacin
     <div class="status" id="status"></div>
     <div class="preview" id="preview" style="display:none"></div>
   </div>
-</div></div>
+</div>
+<div class="form" style="margin-top:24px">
+  <h2 style="font-size:14px;color:#f0ece4;margin-bottom:10px">图片（相册）—— 编辑下方 JSON</h2>
+  <textarea id="gal_json" style="min-height:220px;font-family:monospace" placeholder='{"albums":[]}'></textarea>
+  <div class="actions"><button class="btn-save" onclick="loadGallery()">读取</button><button class="btn-pub" onclick="saveGallery()">保存图片</button></div>
+  <div class="status" id="galStatus"></div>
+  <label>上传图片到仓库</label>
+  <div class="row"><div><input type="file" id="gal_img" accept="image/*"></div><div><input id="gal_album" placeholder="相册名(如 日常摄影)"></div></div>
+  <div class="actions" style="margin-top:10px"><button class="btn-save" onclick="uploadGalImg()">上传图片</button></div>
+  <div class="status" id="galSrc" style="color:#d4a24e"></div>
+</div>
+<div class="form" style="margin-top:20px">
+  <h2 style="font-size:14px;color:#f0ece4;margin-bottom:10px">番剧 —— 编辑下方 JSON</h2>
+  <textarea id="watch_json" style="min-height:160px;font-family:monospace" placeholder='[{"title":"...","status":"...","note":"..."}]'></textarea>
+  <div class="actions"><button class="btn-save" onclick="loadWatch()">读取</button><button class="btn-pub" onclick="saveWatch()">保存番剧</button></div>
+  <div class="status" id="watchStatus"></div>
+</div>
+</div>
 <script>
 function md(t){let h=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h2>$1</h2>').replace(/\\*\\*(.+?)\\*\\*/g,'<strong>$1</strong>').replace(/\\*(.+?)\\*/g,'<em>$1</em>').replace(/\`(.+?)\`/g,'<code>$1</code>').replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>').replace(/^---$/gm,'<hr>').replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/((?:<li>.*<\\/li>\\n?)+)/g,'<ul>$1</ul>');return h.split('\\n\\n').map(b=>{b=b.trim();if(!b)return '';if(/^<[a-z]/.test(b))return b;return '<p>'+b.replace(/\\n/g,'<br>')+'</p>'}).join('\\n')}
 async function api(path,opt){const r=await fetch(path,opt);return r.json()}
@@ -225,5 +274,13 @@ async function uploadPost(){
   if(d.ok){load()}
 }
 document.getElementById('f_content').addEventListener('input',preview);
+async function loadGallery(){const d=await api('/api/gallery');document.getElementById('gal_json').value=JSON.stringify(d.albums||[],null,2)}
+async function saveGallery(){try{const albums=JSON.parse(document.getElementById('gal_json').value||'[]');await api('/api/gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({albums})});showGal('已保存')}catch(e){showGal('JSON 格式有误',false)}}
+function showGal(s,ok){const el=document.getElementById('galStatus');el.style.color=ok?'#7a9e7e':'#c47a8b';el.textContent=s;setTimeout(()=>el.textContent='',4000)}
+async function uploadGalImg(){const f=document.getElementById('gal_img').files[0];if(!f)return;const data=await readAsDataURL(f);const album=document.getElementById('gal_album').value.trim()||'misc';const d=await api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album,data})});const el=document.getElementById('galSrc');el.textContent='已上传：'+d.src+'（已复制）';try{navigator.clipboard.writeText(d.src)}catch(e){}}
+async function loadWatch(){const d=await api('/api/watching');document.getElementById('watch_json').value=JSON.stringify(d.watching||[],null,2)}
+async function saveWatch(){try{const w=JSON.parse(document.getElementById('watch_json').value||'[]');await api('/api/watching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({watching:w})});showWatch('已保存')}catch(e){showWatch('JSON 格式有误',false)}}
+function showWatch(s,ok){const el=document.getElementById('watchStatus');el.style.color=ok?'#7a9e7e':'#c47a8b';el.textContent=s;setTimeout(()=>el.textContent='',4000)}
+loadGallery();loadWatch();
 load();
 </script></body></html>`;
