@@ -10,19 +10,25 @@
   </div>
 
   <div class="view-panel" id="view-timeline">
-    <div class="img-waterfall">
-      <% var all = []; (page.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); %>
-      <% if (!all.length) { %><p class="empty">还没有图片，往 source/images/ 里放图吧。</p><% } %>
-      <% all.sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(im){ %>
-        <figure class="img-card" onclick="openLightbox('<%= im.src %>')">
-          <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')">
-          <figcaption class="img-card-caption"><%= im.date %> · <%= im.caption %></figcaption>
-        </figure>
-      <% }) %>
-    </div>
+    <% var all = []; (page.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); %>
+    <% if (!all.length) { %>
+      <p class="empty">还没有图片，往 source/images/ 里放图吧。</p>
+    <% } else { %>
+      <div class="img-waterfall">
+        <% all.sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(im){ %>
+          <figure class="img-card" onclick="openLightbox('<%= im.src %>')">
+            <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')">
+            <figcaption class="img-card-caption"><%= im.date %> · <%= im.caption %></figcaption>
+          </figure>
+        <% }) %>
+      </div>
+    <% } %>
   </div>
 
   <div class="view-panel" id="view-album" style="display:none">
+    <% if (!page.albums || !page.albums.length) { %>
+      <p class="empty">还没有相册，往 source/images/ 里放图吧。</p>
+    <% } %>
     <% (page.albums || []).forEach(function(a){ %>
       <section class="album">
         <h2 class="album-name"><%= a.name %></h2>
