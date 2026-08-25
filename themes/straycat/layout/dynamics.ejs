@@ -6,16 +6,16 @@
 <div class="sec-hd"><span class="sec-num">live</span><span class="sec-title">动态</span><span class="sec-line"></span></div>
 
 <div class="moment-feed">
-  <% var hasDyn = false; %>
-  <% site.posts.sort('date', -1).each(function(post){ %>
-    <% var isDyn = false; if (post.categories) post.categories.each(function(c){ if (c.name.indexOf('碎碎念') > -1) isDyn = true; }); %>
-    <% if (isDyn) { hasDyn = true; %>
+  <% var dyn = site.data.dynamics || []; %>
+  <% if (dyn.length) { %>
+    <% dyn.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).forEach(function(d){ %>
       <article class="moment">
-        <div class="moment-head"><span class="feed-type" data-type="rant">动态</span><span class="moment-date"><%= date(post.date, 'YYYY-MM-DD') %></span></div>
-        <h2 class="moment-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
-        <div class="moment-content"><%= post.excerpt ? post.excerpt : strip_html(post.content).substring(0, 160) %></div>
+        <div class="moment-head"><span class="feed-type" data-type="rant">动态</span><span class="moment-date"><%= d.date || '' %></span></div>
+        <div class="moment-content"><%= d.text %></div>
+        <% if (d.image) { %><img class="moment-img" src="<%= d.image %>" alt=""><% } %>
       </article>
-    <% } %>
-  <% }) %>
-  <% if (!hasDyn) { %><p class="empty">还没有动态。</p><% } %>
+    <% }) %>
+  <% } else { %>
+    <p class="empty">还没有动态，等流浪猫慢慢写。</p>
+  <% } %>
 </div>

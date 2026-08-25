@@ -155,6 +155,23 @@ const server = http.createServer(async (req, res) => {
     }
     const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
+    const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
+    if (p === '/api/dynamics' && req.method === 'GET') {
+      let data = [];
+      try { data = JSON.parse(fs.readFileSync(DYNAMICS_PATH, 'utf8')); } catch (e) {}
+      return json(res, 200, { dynamics: data });
+    }
+    if (p === '/api/dynamics' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(DYNAMICS_PATH), { recursive: true });
+      fs.writeFileSync(DYNAMICS_PATH, JSON.stringify(body.dynamics || [], null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
+    if (p === '/api/collections' && req.method === 'GET') {
+      const set = new Set();
+      listPosts().forEach(po => { (po.categories || '').split(/[,，]/).forEach(c => { c = c.trim().replace(/^\[|\]$/g, ''); if (c) set.add(c); }); });
+      return json(res, 200, { collections: Array.from(set) });
+    }
     if (p === '/api/gallery' && req.method === 'GET') {
       let data = { albums: [] };
       try { data = JSON.parse(fs.readFileSync(GALLERY_PATH, 'utf8')); } catch (e) {}
@@ -268,6 +285,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   <span class="brand">避难所<em>管理台</em></span>
   <div class="navlinks">
     <a class="nav-link active" data-tab="posts" onclick="t('posts')">文章</a>
+    <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
     <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
   </div>
@@ -275,36 +293,37 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 <div class="wrap">
 
 <section id="tab-posts" class="tabpage active">
-  <h1>文章 &amp; <em>动态</em></h1>
-  <p class="sub">新建 / 编辑 / 上传本地文章，分类填「碎碎念」即为动态。</p>
+  <h1>文章 <em>合集</em></h1>
+  <p class="sub">上传本地文档 → 自动标题 → 填简介、选合集 → 发布。历史文章点「编辑」可修改。</p>
   <div class="card">
-    <div class="list-hd"><span>文章列表</span></div>
+    <div class="list-hd"><span>文章列表</span><button class="btn btn-ghost" onclick="newPost()">＋ 新建</button></div>
     <div class="plist" id="posts"></div>
-    <div style="margin-top:14px"><button class="btn btn-ghost" onclick="newPost()">＋ 新建文章</button></div>
   </div>
   <div class="card">
-    <label>上传本地文章（选择包含 .md 和图片的文件夹）</label>
+    <label>选择文档（.md + 图片的文件夹；编辑时再上传 = 替换内容）</label>
     <input type="file" id="up_folder" webkitdirectory directory>
-    <div style="margin-top:12px"><button class="btn btn-pub" onclick="uploadPost()">上传并保存</button></div>
     <div class="status" id="upStatus"></div>
-  </div>
-  <div class="card">
-    <input type="hidden" id="f_file">
     <label>标题</label><input id="f_title" placeholder="文章标题">
+    <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
     <div class="row">
-      <div><label>日期</label><input id="f_date" placeholder="2026-08-20 00:00:00"></div>
-      <div><label>分类（逗号分隔）</label><input id="f_cats" placeholder="RTS设计笔记, 王者荣耀自设。填「碎碎念」=动态"></div>
+      <div><label>合集</label><select id="f_collection"></select></div>
+      <div><label>发布日期（自动 = 现在）</label><input id="f_date" placeholder="自动"></div>
     </div>
-    <label>标签（逗号分隔）</label><input id="f_tags" placeholder="RTS, 设计">
-    <label>简介（摘要，可选）</label><input id="f_summary" placeholder="一句话简介">
-    <label>正文（Markdown）</label><textarea id="f_content" placeholder="写点什么…"></textarea>
-    <div style="display:flex;gap:12px;margin-top:20px">
-      <button class="btn btn-ghost" onclick="savePost()">保存</button>
-      <button class="btn btn-pub" onclick="publish()">发布</button>
-      <button class="btn btn-del" onclick="delPost()">删除</button>
-    </div>
+    <div id="f_newcol" style="display:none;margin-top:8px"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
+    <input type="hidden" id="f_file"><input type="hidden" id="f_content"><input type="hidden" id="f_catsave">
+    <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" onclick="publishPost()">发布</button></div>
     <div class="status" id="status"></div>
-    <div id="preview" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:8px;padding:16px;background:#0a0a08;line-height:1.8"></div>
+  </div>
+</section>
+
+<section id="tab-dynamics" class="tabpage">
+  <h1>动态 <em>会动</em></h1>
+  <p class="sub">QQ 空间式短动态：一句话 + 可选图片。</p>
+  <div class="card">
+    <div class="list-hd"><span>列表</span><button class="btn btn-ghost" onclick="addDyn()">＋ 添加动态</button></div>
+    <div id="dynlist"></div>
+    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveDyn()">保存动态</button><button class="btn btn-ghost" onclick="loadDyn()">读取当前</button></div>
+    <div class="status" id="dynStatus"></div>
   </div>
 </section>
 
