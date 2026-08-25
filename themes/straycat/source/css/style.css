@@ -142,7 +142,8 @@ main{padding-top:12px;min-height:70vh}
 .author-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
 .author-stat .num{font-family:var(--font-serif);font-size:24px;color:var(--text-p)}
 .author-stat .lbl{font-size:11px;color:var(--text-m);letter-spacing:.1em}
-.author-follow{display:inline-block;padding:10px 26px;border:1px solid var(--accent);color:var(--accent);font-size:12px;letter-spacing:.08em;transition:.3s}
+.author-follow{display:inline-flex;align-items:center;gap:8px;padding:10px 26px;border:1px solid var(--accent);color:var(--accent);font-size:12px;letter-spacing:.08em;transition:.3s}
+.author-follow svg{display:block}
 .author-follow:hover{background:var(--accent);color:var(--bg)}
 .credit-note{color:var(--text-m);font-size:13px;line-height:1.9;margin-bottom:24px}
 .credit-note a{color:var(--accent);border-bottom:1px solid rgba(212,162,78,.3)}
