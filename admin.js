@@ -99,9 +99,16 @@ const server = http.createServer(async (req, res) => {
           saved.push(base);
         }
       });
-      const lines = ['---', `title: ${body.title || slugName}`, `date: ${body.date || new Date().toISOString().slice(0, 10)}`, '---', '', content.trim()];
+      const lines = ['---', 'title: ' + (body.title || slugName), 'date: ' + (body.date || new Date().toISOString().slice(0, 10)), '---'];
+      let finalContent = content.trim();
+      // 若 Markdown 已自带 front-matter，则不重复包裹
+      if (/^---\s*\n/.test(finalContent)) {
+        finalContent = finalContent;
+      } else {
+        finalContent = lines.join('\n') + '\n\n' + finalContent;
+      }
       const file = slugName + '.md';
-      fs.writeFileSync(path.join(POSTS_DIR, file), lines.join('\n'), 'utf8');
+      fs.writeFileSync(path.join(POSTS_DIR, file), finalContent + '\n', 'utf8');
       return json(res, 200, { ok: true, file, saved, msg: '已保存文章与 ' + saved.length + ' 张图片' });
     }
     if (p === '/api/publish' && req.method === 'POST') {
