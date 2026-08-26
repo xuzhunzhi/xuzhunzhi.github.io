@@ -20,7 +20,7 @@
           <div class="pin-card">
             <div class="pin-top"><span class="pin-kind">动态</span></div>
             <div class="pin-text"><%= dyn.text %></div>
-            <% if(dyn.image){ %><img class="pin-img" src="<%= dyn.image %>" alt=""><% } %>
+            <% if(dyn.image){ %><img class="pin-img" src="<%= dyn.image %>" alt="" loading="lazy"><% } %>
           </div>
         <% } } }) %>
       </div>
