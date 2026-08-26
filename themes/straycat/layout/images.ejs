@@ -31,6 +31,7 @@
     <% } %>
     <% (site.data.gallery.albums || []).forEach(function(a){ %>
       <section class="album">
+        <% if (a.cover) { %><div class="album-cover" style="background-image:url('<%= a.cover %>')"></div><% } %>
         <h2 class="album-name"><%= a.name %></h2>
         <% if (a.desc) { %><p class="album-desc"><%= a.desc %></p><% } %>
         <div class="album-grid">
