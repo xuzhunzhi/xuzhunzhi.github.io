@@ -10,11 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-# 同一时间只跑一个部署，避免互相覆盖
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
