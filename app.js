@@ -63,7 +63,7 @@ function upAlbumCover(i){var input=document.createElement('input');input.type='f
 function delAlbum(i){albums.splice(i,1);renderAlbums()}
 function addImg(i){(albums[i].images=albums[i].images||[]).push({caption:'',date:'',src:''});renderAlbums()}
 function delImg(i,j){albums[i].images.splice(j,1);renderAlbums()}
-async function uploadGalImg(ai){var input=document.getElementById('galup'+ai);var f=input.files[0];if(!f)return;var data=await compressImage(f);var d=await api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album:albums[ai].name||'misc',data:data})});var dt=new Date(f.lastModified||Date.now());function pad(n){return (n<10?'0':'')+n}var ds=dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());albums[ai].images.push({caption:f.name.replace(/\.[^.]+$/,''),date:ds,src:d.src});renderAlbums();show('galStatus','已上传 '+d.src,true)}
+async function uploadGalImg(ai){var input=document.getElementById('galup'+ai);var f=input.files[0];if(!f)return;var data=await readAsDataURL(f);var d=await api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album:albums[ai].name||'misc',data:data})});var dt=new Date(f.lastModified||Date.now());function pad(n){return (n<10?'0':'')+n}var ds=dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());albums[ai].images.push({caption:f.name.replace(/\.[^.]+$/,''),date:ds,src:d.src});renderAlbums();show('galStatus','已上传 '+d.src,true)}
 async function saveGallery(){await api('/api/gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({albums:albums})});show('galStatus','已保存图片',true)}
 
 /* ---- 番剧 ---- */

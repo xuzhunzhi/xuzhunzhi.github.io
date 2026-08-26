@@ -41,14 +41,23 @@ jobs:
           cp node_modules/@fontsource/syne/files/*.woff2 themes/straycat/source/fonts/ || true
           cp node_modules/@fontsource/dm-mono/files/*.woff2 themes/straycat/source/fonts/ || true
 
+      - name: Record original image params (before compress)
+        run: |
+          (which identify >/dev/null 2>&1) || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
+          node <<'NODE'
+const fs=require('fs'),cp=require('child_process');
+const out={};
+function walk(d){ let list=[]; try{ list=fs.readdirSync(d,{withFileTypes:true}) }catch(e){ return } list.forEach(x=>{ const p=d+'/'+x.name; if(x.isDirectory()) walk(p); else if(/\.(jpg|jpeg|png|webp|gif|avif)$/i.test(x.name)){ const ref=p.replace(/^source\//,'/'); const fmt="%w %h %b"; const exif="%[EXIF:Make]|%[EXIF:Model]|%[EXIF:ExposureTime]|%[EXIF:FNumber]|%[EXIF:ISOSpeedRatings]|%[EXIF:FocalLength]|%[EXIF:DateTimeOriginal]"; try{ const f=cp.execSync("identify -format '"+fmt+"' \""+p+"\"",{stdio:['ignore','pipe','ignore']}).toString().trim().split(/\s+/); const e=cp.execSync("identify -format '"+exif+"' \""+p+"\"",{stdio:['ignore','pipe','ignore']}).toString().trim().split('|'); const ex={}; const ks=['Make','Model','ExposureTime','FNumber','ISO','FocalLength','DateTimeOriginal']; ks.forEach((k,i)=>{ const v=(e[i]||'').trim(); if(v) ex[ks[k]==='ISO'?'ISO':k]=v }); out[ref]={width:+f[0],height:+f[1],size:f[2]||'',exif:ex}; }catch(err){} } }); }
+walk('source/images');
+fs.writeFileSync('source/image_meta.json', JSON.stringify(out));
+NODE
+
       - name: Optimize images (build-time compression)
         run: |
-          (which mogrify >/dev/null 2>&1) || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
-          echo "compressing large JPG/JPEG..."
+          (which mogrify >/dev/null 2>&1) || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
           find source/images -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) -size +100k -exec mogrify -resize '1200x1200>' -quality 80 {} + || true
-          echo "resizing large PNG/WebP..."
           find source/images -type f \( -iname '*.png' -o -iname '*.webp' \) -size +100k -exec mogrify -resize '1200x1200>' {} + || true
-          echo "done"
+          echo "compression done"
 
       - name: Generate site
         run: npx hexo generate

@@ -128,8 +128,16 @@
       var info=document.getElementById('imgdetailInfo'); info.innerHTML='<div class="imgdetail-loading">读取图片信息…</div>';
       var tmp=new Image(); tmp.onload=function(){ var dims=tmp.naturalWidth+' × '+tmp.naturalHeight; renderImgInfo(info,dims,src); }; tmp.src=src;
     }
+    function fmtKB(s){ var b=parseInt(s,10); if(!b) return ''; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(2)+' MB'; }
     function renderImgInfo(info,dims,src){
-      fetch(src).then(function(r){ return r.arrayBuffer() }).then(function(buf){ var ex=parseExif(buf); var size=buf.byteLength; var rows='<div class="imgdetail-rows">'; rows+=row('分辨率',dims); rows+=row('文件大小',fmtSize(size)); if(ex.DateTimeOriginal) rows+=row('拍摄时间',ex.DateTimeOriginal); rows+='</div>'; var exr=''; ['Make','Model','FNumber','ExposureTime','ISO','FocalLength','DateTimeOriginal'].forEach(function(k){ if(ex[k]) exr+=row(k==='Make'?'厂商':k==='Model'?'型号':k==='FNumber'?'光圈':k==='ExposureTime'?'快门':k==='ISO'?'ISO':k==='FocalLength'?'焦距':'时间',ex[k]); }); info.innerHTML=rows+(exr?'<div class="imgdetail-sub">EXIF</div><div class="imgdetail-rows">'+exr+'</div>':''); }).catch(function(){ info.innerHTML='<div class="imgdetail-rows">'+row('分辨率',dims)+'</div>'; });
+      fetch('/image_meta.json').then(function(r){return r.json()}).then(function(meta){
+        var m=meta[src]; if(!m){ throw new Error('nom'); }
+        var rows='<div class="imgdetail-rows">'; rows+=row('分辨率',m.width+' × '+m.height); if(m.size) rows+=row('文件大小',fmtKB(m.size)); if(m.exif&&m.exif.DateTimeOriginal) rows+=row('拍摄时间',m.exif.DateTimeOriginal); rows+='</div>';
+        var exr=''; ['Make','Model','FNumber','ExposureTime','ISO','FocalLength'].forEach(function(k){ if(m.exif&&m.exif[k]) exr+=row({Make:'厂商',Model:'型号',FNumber:'光圈',ExposureTime:'快门',ISO:'ISO',FocalLength:'焦距'}[k],m.exif[k]); });
+        info.innerHTML=rows+(exr?'<div class="imgdetail-sub">EXIF</div><div class="imgdetail-rows">'+exr+'</div>':'');
+      }).catch(function(){
+        fetch(src).then(function(r){ return r.arrayBuffer() }).then(function(buf){ var ex=parseExif(buf); var rows='<div class="imgdetail-rows">'; rows+=row('分辨率',dims); rows+=row('文件大小',fmtSize(buf.byteLength)); if(ex.DateTimeOriginal) rows+=row('拍摄时间',ex.DateTimeOriginal); rows+='</div>'; info.innerHTML=rows; }).catch(function(){ info.innerHTML='<div class="imgdetail-rows">'+row('分辨率',dims)+'</div>'; });
+      });
       function row(k,v){ return '<div class="imgdetail-row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
     }
     function closeLightbox(){ var lb=document.getElementById('imgdetail'); if(lb) lb.classList.remove('show'); unlockBody(); }
