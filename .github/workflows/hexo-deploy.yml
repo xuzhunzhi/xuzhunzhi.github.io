@@ -40,6 +40,15 @@ jobs:
           cp node_modules/@fontsource/syne/files/*.woff2 themes/straycat/source/fonts/ || true
           cp node_modules/@fontsource/dm-mono/files/*.woff2 themes/straycat/source/fonts/ || true
 
+      - name: Optimize images (build-time compression)
+        run: |
+          (which mogrify >/dev/null 2>&1 && echo "imagemagick present") || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
+          echo "compressing large JPG/JPEG..."
+          find source/images -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) -size +100k -exec mogrify -resize '1200x1200>' -quality 80 {} ;
+          echo "resizing large PNG/WebP..."
+          find source/images -type f \( -iname '*.png' -o -iname '*.webp' \) -size +100k -exec mogrify -resize '1200x1200>' {} ;
+          echo "done"
+
       - name: Generate site
         run: npx hexo generate
 
