@@ -181,7 +181,7 @@ main{padding-top:12px;min-height:70vh}
 .gallery-item figcaption{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;font-family:var(--font-serif);font-size:16px;color:#f0ece4;background:linear-gradient(180deg,transparent,rgba(10,10,8,.85));opacity:0;transition:opacity .3s}
 .gallery-item:hover figcaption{opacity:1}
 
-.lightbox{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;cursor:pointer}
+.lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;cursor:pointer}
 .lightbox.show{display:flex}
 .lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border:1px solid var(--border)}
 
