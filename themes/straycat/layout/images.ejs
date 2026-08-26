@@ -28,7 +28,7 @@
   <div class="view-panel" id="view-album" style="display:none">
     <% var albums = site.data.gallery.albums || []; %>
     <% if (!albums.length) { %><p class="empty">还没有相册，等流浪猫慢慢放上来。</p><% } %>
-    <div class="album-cards" id="albumCards">
+    <div class="album-cards">
       <% albums.forEach(function(a, i){ %>
         <div class="album-card" onclick="openAlbum(<%= i %>)">
           <div class="album-card-cover" <%= a.cover ? "style=\"background-image:url('"+a.cover+"')\"" : "" %>><% if (!a.cover) { %><span class="album-card-count"><%= (a.images||[]).length %></span><% } %></div>
@@ -40,16 +40,20 @@
         </div>
       <% }) %>
     </div>
-    <div id="albumDetail" style="display:none">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px"><button class="btn btn-ghost" onclick="closeAlbum()">‹ 返回相册</button><h2 class="album-name" id="albumDetailTitle" style="margin:0"></h2></div>
-      <div class="album-grid" id="albumDetailGrid"></div>
+    <div class="album-modal" id="albumModal" onclick="if(event.target===this)closeAlbum()">
+      <div class="album-modal-inner">
+        <button class="moment-x" onclick="closeAlbum()" aria-label="关闭">×</button>
+        <h2 class="album-modal-name" id="albumModalTitle"></h2>
+        <div class="album-grid" id="albumModalGrid"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 var ALBUMS = <%- JSON.stringify((site.data.gallery.albums||[])).replace(/</g, '\\u003c') %>;
-function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; var cards=document.getElementById('albumCards'); var det=document.getElementById('albumDetail'); cards.style.display='none'; det.style.display='block'; document.getElementById('albumDetailTitle').textContent=a.name; var g=document.getElementById('albumDetailGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy" onerror="this.classList.add(\\\'ph\\\')" onclick="openLightbox(\\\''+im.src+'\\\')"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); }
-function closeAlbum(){ document.getElementById('albumCards').style.display='grid'; document.getElementById('albumDetail').style.display='none'; }
 function escHtml(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; document.getElementById('albumModalTitle').textContent=a.name; var g=document.getElementById('albumModalGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy" onerror="this.classList.add(\\\'ph\\\')" onclick="openLightbox(\\\''+im.src+'\\\')"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); document.getElementById('albumModal').classList.add('show'); document.body.style.overflow='hidden'; }
+function closeAlbum(){ document.getElementById('albumModal').classList.remove('show'); document.body.style.overflow=''; }
+function switchView(btn, view){ document.querySelectorAll('.view-toggle .toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); }); document.querySelectorAll('.view-panel').forEach(function(p){ p.style.display = (p.id==='view-'+view) ? 'block' : 'none'; }); }
 </script>
