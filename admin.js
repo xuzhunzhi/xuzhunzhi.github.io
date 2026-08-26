@@ -291,6 +291,18 @@ select:focus{border-color:var(--accent)}
 .collrow{border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;background:#0a0a08}
 .collrow input{padding:8px 10px;font-size:13px}
 .coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
+.album-item{border:1px solid var(--border);border-radius:8px;margin-top:10px;overflow:hidden;background:#0a0a08}
+.album-row{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.album-row-main{flex:1;min-width:0}
+.album-row-name{font-size:15px;color:var(--text-p);font-weight:600}
+.album-row-meta{font-size:12px;color:var(--text-m)}
+.album-edit{padding:6px 14px 16px;border-top:1px solid var(--border)}
+.imgcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
+.imgcard{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#0f0f0d}
+.imgcard-thumb{width:100%;height:120px;object-fit:cover;display:block}
+.imgcard-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+.imgcard-fields input{padding:7px 8px;font-size:12px}
+.imgcard>input{padding:7px 8px;font-size:12px}
 .dynrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--border)}
 .dynrow-main{min-width:0}
 .dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
