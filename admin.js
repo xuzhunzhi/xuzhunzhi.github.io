@@ -293,7 +293,7 @@ select:focus{border-color:var(--accent)}
 .coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
 .dynrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--border)}
 .dynrow-main{min-width:0}
-.dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
 .dynrow-meta{font-size:12px;color:var(--text-m);margin-top:4px}
 .dynrow-imgtag{color:var(--accent)}
 input[type=file]{padding:6px 8px;color:var(--text-m);cursor:pointer}
@@ -302,10 +302,10 @@ input[type=file]::file-selector-button:hover{border-color:var(--accent);color:va
 input:focus,textarea:focus{border-color:var(--accent)}
 textarea{min-height:260px;resize:vertical;line-height:1.8}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.btn{display:inline-block;font-size:13px;padding:11px 22px;border:none;cursor:pointer;letter-spacing:.05em;border-radius:6px;transition:.2s}
+.btn{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;font-size:13px;padding:11px 22px;border:none;cursor:pointer;letter-spacing:.05em;border-radius:6px;transition:.2s}
 .btn-pub{background:var(--accent);color:var(--bg)}.btn-pub:hover{opacity:.9}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-b)}.btn-ghost:hover{border-color:var(--accent);color:var(--text-p)}
-.btn-del{background:transparent;border:1px solid var(--rose);color:var(--rose);font-size:12px;padding:5px 12px}.btn-del:hover{background:var(--rose);color:var(--bg)}
+.btn-del{background:transparent;border:1px solid var(--rose);color:var(--rose);font-size:13px;padding:9px 16px}.btn-del:hover{background:var(--rose);color:var(--bg)}
 .status{margin-top:12px;color:var(--text-m);font-size:13px;min-height:20px}
 .small{font-size:12px;color:var(--text-m)}
 
