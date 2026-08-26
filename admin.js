@@ -4,9 +4,11 @@
 // 功能：新建/编辑/删除文章（Markdown + 预览），一键 git 提交推送发布
 // ============================================================
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const req = lib.get(u, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url)).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = Buffer.concat(chunks); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(15000, () => req.destroy(new Error('timeout'))); }); }
 
 const ROOT = __dirname;                                   // 仓库根目录
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
@@ -222,6 +224,34 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(WATCHING_PATH, JSON.stringify(body.watching || [], null, 2), 'utf8');
       return json(res, 200, { ok: true });
     }
+    if (p === '/api/moegirl' && req.method === 'GET') {
+      const name = decodeURIComponent(u.searchParams.get('name') || '').trim();
+      if (!name) return json(res, 200, { ok: false, msg: '请输入名称' });
+      const pageUrl = 'https://zh.moegirl.org.cn/' + encodeURIComponent(name);
+      const searchUrl = 'https://zh.moegirl.org.cn/index.php?search=' + encodeURIComponent(name);
+      try {
+        const html = await httpsGet(pageUrl, true);
+        const ptitle = (html.match(/<title>([^<]*)<\/title>/) || [])[1];
+        const coverUrl = (html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) || [])[1] || '';
+        let localCover = '';
+        if (coverUrl) {
+          try {
+            const extM = coverUrl.match(/\.(jpg|jpeg|png|webp|gif|svg)/i);
+            const ext = extM ? extM[1].toLowerCase().replace('jpeg','jpg') : 'jpg';
+            const buf = await httpsGet(coverUrl, false);
+            const animeDir = path.join(ROOT, 'source', 'images', 'anime');
+            fs.mkdirSync(animeDir, { recursive: true });
+            const fp = path.join(animeDir, slug(name) + '.' + ext);
+            fs.writeFileSync(fp, buf);
+            localCover = '/images/anime/' + slug(name) + '.' + ext;
+          } catch (e) {}
+        }
+        const cleanTitle = (ptitle || name).replace(/\s*[—｜|·-].*$/, '').trim();
+        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!coverUrl, msg: coverUrl ? '已抓取：' + (cleanTitle || name) : '未取到封面，可能页面不存在' });
+      } catch (e) {
+        return json(res, 200, { ok: true, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + e.message });
+      }
+    }
     if (p === '/api/img' && req.method === 'POST') {
       const body = await readBody(req);
       const albumDir = path.join(ROOT, 'source', 'images', (body.album || 'misc').replace(/[\\/:*?"<>|]/g, '_'));
@@ -366,7 +396,9 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .album{border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;background:#0a0a08}
 .imgrow{display:grid;grid-template-columns:1fr 120px 1fr auto;gap:8px;align-items:center;margin-top:8px}
 .imgrow input{padding:8px 10px;font-size:13px}
-.wrow{display:grid;grid-template-columns:1.4fr 1fr 1.4fr auto;gap:8px;margin-top:10px}
+.wrow{display:grid;grid-template-columns:48px 1.4fr 1fr 1.2fr auto auto;gap:8px;margin-top:10px;align-items:center}
+.wrow-confirm{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:6px;border:1px dashed rgba(212,162,78,.4);border-radius:8px}
+.wrow-confirm span{flex:1;color:var(--text-b);font-size:13px}
 .wrow input{padding:8px 10px;font-size:13px}
 .img-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
 @media(max-width:760px){.row,.imgrow,.wrow{grid-template-columns:1fr}.navlinks{gap:16px}}

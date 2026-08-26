@@ -1,4 +1,4 @@
-﻿// 避难所管理台 —— 前端脚本
+// 避难所管理台 —— 前端脚本
 function t(tab){
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.tab===tab));
   document.querySelectorAll('.tabpage').forEach(s=>s.classList.toggle('active',s.id==='tab-'+tab));
@@ -69,8 +69,12 @@ async function saveGallery(){await api('/api/gallery',{method:'POST',headers:{'C
 /* ---- 番剧 ---- */
 var watching=[];
 async function loadWatch(){var d=await api('/api/watching');watching=d.watching||[];renderWatch()}
-function renderWatch(){var el=document.getElementById('watchlist');el.innerHTML=watching.map(function(w,i){return '<div class="wrow"><input value="'+esc(w.title||'')+'" placeholder="番名" onchange="watching['+i+'].title=this.value"><input value="'+esc(w.status||'')+'" placeholder="进度" onchange="watching['+i+'].status=this.value"><input value="'+esc(w.note||'')+'" placeholder="一句话" onchange="watching['+i+'].note=this.value"><button class="btn btn-del" onclick="delWatch('+i+')">删除</button></div>'}).join('')||'<div class="small" style="padding:8px 0">还没有番剧</div>'}
-function addWatch(){watching.push({title:'',status:'',note:''});renderWatch()}
+var pendingMoegirl = {};
+function renderWatch(){var el=document.getElementById('watchlist');el.innerHTML=watching.map(function(w,i){return '<div class="wrow"><img class="coll-thumb" src="'+esc(w.cover||'')+'" onerror="this.style.opacity=0"><input value="'+esc(w.title||'')+'" placeholder="番名" onchange="watching['+i+'].title=this.value"><input value="'+esc(w.status||'')+'" placeholder="进度" onchange="watching['+i+'].status=this.value"><input value="'+esc(w.note||'')+'" placeholder="一句话" onchange="watching['+i+'].note=this.value"><button class="btn btn-ghost" onclick="fetchMoegirl('+i+')">抓萌娘</button><button class="btn btn-del" onclick="delWatch('+i+')">删除</button></div>'+(pendingMoegirl[i]?'<div class="wrow-confirm"><img class="coll-thumb" src="'+esc(pendingMoegirl[i].cover||'')+'" onerror="this.style.opacity=0"><span>这是《'+esc(pendingMoegirl[i].title||'')+'》吗？</span><button class="btn btn-pub" onclick="confirmMoegirl('+i+')">确认保存</button><button class="btn btn-ghost" onclick="rejectMoegirl('+i+')">不是,去萌娘搜索</button></div>':'')}).join('')||'<div class="small" style="padding:8px 0">还没有番剧</div>'}
+async function fetchMoegirl(i){var name=watching[i].title||'';if(!name){show('watchStatus','请先填写番名',false);return}show('watchStatus','抓取萌娘百科…',true);try{var d=await api('/api/moegirl?name='+encodeURIComponent(name));pendingMoegirl[i]={title:d.title,cover:d.cover,pageUrl:d.pageUrl,searchUrl:d.searchUrl,found:d.found};show('watchStatus',d.msg||'',true);renderWatch()}catch(e){show('watchStatus','抓取出错',false)}}
+function confirmMoegirl(i){var m=pendingMoegirl[i];if(m){watching[i].cover=m.cover;watching[i].title=m.title||watching[i].title;watching[i].pageUrl=m.pageUrl}delete pendingMoegirl[i];saveWatch()}
+function rejectMoegirl(i){var m=pendingMoegirl[i];if(m&&m.searchUrl){window.open(m.searchUrl,'_blank')}delete pendingMoegirl[i];renderWatch()}
+function addWatch(){watching.push({title:'',status:'',note:'',cover:'',pageUrl:''});renderWatch()}
 function delWatch(i){watching.splice(i,1);renderWatch()}
 async function saveWatch(){await api('/api/watching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({watching:watching})});show('watchStatus','已保存番剧',true)}
 
