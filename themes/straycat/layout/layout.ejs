@@ -81,6 +81,8 @@
       if(!lb||!im) return; im.src=src; lb.classList.add('show');
     }
     function closeLightbox(){ var lb=document.getElementById('lightbox'); if(lb) lb.classList.remove('show'); }
+    function lockBody(){ var sw=window.innerWidth-document.documentElement.clientWidth; document.body.style.overflow='hidden'; document.body.style.paddingRight=(sw>0?sw+'px':''); }
+    function unlockBody(){ document.body.style.overflow=''; document.body.style.paddingRight=''; }
     function pinScroll(dir){ var t=document.getElementById('pinnedTrack'); if(t) t.scrollBy({left:dir*(t.clientWidth*0.6),behavior:'smooth'}); }
     document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeLightbox(); });
   </script>

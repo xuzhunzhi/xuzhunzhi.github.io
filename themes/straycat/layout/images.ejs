@@ -53,7 +53,7 @@
 <script>
 var ALBUMS = <%- JSON.stringify((site.data.gallery.albums||[])).replace(/</g, '\\u003c') %>;
 function escHtml(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
-function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; document.getElementById('albumModalTitle').textContent=a.name; var g=document.getElementById('albumModalGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy" onerror="this.classList.add(\\\'ph\\\')" onclick="openLightbox(\\\''+im.src+'\\\')"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); document.getElementById('albumModal').classList.add('show'); document.body.style.overflow='hidden'; }
-function closeAlbum(){ document.getElementById('albumModal').classList.remove('show'); document.body.style.overflow=''; }
+function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; document.getElementById('albumModalTitle').textContent=a.name; var g=document.getElementById('albumModalGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy" onerror="this.classList.add(\\\'ph\\\')" onclick="openLightbox(\\\''+im.src+'\\\')"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); document.getElementById('albumModal').classList.add('show'); lockBody(); }
+function closeAlbum(){ document.getElementById('albumModal').classList.remove('show'); unlockBody(); }
 function switchView(btn, view){ document.querySelectorAll('.view-toggle .toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); }); document.querySelectorAll('.view-panel').forEach(function(p){ p.style.display = (p.id==='view-'+view) ? 'block' : 'none'; }); }
 </script>

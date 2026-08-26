@@ -31,6 +31,6 @@
 
 <script>
 var MOMENTS = <%- JSON.stringify(dynOrdered).replace(/</g, '\\u003c') %>;
-function openMoment(i){ var m=MOMENTS[i]; if(!m) return; document.getElementById('mmDate').textContent=m.date||''; document.getElementById('mmText').textContent=m.text||''; var img=document.getElementById('mmImg'); if(m.image){ img.src=m.image; img.style.display='block'; } else { img.style.display='none'; } document.getElementById('momentModal').classList.add('show'); document.body.style.overflow='hidden'; }
-function closeMoment(){ document.getElementById('momentModal').classList.remove('show'); document.body.style.overflow=''; }
+function openMoment(i){ var m=MOMENTS[i]; if(!m) return; document.getElementById('mmDate').textContent=m.date||''; document.getElementById('mmText').textContent=m.text||''; var img=document.getElementById('mmImg'); if(m.image){ img.src=m.image; img.style.display='block'; } else { img.style.display='none'; } document.getElementById('momentModal').classList.add('show'); lockBody(); }
+function closeMoment(){ document.getElementById('momentModal').classList.remove('show'); unlockBody(); }
 </script>
