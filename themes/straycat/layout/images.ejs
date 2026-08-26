@@ -1,6 +1,6 @@
 <section class="hero">
   <h1 class="hero-title">Fragments <em>of Light</em></h1>
-  <p class="hero-sub">随手拍的、画的，时间线或相册两种看法。</p>
+  <p class="hero-sub">一些被光留住的碎片，和偶然撞见的瞬间。</p>
 </section>
 
 <div class="ptoggle">
@@ -26,23 +26,30 @@
   </div>
 
   <div class="view-panel" id="view-album" style="display:none">
-    <% if (!site.data.gallery.albums || !site.data.gallery.albums.length) { %>
-      <p class="empty">还没有相册，等流浪猫慢慢放上来。</p>
-    <% } %>
-    <% (site.data.gallery.albums || []).forEach(function(a){ %>
-      <section class="album">
-        <% if (a.cover) { %><div class="album-cover" style="background-image:url('<%= a.cover %>')"></div><% } %>
-        <h2 class="album-name"><%= a.name %></h2>
-        <% if (a.desc) { %><p class="album-desc"><%= a.desc %></p><% } %>
-        <div class="album-grid">
-          <% (a.images || []).forEach(function(im){ %>
-            <figure class="gallery-item">
-              <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')" onclick="openLightbox('<%= im.src %>')">
-              <figcaption><%= im.caption %></figcaption>
-            </figure>
-          <% }) %>
+    <% var albums = site.data.gallery.albums || []; %>
+    <% if (!albums.length) { %><p class="empty">还没有相册，等流浪猫慢慢放上来。</p><% } %>
+    <div class="album-cards" id="albumCards">
+      <% albums.forEach(function(a, i){ %>
+        <div class="album-card" onclick="openAlbum(<%= i %>)">
+          <div class="album-card-cover" <%= a.cover ? "style=\"background-image:url('"+a.cover+"')\"" : "" %>><% if (!a.cover) { %><span class="album-card-count"><%= (a.images||[]).length %></span><% } %></div>
+          <div class="album-card-body">
+            <div class="album-card-name"><%= a.name %></div>
+            <% if (a.desc) { %><div class="album-card-desc"><%= a.desc %></div><% } %>
+            <div class="album-card-meta"><%= (a.images||[]).length %> 张</div>
+          </div>
         </div>
-      </section>
-    <% }) %>
+      <% }) %>
+    </div>
+    <div id="albumDetail" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px"><button class="btn btn-ghost" onclick="closeAlbum()">‹ 返回相册</button><h2 class="album-name" id="albumDetailTitle" style="margin:0"></h2></div>
+      <div class="album-grid" id="albumDetailGrid"></div>
+    </div>
   </div>
 </div>
+
+<script>
+var ALBUMS = <%- JSON.stringify((site.data.gallery.albums||[])).replace(/</g, '\\u003c') %>;
+function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; var cards=document.getElementById('albumCards'); var det=document.getElementById('albumDetail'); cards.style.display='none'; det.style.display='block'; document.getElementById('albumDetailTitle').textContent=a.name; var g=document.getElementById('albumDetailGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy" onerror="this.classList.add(\\\'ph\\\')" onclick="openLightbox(\\\''+im.src+'\\\')"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); }
+function closeAlbum(){ document.getElementById('albumCards').style.display='grid'; document.getElementById('albumDetail').style.display='none'; }
+function escHtml(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+</script>
