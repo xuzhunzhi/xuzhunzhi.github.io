@@ -12,7 +12,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/syne-latin-600-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-mono-latin-400-normal.woff2" crossorigin>
-  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=29">
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=30">
 </head>
 <body>
   <header class="site-header">
@@ -51,19 +51,33 @@
   </footer>
 
   <% if (theme.music) { %>
-    <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="播放/暂停背景音乐" aria-label="背景音乐"><span class="music-note">♪</span></button>
-    <div class="music-hint" id="musicHint"></div>
+    <button class="music-btn" id="musicBtn" onclick="togglePlayer()" title="音乐" aria-label="背景音乐"><span class="music-note">♪</span></button>
+    <div class="music-card" id="musicCard">
+      <div class="music-head"><span class="music-title" id="musicTitle">播放器</span><button class="music-close" onclick="togglePlayer()" aria-label="关闭">×</button></div>
+      <div class="music-controls">
+        <button class="music-ctrl" onclick="musicPrev()" aria-label="上一曲">⏮</button>
+        <button class="music-ctrl music-play" id="musicPlay" onclick="musicToggle()" aria-label="播放/暂停">▶</button>
+        <button class="music-ctrl" onclick="musicNext()" aria-label="下一曲">⏭</button>
+      </div>
+      <div class="music-vol"><span>音量</span><input type="range" id="musicVol" min="0" max="1" step="0.05" value="0.8" oninput="a.volume=+this.value"></div>
+      <div class="music-list" id="musicList"></div>
+    </div>
     <audio id="bgMusic" preload="none"></audio>
     <script>
       (function(){
-        var btn=document.getElementById('musicBtn'),a=document.getElementById('bgMusic'),hint=document.getElementById('musicHint');
-        a.src = '<%- theme.music.url || '' %>' || 'music.mp3';
-        var showHint=function(t){ if(!hint) return; hint.textContent=t; hint.classList.add('show'); clearTimeout(hint._t); hint._t=setTimeout(function(){hint.classList.remove('show')},3000); };
-        a.addEventListener('play',function(){btn.classList.add('playing')});
-        a.addEventListener('pause',function(){btn.classList.remove('playing')});
-        a.addEventListener('ended',function(){btn.classList.remove('playing')});
-        a.addEventListener('error',function(){ btn.classList.remove('playing'); showHint('无法播放，请在主题配置里填写背景音乐地址'); });
-        window.toggleMusic=function(){ if(a.paused){ a.play().catch(function(){ showHint('无法播放，请检查背景音乐地址'); }); } else { a.pause(); } };
+        var a=document.getElementById('bgMusic'), index=0;
+        var MUSIC = <%- JSON.stringify((site.data.music||[]).length?site.data.music:(theme.music.url?[{title:(theme.music.title||'音乐'),url:theme.music.url}]:[])) %>;
+        window.a=a;
+        function rendList(){ var el=document.getElementById('musicList'); el.innerHTML=MUSIC.map(function(m,i){ return '<div class="music-item'+(i===index?' cur':'')+'" onclick="playAt('+i+')"><span class="music-item-title">'+m.title+'</span><span class="music-item-tag">'+(i===index?'●':'')+'</span></div>'; }).join('')||'<div class="music-item muted">暂无歌曲</div>'; }
+        function loadTrack(){ var m=MUSIC[index]; if(!m) return; a.src=m.url; document.getElementById('musicTitle').textContent=m.title||'音乐'; rendList(); }
+        window.playAt=function(i){ index=i; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
+        window.musicToggle=function(){ if(a.paused){ a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; } else { a.pause(); document.getElementById('musicPlay').textContent='▶'; } };
+        window.musicNext=function(){ if(!MUSIC.length) return; index=(index+1)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
+        window.musicPrev=function(){ if(!MUSIC.length) return; index=(index-1+MUSIC.length)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
+        window.togglePlayer=function(){ document.getElementById('musicCard').classList.toggle('show'); };
+        a.volume=0.8;
+        a.addEventListener('ended',function(){ musicNext(); });
+        loadTrack();
       })();
     </script>
   <% } %>
