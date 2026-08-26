@@ -303,6 +303,14 @@ select:focus{border-color:var(--accent)}
 .imgcard-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
 .imgcard-fields input{padding:7px 8px;font-size:12px}
 .imgcard>input{padding:7px 8px;font-size:12px}
+.album-edit-grid{display:grid;grid-template-columns:160px 1fr;gap:16px}
+.album-edit-cover{width:160px;height:160px;border:1px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:#0f0f0d}
+.album-edit-cover:hover{border-color:var(--accent)}
+.album-edit-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.album-edit-cover .cover-plus{color:var(--accent);font-size:34px;line-height:1}
+.album-edit-cover .cover-hint{color:var(--text-m);font-size:12px;margin-top:6px}
+.album-edit-cover .cover-replace{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-p);background:rgba(0,0,0,.55);padding:3px 0}
+.album-edit-fields{display:flex;flex-direction:column;gap:12px}
 .dynrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--border)}
 .dynrow-main{min-width:0}
 .dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
