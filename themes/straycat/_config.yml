@@ -7,8 +7,8 @@ menu:
 
 # 背景音乐：url 填 MP3 直链；留空则尝试同目录 music.mp3
 music:
-  url: ''
-  title: 心之旋律
+  url: /audio/it-happening.flac
+  title: World Beyond · It's Happening
 
 # 友链 / Friends
 friends:
