@@ -291,6 +291,11 @@ select:focus{border-color:var(--accent)}
 .collrow{border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;background:#0a0a08}
 .collrow input{padding:8px 10px;font-size:13px}
 .coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
+.dynrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--border)}
+.dynrow-main{min-width:0}
+.dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dynrow-meta{font-size:12px;color:var(--text-m);margin-top:4px}
+.dynrow-imgtag{color:var(--accent)}
 input[type=file]{padding:6px 8px;color:var(--text-m);cursor:pointer}
 input[type=file]::file-selector-button{background:transparent;border:1px solid var(--border);color:var(--text-b);font-size:12px;padding:8px 14px;margin-right:10px;cursor:pointer;border-radius:6px;transition:.2s}
 input[type=file]::file-selector-button:hover{border-color:var(--accent);color:var(--accent)}
@@ -384,10 +389,18 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   <h1>动态 <em>会动</em></h1>
   <p class="sub">QQ 空间式短动态：一句话 + 可选图片。</p>
   <div class="card">
-    <div class="list-hd"><span>列表</span><button class="btn btn-ghost" onclick="addDyn()">＋ 添加动态</button></div>
-    <div id="dynlist"></div>
-    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveDyn()">保存动态</button><button class="btn btn-ghost" onclick="loadDyn()">读取当前</button></div>
+    <div class="list-hd"><span id="dyn_mode">发布新动态</span></div>
+    <textarea id="dyn_text" rows="3" placeholder="说点什么…"></textarea>
+    <div class="row" style="margin-top:8px">
+      <div><label>日期</label><input id="dyn_date"></div>
+      <div><label>图片(可选)</label><div style="display:flex;gap:8px;align-items:center"><input id="dyn_img" placeholder="/images/…"><button class="btn btn-ghost" onclick="upDynCompose()">传图</button></div></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:12px"><button class="btn btn-pub" id="dyn_pubbtn" onclick="publishDyn()">发布</button><button class="btn btn-ghost" onclick="resetDyn()">重置</button></div>
     <div class="status" id="dynStatus"></div>
+  </div>
+  <div class="card">
+    <div class="list-hd"><span>动态列表</span></div>
+    <div id="dynlist"></div>
   </div>
 </section>
 
