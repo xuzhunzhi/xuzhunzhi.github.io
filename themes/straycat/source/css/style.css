@@ -20,6 +20,11 @@
 @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;src:url('/fonts/dm-mono-latin-400-normal.woff2') format('woff2')}
 
 *{box-sizing:border-box;margin:0;padding:0}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2b2b27;border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#3a3a34}
+html{scrollbar-width:thin;scrollbar-color:#2e2e2a var(--bg)}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text-b);font-family:var(--font-mono),var(--font-sans);font-weight:300;font-size:14px;line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 /* 暗色噪点质感 */
