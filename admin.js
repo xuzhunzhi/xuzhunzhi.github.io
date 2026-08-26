@@ -60,6 +60,12 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (p === '/' || p === '/index.html') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(UI); return; }
+    if (p.startsWith('/images/')) {
+      let rel = decodeURIComponent(p.slice('/images/'.length));
+      const fp = path.join(ROOT, 'source', 'images', rel);
+      const mime = ({ '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png', '.gif':'image/gif', '.webp':'image/webp', '.avif':'image/avif', '.svg':'image/svg+xml', '.bmp':'image/bmp' })[path.extname(fp).toLowerCase()] || 'application/octet-stream';
+      try { const data = fs.readFileSync(fp); res.writeHead(200, { 'Content-Type': mime }); res.end(data); return; } catch (e) { res.writeHead(404); res.end('not found'); return; }
+    }
     if (p === '/api/posts' && req.method === 'GET') { return json(res, 200, { posts: listPosts() }); }
     if (p === '/api/post' && req.method === 'GET') { return json(res, 200, readPost(u.searchParams.get('file') || '')); }
     if (p === '/api/save' && req.method === 'POST') {
@@ -297,12 +303,14 @@ select:focus{border-color:var(--accent)}
 .album-row-name{font-size:15px;color:var(--text-p);font-weight:600}
 .album-row-meta{font-size:12px;color:var(--text-m)}
 .album-edit{padding:6px 14px 16px;border-top:1px solid var(--border)}
-.imgcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
+.imgcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:12px}
 .imgcard{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#0f0f0d}
-.imgcard-thumb{width:100%;height:120px;object-fit:cover;display:block}
-.imgcard-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
-.imgcard-fields input{padding:7px 8px;font-size:12px}
-.imgcard>input{padding:7px 8px;font-size:12px}
+.imgcard-thumb{width:100%;height:130px;object-fit:cover;display:block}
+.imgcard-body{padding:10px}
+.imgcard-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.imgcard-fields input{padding:8px;font-size:12px}
+.imgcard-src{width:100%;padding:8px;font-size:12px;margin-bottom:8px}
+.btn-block{width:100%;justify-content:center}
 .album-edit-grid{display:grid;grid-template-columns:160px 1fr;gap:16px}
 .album-edit-cover{width:160px;height:160px;border:1px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:#0f0f0d}
 .album-edit-cover:hover{border-color:var(--accent)}
