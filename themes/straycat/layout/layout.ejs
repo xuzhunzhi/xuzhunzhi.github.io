@@ -75,9 +75,18 @@
         window.musicNext=function(){ if(!MUSIC.length) return; index=(index+1)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
         window.musicPrev=function(){ if(!MUSIC.length) return; index=(index-1+MUSIC.length)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
         window.togglePlayer=function(){ document.getElementById('musicCard').classList.toggle('show'); };
+        function saveState(){ try{ sessionStorage.setItem('musicState', JSON.stringify({i:index,t:a.currentTime||0,p:!a.paused,v:a.volume})); }catch(e){} }
+        a.addEventListener('timeupdate', saveState);
+        a.addEventListener('play', function(){ document.getElementById('musicPlay').textContent='⏸'; saveState(); });
+        a.addEventListener('pause', function(){ document.getElementById('musicPlay').textContent='▶'; saveState(); });
+        a.addEventListener('ended',function(){ musicNext(); saveState(); });
+        window.playAt=function(i){ index=i; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; saveState(); };
+        window.musicToggle=function(){ if(a.paused){ a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; } else { a.pause(); document.getElementById('musicPlay').textContent='▶'; } saveState(); };
+        window.musicNext=function(){ if(!MUSIC.length) return; index=(index+1)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; saveState(); };
+        window.musicPrev=function(){ if(!MUSIC.length) return; index=(index-1+MUSIC.length)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; saveState(); };
         a.volume=0.8;
-        a.addEventListener('ended',function(){ musicNext(); });
-        loadTrack();
+        /// restore across page navigations
+        (function(){ try{ var s=JSON.parse(sessionStorage.getItem('musicState')||'null'); if(!s) return; index=Math.min(Math.max(s.i||0,0), Math.max(MUSIC.length-1,0)); loadTrack(); a.volume=(s.v!=null?s.v:0.8); document.getElementById('musicVol').value=a.volume; if(s.t){ a.addEventListener('loadedmetadata', function once(){ a.removeEventListener('loadedmetadata', once); a.currentTime=s.t; if(s.p){ a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; } }); } else if(s.p){ a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; } }catch(e){} })();
       })();
     </script>
   <% } %>
