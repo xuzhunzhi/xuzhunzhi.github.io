@@ -12,7 +12,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/syne-latin-600-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-mono-latin-400-normal.woff2" crossorigin>
-  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=28">
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=29">
 </head>
 <body>
   <header class="site-header">
@@ -68,7 +68,13 @@
     </script>
   <% } %>
 
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" alt=""></div>
+  <div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeLightbox()">
+    <div class="imgdetail-inner">
+      <button class="moment-x" onclick="closeLightbox()" aria-label="关闭">×</button>
+      <div class="imgdetail-media"><img id="lightboxImg" alt=""></div>
+      <div class="imgdetail-info" id="imgdetailInfo"></div>
+    </div>
+  </div>
 
   <script>
     function switchView(btn, name){
@@ -76,11 +82,43 @@
       root.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); });
       root.querySelectorAll('.view-panel').forEach(function(p){ p.style.display = p.id === ('view-'+name) ? '' : 'none'; });
     }
-    function openLightbox(src){
-      var lb=document.getElementById('lightbox'),im=document.getElementById('lightboxImg');
-      if(!lb||!im) return; im.src=src; lb.classList.add('show');
+    function fmtSize(b){ b=+b||0; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(2)+' MB'; }
+    function parseExif(buf){
+      var out={}; if(!buf||buf.length<4||buf[0]!==0xFF||buf[1]!==0xD8) return out;
+      function u16(o){return (buf[o]<<8)|buf[o+1]} function u32(o){return ((buf[o]<<24)>>>0)+(buf[o+1]<<16)+(buf[o+2]<<8)+buf[o+3]}
+      var off=2, tiff=0;
+      while(off+4<buf.length){
+        if(buf[off]!==0xFF){off++;continue} var mar=buf[off+1]; var size=u16(off+2);
+        if(mar===0xE1){ var sig=''; for(var k=0;k<6;k++) sig+=String.fromCharCode(buf[off+4+k]); if(sig==='Exif\0\0'){ tiff=off+10; break; } }
+        off+=2+size;
+      }
+      if(!tiff) return out;
+      var endian=buf.readUInt16BE(tiff); var t=endian===0x4D49? buf.readUInt16LE : buf.readUInt16BE; var t32=endian===0x4D49? buf.readUInt32LE : buf.readUInt32BE;
+      if(endian!==0x4D49&&endian!==0x4949) return out;
+      var ifd0=tiff+ t(tiff+2);
+      function rtag(ifd){
+        var n=t(ifd), i;
+        for(i=0;i<n;i++){ var e=ifd+2+i*12; var tag=t(e), type=t(e+2), cnt=t32(e+4); var valOff=e+8; var bytes=type===1?1:(type===3?2:(type===4?4:type===5?8:type===7?1:4)); var size=bytes*cnt; var dataPos=(size<=4)? valOff : tiff+t32(valOff);
+          if(tag===0x010F) out.Make=rd(dataPos,cnt,type); else if(tag===0x0110) out.Model=rd(dataPos,cnt,type); else if(tag===0x829D) out.FNumber=rn(type,dataPos,cnt); else if(tag===0x829A) out.ExposureTime=rt(type,dataPos,cnt); else if(tag===0x8827) out.ISO=t32(dataPos); else if(tag===0x920A) out.FocalLength=rn(type,dataPos,cnt); else if(tag===0x9003) out.DateTimeOriginal=rd(dataPos,cnt,type); else if(tag===0x8769){ var exifIfd=tiff+t32(dataPos); rtag(exifIfd); }
+        }
+        function rd(dpos,cnt,typ){ var s=''; for(var j=0;j<cnt;j++){ if(typ===2){ s+=String.fromCharCode(buf[dpos+j]); } else if(typ===1){ s+=String.fromCharCode(buf[dpos+j]); } } return s.replace(/\0+$/,'').trim(); }
+        function rn(typ,dpos,cnt){ return typ===5? ( (t32(dpos)/t32(dpos+4)).toFixed(1) ) : t(dpos); }
+        function rt(typ,dpos,cnt){ if(typ===5){ var s=t32(dpos),d=t32(dpos+4); if(s>0&&d>0){ if(s>=d) return (s/d).toFixed(1)+'s'; else return '1/'+Math.round(d/s)+'s'; } } return t(dpos); }
+      }
+      rtag(ifd0);
+      return out;
     }
-    function closeLightbox(){ var lb=document.getElementById('lightbox'); if(lb) lb.classList.remove('show'); }
+    function openLightbox(src){
+      var lb=document.getElementById('imgdetail'),im=document.getElementById('lightboxImg');
+      if(!lb||!im) return; lb.classList.add('show'); im.src=src; lockBody();
+      var info=document.getElementById('imgdetailInfo'); info.innerHTML='<div class="imgdetail-loading">读取图片信息…</div>';
+      var tmp=new Image(); tmp.onload=function(){ var dims=tmp.naturalWidth+' × '+tmp.naturalHeight; renderImgInfo(info,dims,src); }; tmp.src=src;
+    }
+    function renderImgInfo(info,dims,src){
+      fetch(src).then(function(r){ return r.arrayBuffer() }).then(function(buf){ var ex=parseExif(buf); var size=buf.byteLength; var rows='<div class="imgdetail-rows">'; rows+=row('分辨率',dims); rows+=row('文件大小',fmtSize(size)); if(ex.DateTimeOriginal) rows+=row('拍摄时间',ex.DateTimeOriginal); rows+='</div>'; var exr=''; ['Make','Model','FNumber','ExposureTime','ISO','FocalLength','DateTimeOriginal'].forEach(function(k){ if(ex[k]) exr+=row(k==='Make'?'厂商':k==='Model'?'型号':k==='FNumber'?'光圈':k==='ExposureTime'?'快门':k==='ISO'?'ISO':k==='FocalLength'?'焦距':'时间',ex[k]); }); info.innerHTML=rows+(exr?'<div class="imgdetail-sub">EXIF</div><div class="imgdetail-rows">'+exr+'</div>':''); }).catch(function(){ info.innerHTML='<div class="imgdetail-rows">'+row('分辨率',dims)+'</div>'; });
+      function row(k,v){ return '<div class="imgdetail-row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
+    }
+    function closeLightbox(){ var lb=document.getElementById('imgdetail'); if(lb) lb.classList.remove('show'); unlockBody(); }
     function lockBody(){ var sw=window.innerWidth-document.documentElement.clientWidth; document.body.style.overflow='hidden'; document.body.style.paddingRight=(sw>0?sw+'px':''); }
     function unlockBody(){ document.body.style.overflow=''; document.body.style.paddingRight=''; }
     function pinScroll(dir){ var t=document.getElementById('pinnedTrack'); if(t) t.scrollBy({left:dir*(t.clientWidth*0.6),behavior:'smooth'}); }

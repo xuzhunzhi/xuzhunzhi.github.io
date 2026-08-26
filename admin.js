@@ -311,14 +311,29 @@ select:focus{border-color:var(--accent)}
 .imgcard-fields input{padding:8px;font-size:12px}
 .imgcard-src{width:100%;padding:8px;font-size:12px;margin-bottom:8px}
 .btn-block{width:100%;justify-content:center}
-.album-edit-grid{display:grid;grid-template-columns:160px 1fr;gap:16px}
-.album-edit-cover{width:160px;height:160px;border:1px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:#0f0f0d}
+.album-edit-grid{display:grid;grid-template-columns:190px 1fr;gap:18px;align-items:stretch}
+.album-edit-cover{border:1px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:#0f0f0d;min-height:150px}
 .album-edit-cover:hover{border-color:var(--accent)}
-.album-edit-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.album-edit-cover img{width:100%;height:100%;object-fit:contain;display:block}
 .album-edit-cover .cover-plus{color:var(--accent);font-size:34px;line-height:1}
 .album-edit-cover .cover-hint{color:var(--text-m);font-size:12px;margin-top:6px}
 .album-edit-cover .cover-replace{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-p);background:rgba(0,0,0,.55);padding:3px 0}
-.album-edit-fields{display:flex;flex-direction:column;gap:12px}
+.album-edit-fields{display:flex;flex-direction:column;gap:12px;justify-content:center}
+.field{display:flex;align-items:center;gap:10px}
+.field label{flex-shrink:0;min-width:56px;color:var(--text-m)}
+.field input{flex:1}
+.imgdetail{position:fixed;inset:0;background:rgba(8,8,6,.92);backdrop-filter:blur(8px);z-index:99999;display:none;align-items:center;justify-content:center;padding:24px}
+.imgdetail.show{display:flex}
+.imgdetail-inner{max-width:1000px;width:100%;max-height:88vh;overflow:hidden;background:#0d0d0b;border:1px solid var(--border);border-radius:16px;position:relative;display:grid;grid-template-columns:1fr 260px}
+.imgdetail-media{display:flex;align-items:center;justify-content:center;background:#000;min-height:60vh;overflow:hidden}
+.imgdetail-media img{max-width:100%;max-height:88vh;object-fit:contain}
+.imgdetail-info{padding:24px;overflow-y:auto;border-left:1px solid var(--border)}
+.imgdetail-loading{color:var(--text-m);font-size:13px}
+.imgdetail-rows{display:flex;flex-direction:column}
+.imgdetail-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.imgdetail-row .k{color:var(--text-m);flex-shrink:0}
+.imgdetail-row .v{color:var(--text-b);text-align:right;font-family:var(--font-mono)}
+.imgdetail-sub{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-dim);margin:16px 0 4px}
 .dynrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--border)}
 .dynrow-main{min-width:0}
 .dynrow-text{color:var(--text-b);font-size:14px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
@@ -454,6 +469,13 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   </div>
 </section>
 
+</div>
+<div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeImgDetail()">
+  <div class="imgdetail-inner">
+    <button class="moment-x" onclick="closeImgDetail()" aria-label="关闭">×</button>
+    <div class="imgdetail-media"><img id="imgDetailImg" alt=""></div>
+    <div class="imgdetail-info" id="imgDetailInfo"></div>
+  </div>
 </div>
 <script src="/app.js"></script>
 </body></html>

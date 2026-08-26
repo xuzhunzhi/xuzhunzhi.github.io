@@ -270,6 +270,20 @@ main{padding-top:12px;min-height:70vh}
 .album-modal-inner{max-width:900px;width:100%;max-height:85vh;overflow-y:auto;background:#0d0d0b;border:1px solid var(--border);border-radius:14px;padding:32px;position:relative}
 .album-modal-name{font-family:var(--font-serif);font-weight:600;font-size:24px;color:var(--text-p);margin:0 0 8px}
 
+/* ===== 大图详情弹窗 ===== */
+.imgdetail{position:fixed;inset:0;background:rgba(8,8,6,.92);backdrop-filter:blur(8px);z-index:99999;display:none;align-items:center;justify-content:center;padding:24px}
+.imgdetail.show{display:flex}
+.imgdetail-inner{max-width:1000px;width:100%;max-height:88vh;overflow:hidden;background:#0d0d0b;border:1px solid var(--border);border-radius:16px;position:relative;display:grid;grid-template-columns:1fr 260px}
+.imgdetail-media{display:flex;align-items:center;justify-content:center;background:#000;min-height:60vh;overflow:hidden}
+.imgdetail-media img{max-width:100%;max-height:88vh;object-fit:contain}
+.imgdetail-info{padding:24px;overflow-y:auto;border-left:1px solid var(--border)}
+.imgdetail-loading{color:var(--text-m);font-size:13px}
+.imgdetail-rows{display:flex;flex-direction:column}
+.imgdetail-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.imgdetail-row .k{color:var(--text-m);flex-shrink:0}
+.imgdetail-row .v{color:var(--text-b);text-align:right;font-family:var(--font-mono)}
+.imgdetail-sub{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-dim);margin:16px 0 4px}
+
 /* ===== 关于-优化 ===== */
 .about-hero{padding:44px 0 12px}
 .about-name{font-family:var(--font-serif);font-weight:300;font-size:clamp(48px,8vw,100px);color:var(--text-p);line-height:.95;margin-bottom:16px}
