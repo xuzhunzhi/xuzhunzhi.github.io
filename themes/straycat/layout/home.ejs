@@ -51,14 +51,26 @@
   <div class="sec-hd"><span class="sec-num">feed</span><span class="sec-title">Latest</span><span class="sec-line"></span></div>
 
   <div class="feed-list">
-    <% if (site.posts && site.posts.length) { %>
-      <% site.posts.sort('date', -1).each(function(post){ %>
-        <% var cat = ''; if (post.categories && post.categories.length) { post.categories.each(function(c){ if(!cat) cat = c.name; }); } %>
-        <article class="post-card">
-          <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-          <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
-          <span class="post-arrow">→</span>
-        </article>
+    <% var feedItems = []; %>
+    <% site.posts.sort('date', -1).each(function(post){ feedItems.push({ kind:'post', key: post.date.format('YYYY-MM-DD HH:mm'), post: post }); }); %>
+    <% (site.data.dynamics || []).forEach(function(d){ feedItems.push({ kind:'dyn', key: (d.date||'') + ' 00:00', dyn: d }); }); %>
+    <% feedItems.sort(function(a,b){ return b.key.localeCompare(a.key); }); %>
+    <% var feedTop = feedItems.slice(0, 12); %>
+    <% if (feedTop.length) { %>
+      <% feedTop.forEach(function(it){ %>
+        <% if (it.kind === 'post') { %>
+          <article class="post-card">
+            <span class="post-date"><%= date(it.post.date, 'YYYY-MM-DD') %></span>
+            <h2 class="post-title"><a href="<%= url_for(it.post.path) %>"><%= it.post.title %></a></h2>
+            <span class="post-arrow">→</span>
+          </article>
+        <% } else { %>
+          <article class="post-card" onclick="location.href='<%= url_for('/dynamics/') %>'">
+            <span class="post-date"><%= it.dyn.date || '' %></span>
+            <h2 class="post-title feed-dyn"><a href="<%= url_for('/dynamics/') %>"><%= it.dyn.text %></a></h2>
+            <span class="post-arrow">→</span>
+          </article>
+        <% } %>
       <% }) %>
     <% } else { %>
       <p class="empty">还没有内容。流浪猫还在路上，等它把这里慢慢填满吧。</p>
