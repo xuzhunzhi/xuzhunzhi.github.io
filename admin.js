@@ -232,7 +232,9 @@ const server = http.createServer(async (req, res) => {
       try {
         const html = await httpsGet(pageUrl, true);
         const ptitle = (html.match(/<title>([^<]*)<\/title>/) || [])[1];
-        const coverUrl = (html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) || [])[1] || '';
+        let coverUrl = (html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) || [])[1] || '';
+        if (!coverUrl) { const m = html.match(/<img[^>]*class="[^"]*infobox[^"]*"[^>]*src=["']([^"']+)["']/i) || html.match(/infobox[\s\S]{0,800}?<img[^>]*src=["']([^"']+)["']/i); if (m) coverUrl = m[1] || ''; }
+        if (coverUrl) { if (coverUrl.startsWith('//')) coverUrl = 'https:' + coverUrl; else if (coverUrl.startsWith('/')) coverUrl = 'https://zh.moegirl.org.cn' + coverUrl; coverUrl = coverUrl.replace(/\/thumb\/(.+?)\/\d+px-([^\/]+)$/, '/$1/$2'); }
         let localCover = '';
         if (coverUrl) {
           try {
@@ -399,6 +401,11 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .wrow{display:grid;grid-template-columns:48px 1.4fr 1fr 1.2fr auto auto;gap:8px;margin-top:10px;align-items:center}
 .wrow-confirm{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:6px;border:1px dashed rgba(212,162,78,.4);border-radius:8px}
 .wrow-confirm span{flex:1;color:var(--text-b);font-size:13px}
+.wrow-confirm-main{flex:1;min-width:0}
+.wrow-confirm-main span{display:block;margin-bottom:4px;color:var(--text-b);font-size:13px}
+.wrow-links{display:flex;gap:12px}
+.wrow-links a{color:var(--accent);font-size:12px;text-decoration:none}
+.wrow-links a:hover{text-decoration:underline}
 .wrow input{padding:8px 10px;font-size:13px}
 .img-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
 @media(max-width:760px){.row,.imgrow,.wrow{grid-template-columns:1fr}.navlinks{gap:16px}}
