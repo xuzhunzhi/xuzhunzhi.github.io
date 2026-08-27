@@ -54,7 +54,7 @@
   <div class="feed-list">
     <% var feedItems = []; %>
     <% site.posts.sort('date', -1).each(function(post){ feedItems.push({ kind:'post', key: post.date.format('YYYY-MM-DD HH:mm'), post: post }); }); %>
-    <% (site.data.dynamics || []).forEach(function(d){ feedItems.push({ kind:'dyn', key: (d.date||'') + ' 00:00', dyn: d }); }); %>
+    <% (site.data.dynamics || []).forEach(function(d){ var dk = (d.date||''); if (dk.length <= 10) dk = dk + ' 00:00'; feedItems.push({ kind:'dyn', key: dk, dyn: d }); }); %>
     <% feedItems.sort(function(a,b){ return b.key.localeCompare(a.key); }); %>
     <% var feedTop = feedItems.slice(0, 12); %>
     <% if (feedTop.length) { %>
