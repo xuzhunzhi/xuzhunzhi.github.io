@@ -301,6 +301,13 @@ main{padding-top:12px;min-height:70vh}
 .imgdetail-row .v{color:var(--text-b);text-align:right;font-family:var(--font-mono)}
 .imgdetail-sub{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--accent-dim);margin:16px 0 4px}
 
+/* ===== 弹窗动画 ===== */
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.imgdetail.show,.album-modal.show,.moment-modal.show{animation:overlayIn .28s ease both}
+.imgdetail.show .imgdetail-inner,.album-modal.show .album-modal-inner,.moment-modal.show .moment-modal-inner{animation:popIn .34s cubic-bezier(.2,.9,.25,1) both}
+.music-card.show{animation:popIn .34s cubic-bezier(.2,.9,.25,1) both}
+
 /* ===== 关于-优化 ===== */
 .about-hero{padding:44px 0 12px}
 .about-name{font-family:var(--font-serif);font-weight:300;font-size:clamp(48px,8vw,100px);color:var(--text-p);line-height:.95;margin-bottom:16px}
