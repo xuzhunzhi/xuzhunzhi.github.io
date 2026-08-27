@@ -99,7 +99,19 @@
     </div>
   </div>
 
+  <div class="moment-modal" id="momentModal" onclick="if(event.target===this)closeMoment()">
+    <div class="moment-modal-inner">
+      <button class="moment-x" onclick="closeMoment()" aria-label="关闭">×</button>
+      <div class="moment-modal-date" id="mmDate"></div>
+      <div class="moment-modal-text" id="mmText"></div>
+      <img class="moment-modal-img" id="mmImg" src="" alt="">
+    </div>
+  </div>
+
   <script>
+    var MOMENTS = <%- JSON.stringify((site.data.dynamics||[])).replace(/</g, '\\u003c') %>;
+    function openMoment(i){ var m=MOMENTS[i]; if(!m) return; document.getElementById('mmDate').textContent=m.date||''; document.getElementById('mmText').textContent=m.text||''; var img=document.getElementById('mmImg'); if(m.image){ img.src=m.image; img.style.display='block'; } else { img.style.display='none'; } document.getElementById('momentModal').classList.add('show'); lockBody(); }
+    function closeMoment(){ closeModal(document.getElementById('momentModal')); }
     function switchView(btn, name){
       var root = btn.closest('.ptoggle'); if(!root) return;
       root.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); });

@@ -17,9 +17,10 @@
             <div class="pin-meta"><%= date(post.date,'YYYY-MM-DD') %></div>
           </a>
         <% } } else if(it.type==='dynamic'){ var dyn=(site.data.dynamics||[])[it.index]; if(dyn){ %>
-          <div class="pin-card">
-            <div class="pin-top"><span class="pin-kind">动态</span></div>
+          <div class="pin-card" onclick="openMoment(<%= it.index %>)">
+            <div class="pin-head"><div class="pin-title">动态</div><span class="pin-kind">动态</span></div>
             <div class="pin-text"><%= dyn.text %></div>
+            <div class="pin-meta"><%= dyn.date || '' %></div>
             <% if(dyn.image){ %><img class="pin-img" src="<%= dyn.image %>" alt="" loading="lazy"><% } %>
           </div>
         <% } } }) %>

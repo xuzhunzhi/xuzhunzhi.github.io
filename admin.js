@@ -326,6 +326,11 @@ select:focus{border-color:var(--accent)}
 .dd-item.sel{color:var(--accent)}
 .pinrow{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border)}
 .pinrow input{width:auto;margin:0;flex-shrink:0}
+.pinrow2{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.pin-idx{width:24px;font-family:var(--font-mono);color:var(--text-m);text-align:center}
+.pin-tag{font-size:11px;color:var(--accent-dim);border:1px solid rgba(212,162,78,.3);padding:2px 8px;border-radius:4px;flex-shrink:0}
+.pin-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text-b)}
+.pin-acts{display:flex;gap:6px;flex-shrink:0}
 .collrow{border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;background:#0a0a08}
 .collrow input{padding:8px 10px;font-size:13px}
 .coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
@@ -456,13 +461,14 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 
 <section id="tab-home" class="tabpage">
   <h1>首页 <em>置顶</em></h1>
-  <p class="sub">选择要置顶的内容（文章 + 动态），最多 8 篇，首页会用横向卡片展示。</p>
+  <p class="sub">选择并排序置顶（文章 + 动态），最多 8 篇，首页用横向卡片展示。</p>
   <div class="card">
-    <div class="list-hd"><span>已选 <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
-    <label style="margin-top:12px">文章</label>
-    <div id="pin_posts"></div>
-    <label style="margin-top:16px">动态</label>
-    <div id="pin_dyns"></div>
+    <div class="list-hd"><span>置顶列表（<b id="pinCount">0</b>/8）</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
+    <div id="pinnedList"></div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>添加文章</label><div style="display:flex;gap:8px;align-items:center"><select id="addPinPost"></select><button class="btn btn-ghost" onclick="addPinSel('post')">添加</button></div></div>
+      <div><label>添加动态</label><div style="display:flex;gap:8px;align-items:center"><select id="addPinDyn"></select><button class="btn btn-ghost" onclick="addPinSel('dynamic')">添加</button></div></div>
+    </div>
     <div class="status" id="pinStatus"></div>
   </div>
 </section>
