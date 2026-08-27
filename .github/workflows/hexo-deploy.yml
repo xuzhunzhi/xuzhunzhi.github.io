@@ -37,20 +37,20 @@ jobs:
           cp node_modules/@fontsource/syne/files/*.woff2 themes/straycat/source/fonts/ || true
           cp node_modules/@fontsource/dm-mono/files/*.woff2 themes/straycat/source/fonts/ || true
 
-      - name: Record original image params (before compress)
+      - name: Record original image params (read source originals)
         run: |
           (which identify >/dev/null 2>&1) || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
           node scripts/image-meta.js
 
-      - name: Optimize images (build-time compression)
-        run: |
-          (which mogrify >/dev/null 2>&1) || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
-          find source/images -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) -size +100k -exec mogrify -resize '1200x1200>' -quality 80 {} + || true
-          find source/images -type f \( -iname '*.png' -o -iname '*.webp' \) -size +100k -exec mogrify -resize '1200x1200>' {} + || true
-          echo "compression done"
-
       - name: Generate site
         run: npx hexo generate
+
+      - name: Optimize images (compress public output only, keep source originals)
+        run: |
+          (which mogrify >/dev/null 2>&1) || (sudo apt-get update -qq >/dev/null 2>&1 && sudo apt-get install -y -qq imagemagick >/dev/null 2>&1)
+          find public/images -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) -size +100k -exec mogrify -resize '1200x1200>' -quality 80 {} + || true
+          find public/images -type f \( -iname '*.png' -o -iname '*.webp' \) -size +100k -exec mogrify -resize '1200x1200>' {} + || true
+          echo "compression done"
 
       - name: Copy image meta to public
         run: |
