@@ -1,10 +1,10 @@
 [
   {
-    "type": "post",
-    "file": "影-命格英雄.md"
-  },
-  {
     "type": "dynamic",
     "index": 0
+  },
+  {
+    "type": "post",
+    "file": "影-命格英雄.md"
   }
 ]

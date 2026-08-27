@@ -466,8 +466,8 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <div class="list-hd"><span>置顶列表（<b id="pinCount">0</b>/8）</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
     <div id="pinnedList"></div>
     <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div><label>添加文章</label><div style="display:flex;gap:8px;align-items:center"><select id="addPinPost"></select><button class="btn btn-ghost" onclick="addPinSel('post')">添加</button></div></div>
-      <div><label>添加动态</label><div style="display:flex;gap:8px;align-items:center"><select id="addPinDyn"></select><button class="btn btn-ghost" onclick="addPinSel('dynamic')">添加</button></div></div>
+      <div><label>添加文章</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinPostMenu')"><span id="addPinPostLbl">选择文章…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinPostMenu" style="display:none"></div></div></div>
+      <div><label>添加动态</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinDynMenu')"><span id="addPinDynLbl">选择动态…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinDynMenu" style="display:none"></div></div></div>
     </div>
     <div class="status" id="pinStatus"></div>
   </div>

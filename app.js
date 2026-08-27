@@ -1,4 +1,4 @@
-// 避难所管理台 —— 前端脚本
+﻿// 避难所管理台 —— 前端脚本
 function t(tab){
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.tab===tab));
   document.querySelectorAll('.tabpage').forEach(s=>s.classList.toggle('active',s.id==='tab-'+tab));
@@ -94,11 +94,14 @@ function delDyn(i){if(!confirm('删除这条动态？'))return;dynamics.splice(i
 /* ---- 首页置顶 ---- */
 var allPosts=[],allDyns=[],pinnedList=[];
 async function loadPinHome(){var d=await api('/api/posts');allPosts=d.posts||[];var dv=await api('/api/dynamics');allDyns=dv.dynamics||[];var pv=await api('/api/pinned');pinnedList=(pv.pinned||[]).map(function(it){if(it.type==='post'){var p=allPosts.find(function(x){return x.file===it.file});return {type:'post',file:it.file,label:p?p.title:it.file}}else{var dd=allDyns[it.index];return {type:'dynamic',index:it.index,label:dd?(dd.text||'').slice(0,20):'#'+it.index}}});fillPinSel();renderPin()}
-function fillPinSel(){var pp=document.getElementById('addPinPost');var pdd=document.getElementById('addPinDyn');pp.innerHTML='<option value="">选择文章…</option>'+allPosts.map(function(p,i){return '<option value="'+i+'">'+esc((p.title||'').slice(0,18))+'</option>'}).join('');pdd.innerHTML='<option value="">选择动态…</option>'+allDyns.map(function(d,i){return '<option value="'+i+'">'+esc((d.text||'').slice(0,16))+'</option>'}).join('')}
+function toggleDd(id){var m=document.getElementById(id);if(!m)return;var open=m.style.display==='block';m.style.display=open?'none':'block';m.parentElement.classList.toggle('open',!open)}
+function fillPinSel(){var mp=document.getElementById('addPinPostMenu');if(mp)mp.innerHTML=allPosts.map(function(p,i){return '<div class="dd-item" onclick="pickPost('+i+')">'+esc(p.title||'')+'</div>'}).join('');var md=document.getElementById('addPinDynMenu');if(md)md.innerHTML=allDyns.map(function(d,i){return '<div class="dd-item" onclick="pickDyn('+i+')">'+esc((d.text||'').slice(0,20))+'</div>'}).join('')}
+function pickPost(i){var p=allPosts[i];if(p&&!pinnedList.some(function(x){return x.type==='post'&&x.file===p.file})){if(pinnedList.length>=8){alert('最多 8 篇');return}pinnedList.push({type:'post',file:p.file,label:p.title})}var m=document.getElementById('addPinPostMenu');if(m)m.style.display='none';renderPin()}
+function pickDyn(i){var d=allDyns[i];if(d&&!pinnedList.some(function(x){return x.type==='dynamic'&&x.index===i})){if(pinnedList.length>=8){alert('最多 8 篇');return}pinnedList.push({type:'dynamic',index:i,label:(d.text||'').slice(0,20)})}var m=document.getElementById('addPinDynMenu');if(m)m.style.display='none';renderPin()}
 function renderPin(){var el=document.getElementById('pinnedList');el.innerHTML=pinnedList.map(function(it,i){return '<div class="pinrow2"><span class="pin-idx">'+(i+1)+'</span><span class="pin-tag">'+(it.type==='post'?'文章':'动态')+'</span><span class="pin-label">'+esc(it.label||'')+'</span><div class="pin-acts"><button class="btn btn-ghost" onclick="movePin('+i+',-1)">↑</button><button class="btn btn-ghost" onclick="movePin('+i+',1)">↓</button><button class="btn btn-del" onclick="removePin('+i+')">移除</button></div></div>'}).join('')||'<div class="small" style="padding:8px 0">还没有置顶，从下方添加</div>';document.getElementById('pinCount').textContent=pinnedList.length}
 function movePin(i,dir){var j=i+dir;if(j<0||j>=pinnedList.length)return;var t=pinnedList[i];pinnedList[i]=pinnedList[j];pinnedList[j]=t;renderPin()}
 function removePin(i){pinnedList.splice(i,1);renderPin()}
-function addPinSel(type){var sel=type==='post'?document.getElementById('addPinPost'):document.getElementById('addPinDyn');var i=+sel.value;if(isNaN(i)||i<0)return;if(pinnedList.length>=8){alert('最多 8 篇');return}if(type==='post'){var p=allPosts[i];if(p&&!pinnedList.some(function(x){return x.type==='post'&&x.file===p.file}))pinnedList.push({type:'post',file:p.file,label:p.title})}else{var dd=allDyns[i];if(dd&&!pinnedList.some(function(x){return x.type==='dynamic'&&x.index===i}))pinnedList.push({type:'dynamic',index:i,label:(dd.text||'').slice(0,20)})}sel.value='';renderPin()}
+
 async function savePin(){var pinned=pinnedList.map(function(it){return it.type==='post'?{type:'post',file:it.file}:{type:'dynamic',index:it.index}});await api('/api/pinned',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:pinned})});show('pinStatus','已保存置顶',true);loadPinHome()}
 
 function fmtSize(b){b=+b||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB'}
