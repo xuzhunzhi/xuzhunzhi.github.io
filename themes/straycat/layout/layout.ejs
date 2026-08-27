@@ -12,7 +12,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/syne-latin-600-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-mono-latin-400-normal.woff2" crossorigin>
-  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=33">
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=35">
 </head>
 <body>
   <header class="site-header">
@@ -74,7 +74,7 @@
         window.musicToggle=function(){ if(a.paused){ a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; } else { a.pause(); document.getElementById('musicPlay').textContent='▶'; } };
         window.musicNext=function(){ if(!MUSIC.length) return; index=(index+1)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
         window.musicPrev=function(){ if(!MUSIC.length) return; index=(index-1+MUSIC.length)%MUSIC.length; loadTrack(); a.play().catch(function(){}); document.getElementById('musicPlay').textContent='⏸'; };
-        window.togglePlayer=function(){ document.getElementById('musicCard').classList.toggle('show'); };
+        window.togglePlayer=function(){ var c=document.getElementById('musicCard'); if(!c) return; if(c.classList.contains('show')){ closeModal(c); } else { c.classList.remove('closing'); c.classList.add('show'); saveState(); } };
         function saveState(){ try{ sessionStorage.setItem('musicState', JSON.stringify({i:index,t:a.currentTime||0,p:!a.paused,v:a.volume})); }catch(e){} }
         a.addEventListener('timeupdate', saveState);
         a.addEventListener('play', function(){ document.getElementById('musicPlay').textContent='⏸'; saveState(); });
@@ -149,11 +149,12 @@
       });
       function row(k,v){ return '<div class="imgdetail-row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
     }
-    function closeLightbox(){ var lb=document.getElementById('imgdetail'); if(lb) lb.classList.remove('show'); unlockBody(); }
+    function closeLightbox(){ closeModal(document.getElementById('imgdetail')); }
     function lockBody(){ var sw=window.innerWidth-document.documentElement.clientWidth; document.body.style.overflow='hidden'; document.body.style.paddingRight=(sw>0?sw+'px':''); }
     function unlockBody(){ document.body.style.overflow=''; document.body.style.paddingRight=''; }
+    function closeModal(el){ if(!el) return; if(el.classList.contains('closing')) return; el.classList.add('closing'); var done=false; var fin=function(){ if(done) return; done=true; el.classList.remove('show','closing'); unlockBody(); }; setTimeout(fin, 240); }
     function pinScroll(dir){ var t=document.getElementById('pinnedTrack'); if(t) t.scrollBy({left:dir*(t.clientWidth*0.6),behavior:'smooth'}); }
-    document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeLightbox(); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeLightbox(); var mm=document.getElementById('momentModal'); if(mm&&mm.classList.contains('show')) closeMoment(); var am=document.getElementById('albumModal'); if(am&&am.classList.contains('show')) closeAlbum(); } });
   </script>
 </body>
 </html>

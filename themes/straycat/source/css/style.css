@@ -307,6 +307,12 @@ main{padding-top:12px;min-height:70vh}
 .imgdetail.show,.album-modal.show,.moment-modal.show{animation:overlayIn .28s ease both}
 .imgdetail.show .imgdetail-inner,.album-modal.show .album-modal-inner,.moment-modal.show .moment-modal-inner{animation:popIn .34s cubic-bezier(.2,.9,.25,1) both}
 .music-card.show{animation:popIn .34s cubic-bezier(.2,.9,.25,1) both}
+/* 关闭淡出 */
+.imgdetail,.album-modal,.moment-modal{transition:opacity .22s ease,transform .22s ease}
+.imgdetail.closing,.album-modal.closing,.moment-modal.closing{animation:none;opacity:0;transform:scale(.96)}
+.music-card{transition:opacity .22s ease,transform .22s ease}
+.music-card.closing{animation:none;opacity:0;transform:scale(.96)}
+.moment-modal.show .moment-modal-inner.closing,.album-modal.show .album-modal-inner.closing,.imgdetail.show .imgdetail-inner.closing{animation:none;opacity:0;transform:scale(.96)}
 
 /* ===== 关于-优化 ===== */
 .about-hero{padding:44px 0 12px}
