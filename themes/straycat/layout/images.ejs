@@ -31,7 +31,14 @@
     <div class="album-cards">
       <% albums.forEach(function(a, i){ %>
         <div class="album-card" onclick="openAlbum(<%= i %>)">
-          <div class="album-card-cover" <%= a.cover ? "style=\"background-image:url('"+a.cover+"')\"" : "" %>><% if (!a.cover) { %><span class="album-card-count"><%= (a.images||[]).length %></span><% } %></div>
+          <div class="album-card-cover <%= a.cover ? '' : 'album-card-stack' %>" <%= a.cover ? "style=\"background-image:url('"+a.cover+"')\"" : "" %>>
+            <% if (!a.cover) { %>
+              <% if ((a.images||[]).length) { %>
+                <% (a.images||[]).slice(0,5).forEach(function(im,j){ %><img class="stack-img" style="--i:<%= j %>" src="<%= im.src %>" alt="" loading="lazy"><% }) %>
+              <% } else { %><span class="stack-plus">＋</span><% } %>
+              <span class="cover-count"><%= (a.images||[]).length %></span>
+            <% } %>
+          </div>
           <div class="album-card-body">
             <div class="album-card-name"><%= a.name %></div>
             <% if (a.desc) { %><div class="album-card-desc"><%= a.desc %></div><% } %>
