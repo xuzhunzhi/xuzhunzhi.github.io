@@ -143,7 +143,7 @@
     function fmtExif(ex){ if(!ex) return {}; var out={}; ['Make','Model','ISO','DateTimeOriginal'].forEach(function(k){ if(ex[k]) out[k]=ex[k]; }); if(ex.FNumber){ var fn=toNum(ex.FNumber); if(!isNaN(fn)) out.FNumber='f/'+(fn%1? fn.toFixed(1): fn); } if(ex.ExposureTime){ var et=String(ex.ExposureTime).trim(); var p=et.split('/'); if(p.length===2){ var n=+p[0],d=+p[1]; if(d&&n>0&&n<d) out.ExposureTime='1/'+Math.round(d/n)+'s'; else out.ExposureTime=(n/d).toFixed(1)+'s'; } else { var v=+et; if(v>0&&v<1) out.ExposureTime='1/'+Math.round(1/v)+'s'; else out.ExposureTime=(v|0)+'s'; } } if(ex.FocalLength35){ var f35=toNum(ex.FocalLength35); out.FocalLength=((!isNaN(f35))? f35 : ex.FocalLength35)+'mm'; } else if(ex.FocalLength){ var fl=toNum(ex.FocalLength); out.FocalLength=((!isNaN(fl))? fl : ex.FocalLength)+'mm'; } if(ex.Flash){ var fs=flashStr(ex.Flash); if(fs) out.Flash=fs; } if(ex.GPS){ out.GPS=ex.GPS; out.GPSUrl=ex.GPSUrl; } return out; }
     function renderImgInfo(info,dims,src){
       fetch('/image_meta.json').then(function(r){return r.json()}).then(function(meta){
-        var m=meta[src]; if(!m){ throw new Error('nom'); }
+        var m=meta[src]||meta[decodeURIComponent(src||'')]||meta[(src||'').replace(/%2F/gi,'/')]||meta[(src||'').replace(/\\/g,'/')]; if(!m){ throw new Error('nom'); }
         var fe=fmtExif(m.exif||{});
         var rows='<div class="imgdetail-rows">'; rows+=row('分辨率',m.width+' × '+m.height); if(m.size) rows+=row('文件大小',fmtKB(m.size)); rows+='</div>';
         var exr=''; ['Make','Model','FNumber','ExposureTime','ISO','FocalLength','Flash'].forEach(function(k){ if(fe[k]) exr+=row({Make:'厂商',Model:'拍摄机型',FNumber:'光圈',ExposureTime:'快门',ISO:'ISO',FocalLength:'焦距',Flash:'闪光灯'}[k],fe[k]); });

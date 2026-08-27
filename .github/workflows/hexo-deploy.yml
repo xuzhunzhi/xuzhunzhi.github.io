@@ -52,6 +52,10 @@ jobs:
       - name: Generate site
         run: npx hexo generate
 
+      - name: Copy image meta to public
+        run: |
+          cp source/image_meta.json public/image_meta.json 2>/dev/null && echo "image_meta copied" || echo "no image_meta.json"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
