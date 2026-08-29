@@ -1,4 +1,4 @@
-// 避难所管理台 —— 前端脚本
+﻿// 避难所管理台 —— 前端脚本
 function t(tab){
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.dataset.tab===tab));
   document.querySelectorAll('.tabpage').forEach(s=>s.classList.toggle('active',s.id==='tab-'+tab));
@@ -20,7 +20,8 @@ function renderColls(){var el=document.getElementById('collist');el.innerHTML=co
 function addColl(){colMeta.push({name:'',cover:'',desc:''});renderColls()}
 function delColl(i){colMeta.splice(i,1);renderColls()}
 function upCollCover(i){var input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=function(){var f=input.files[0];if(!f)return;compressImage(f).then(function(data){api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album:'collections',data:data})}).then(function(d){colMeta[i].cover=d.src;renderColls()})})};input.click()}
-async function saveColls(){await api('/api/collections',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({collections:colMeta})});show('collStatus','已保存合集',true);loadCollections()}
+async function syncToGit(){try{await api('/api/publish',{method:'POST'})}catch(e){}}
+async function saveColls(){await api('/api/collections',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({collections:colMeta})});show('collStatus','已保存合集',true);loadCollections();syncToGit()}
 function renderColMenu(){if(!document.getElementById('col_menu'))return;var saved=document.getElementById('f_catsave').value;var opts=[{v:'',t:'无合集'}].concat(collections.map(function(c){return {v:c,t:c}})).concat([{v:'__new__',t:'＋ 创建新合集'}]);document.getElementById('col_menu').innerHTML=opts.map(function(o){return '<div class="dd-item'+(o.v===saved?' sel':'')+'" onclick="pickCol(\''+esc(o.v)+'\',\''+esc(o.t)+'\')">'+esc(o.t)+'</div>'}).join('');if(saved){document.getElementById('f_collection').value=saved;document.getElementById('col_label').textContent=saved}else{document.getElementById('f_collection').value='';document.getElementById('col_label').textContent='无合集'}document.getElementById('f_newcol').style.display=document.getElementById('f_collection').value==='__new__'?'block':'none'}
 function toggleDD(){var m=document.getElementById('col_menu');var dd=m.parentElement;var open=m.style.display==='block';m.style.display=open?'none':'block';dd.classList.toggle('open',!open)}
 function pickCol(v,t){document.getElementById('f_collection').value=v;document.getElementById('col_label').textContent=t;document.getElementById('col_menu').style.display='none';document.getElementById('col_menu').parentElement.classList.remove('open');document.getElementById('f_newcol').style.display=v==='__new__'?'block':'none'}
@@ -66,7 +67,7 @@ function delAlbum(i){albums.splice(i,1);renderAlbums()}
 function addImg(i){(albums[i].images=albums[i].images||[]).push({caption:'',date:'',src:''});renderAlbums()}
 function delImg(i,j){albums[i].images.splice(j,1);renderAlbums()}
 async function uploadGalImg(ai){var input=document.getElementById('galup'+ai);var f=input.files[0];if(!f)return;var data=await readAsDataURL(f);var d=await api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album:albums[ai].name||'misc',data:data})});var dt=new Date(f.lastModified||Date.now());function pad(n){return (n<10?'0':'')+n}var ds=dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());albums[ai].images.push({caption:f.name.replace(/\.[^.]+$/,''),date:ds,src:d.src});renderAlbums();show('galStatus','已上传 '+d.src,true)}
-async function saveGallery(){await api('/api/gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({albums:albums})});show('galStatus','已保存图片',true)}
+async function saveGallery(){await api('/api/gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({albums:albums})});show('galStatus','已保存图片',true);syncToGit()}
 
 /* ---- 番剧 ---- */
 var watching=[];
@@ -78,7 +79,7 @@ function confirmMoegirl(i){var m=pendingMoegirl[i];if(m){watching[i].cover=m.cov
 function rejectMoegirl(i){var m=pendingMoegirl[i];if(m&&m.searchUrl){window.open(m.searchUrl,'_blank')}delete pendingMoegirl[i];renderWatch()}
 function addWatch(){watching.push({title:'',status:'',note:'',cover:'',pageUrl:''});renderWatch()}
 function delWatch(i){watching.splice(i,1);renderWatch()}
-async function saveWatch(){await api('/api/watching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({watching:watching})});show('watchStatus','已保存番剧',true)}
+async function saveWatch(){await api('/api/watching',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({watching:watching})});show('watchStatus','已保存番剧',true);syncToGit()}
 
 /* ---- 动态 ---- */
 var dynamics=[],editDynIdx=-1;
@@ -88,7 +89,7 @@ function dtStr(){var d=new Date();function p(n){return (n<10?'0':'')+n}return d.
 function editDyn(i){editDynIdx=i;var d=dynamics[i];document.getElementById('dyn_text').value=d.text||'';document.getElementById('dyn_img').value=d.image||'';document.getElementById('dyn_date').value=d.date||dtStr();document.getElementById('dyn_mode').textContent='编辑动态';document.getElementById('dyn_pubbtn').textContent='更新'}
 async function publishDyn(){var text=document.getElementById('dyn_text').value.trim();if(!text){show('dynStatus','请输入内容',false);return}var entry={text:text,image:document.getElementById('dyn_img').value.trim(),date:document.getElementById('dyn_date').value||dtStr()};if(entry.date.length<=10)entry.date=entry.date+' 00:00';if(editDynIdx>=0){dynamics[editDynIdx]=entry}else{dynamics.unshift(entry)}await saveDyn();resetDyn()}
 function upDynCompose(){var input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=function(){var f=input.files[0];if(!f)return;compressImage(f).then(function(data){api('/api/img',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:f.name,album:'dynamics',data:data})}).then(function(d){document.getElementById('dyn_img').value=d.src})})};input.click()}
-async function saveDyn(){await api('/api/dynamics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dynamics:dynamics})});show('dynStatus','已保存动态',true);renderDyn()}
+async function saveDyn(){await api('/api/dynamics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dynamics:dynamics})});show('dynStatus','已保存动态',true);renderDyn();syncToGit()}
 function delDyn(i){if(!confirm('删除这条动态？'))return;dynamics.splice(i,1);saveDyn()}
 
 /* ---- 首页置顶 ---- */
@@ -102,7 +103,7 @@ function renderPin(){var el=document.getElementById('pinnedList');el.innerHTML=p
 function movePin(i,dir){var j=i+dir;if(j<0||j>=pinnedList.length)return;var t=pinnedList[i];pinnedList[i]=pinnedList[j];pinnedList[j]=t;renderPin()}
 function removePin(i){pinnedList.splice(i,1);renderPin()}
 
-async function savePin(){var pinned=pinnedList.map(function(it){return it.type==='post'?{type:'post',file:it.file}:{type:'dynamic',index:it.index}});await api('/api/pinned',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:pinned})});show('pinStatus','已保存置顶',true);loadPinHome()}
+async function savePin(){var pinned=pinnedList.map(function(it){return it.type==='post'?{type:'post',file:it.file}:{type:'dynamic',index:it.index}});await api('/api/pinned',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned:pinned})});show('pinStatus','已保存置顶',true);loadPinHome();syncToGit()}
 
 function fmtSize(b){b=+b||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB'}
 function parseExif(buf){var out={};if(!buf||buf.length<4||buf[0]!==0xFF||buf[1]!==0xD8)return out;function u16(o){return (buf[o]<<8)|buf[o+1]}var off=2,tiff=0;while(off+4<buf.length){if(buf[off]!==0xFF){off++;continue}var mar=buf[off+1];var size=u16(off+2);if(mar===0xE1){var sig='';for(var k=0;k<6;k++)sig+=String.fromCharCode(buf[off+4+k]);if(sig==='Exif\0\0'){tiff=off+10;break}}off+=2+size}if(!tiff)return out;var endian=buf.readUInt16BE(tiff);var t=endian===0x4D49?buf.readUInt16LE.bind(buf):buf.readUInt16BE.bind(buf);var t32=endian===0x4D49?buf.readUInt32LE.bind(buf):buf.readUInt32BE.bind(buf);if(endian!==0x4D49&&endian!==0x4949)return out;var ifd0=tiff+t(tiff+2);function rd(dpos,cnt){var s='';for(var j=0;j<cnt;j++)s+=String.fromCharCode(buf[dpos+j]);return s.replace(/\0+$/,'').trim()}function rn(typ,dpos,cnt){return typ===5?(t32(dpos)/t32(dpos+4)).toFixed(1):t(dpos)}function rt(typ,dpos,cnt){if(typ===5){var s2=t32(dpos),d2=t32(dpos+4);if(s2>0&&d2>0){if(s2>=d2)return (s2/d2).toFixed(1)+'s';else return '1/'+Math.round(d2/s2)+'s'}}return t(dpos)}function rtag(ifd){var n=t(ifd),i;for(i=0;i<n;i++){var e=ifd+2+i*12;var tag=t(e),type=t(e+2),cnt=t32(e+4);var valOff=e+8;var bytes=type===1?1:(type===3?2:(type===4?4:type===5?8:type===7?1:4));var size=bytes*cnt;var dp=(size<=4)?valOff:tiff+t32(valOff);if(tag===0x010F)out.Make=rd(dp,cnt);else if(tag===0x0110)out.Model=rd(dp,cnt);else if(tag===0x829D)out.FNumber=rn(type,dp,cnt);else if(tag===0x829A)out.ExposureTime=rt(type,dp,cnt);else if(tag===0x8827)out.ISO=t32(dp);else if(tag===0x920A)out.FocalLength=rn(type,dp,cnt);else if(tag===0xA405)out.FocalLength35=t(dp);else if(tag===0x9209)out.Flash=t(dp);else if(tag===0x9003)out.DateTimeOriginal=rd(dp,cnt);else if(tag===0x8769){var exifIfd=tiff+t32(dp);rtag(exifIfd)}}}rtag(ifd0);return out}
