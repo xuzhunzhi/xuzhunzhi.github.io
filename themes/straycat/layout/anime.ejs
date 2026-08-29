@@ -5,6 +5,7 @@
 
 <div class="sec-hd"><span class="sec-num">watching</span><span class="sec-title">在追的番</span><span class="sec-line"></span></div>
 <div class="watching-grid">
+  <% var WSTATUS={watching:'在看',finished:'已看完',dropped:'弃番',want:'想看'}; %>
   <% if (site.data.watching && site.data.watching.length) { %>
     <% site.data.watching.forEach(function(w){ %>
       <a class="watching-card" href="<%= w.pageUrl ? w.pageUrl : '#' %>" target="_blank" rel="noopener">
@@ -12,7 +13,11 @@
         <% } else { %><div class="watching-cover">♪</div><% } %>
         <div class="watching-body">
           <div class="watching-title"><%= w.title %></div>
-          <% if (w.status) { %><div class="watching-status"><%= w.status %></div><% } %>
+          <div class="watching-meta">
+            <span class="watching-tag"><%= WSTATUS[w.status] || w.status || '在看' %></span>
+            <% if (w.progress) { %><span class="watching-progress"><%= w.progress %><% if (w.total) { %>/<%= w.total %><% } %> 集</span><% } %>
+            <% if (w.rating) { %><span class="watching-rating">★ <%= w.rating %></span><% } %>
+          </div>
           <% if (w.note) { %><div class="watching-note"><%= w.note %></div><% } %>
         </div>
       </a>

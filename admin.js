@@ -249,7 +249,8 @@ const server = http.createServer(async (req, res) => {
           } catch (e) {}
         }
         const cleanTitle = (ptitle || name).replace(/\s*[—｜|·-].*$/, '').trim();
-        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!coverUrl, msg: coverUrl ? '已抓取：' + (cleanTitle || name) : '未取到封面，可能页面不存在' });
+        let total = ''; const tm = html.match(/(?:话数|集数|话)\s*[:：]?\s*(\d+)/) || html.match(/(\d+)\s*话/) || html.match(/总话数\s*[:：]?\s*(\d+)/); if (tm) total = tm[1];
+        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!coverUrl, total, msg: coverUrl ? '已抓取：' + (cleanTitle || name) : '未取到封面，可能页面不存在' });
       } catch (e) {
         return json(res, 200, { ok: true, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + e.message });
       }
@@ -406,6 +407,11 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .wrow{display:grid;grid-template-columns:48px 1.4fr 1fr 1.2fr auto auto;gap:8px;margin-top:10px;align-items:center}
 .wrow-confirm{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:6px;border:1px dashed rgba(212,162,78,.4);border-radius:8px}
 .wrow-confirm span{flex:1;color:var(--text-b);font-size:13px}
+.wrow2{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.wrow2-main{flex:1;min-width:0}
+.wrow2-title{font-size:15px;color:var(--text-p);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow2-sub{font-size:12px;color:var(--text-m);margin-top:2px}
+.wrow-edit{padding:12px 16px 16px;border-bottom:1px solid var(--border);background:#0a0a08}
 .wrow-confirm-main{flex:1;min-width:0}
 .wrow-confirm-main span{display:block;margin-bottom:4px;color:var(--text-b);font-size:13px}
 .wrow-links{display:flex;gap:12px}
