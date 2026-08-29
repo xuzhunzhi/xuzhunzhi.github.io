@@ -164,6 +164,17 @@ const server = http.createServer(async (req, res) => {
     const GALLERY_PATH = path.join(ROOT, 'source', '_data', 'gallery.json');
     const COLLECTIONS_PATH = path.join(ROOT, 'source', '_data', 'collections.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
+    const FRIENDS_PATH = path.join(ROOT, 'source', '_data', 'friends.json');
+    if (p === '/api/friends' && req.method === 'GET') {
+      let data=[]; try { data = JSON.parse(fs.readFileSync(FRIENDS_PATH, 'utf8')); } catch (e) {}
+      return json(res, 200, { friends: data });
+    }
+    if (p === '/api/friends' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(FRIENDS_PATH), { recursive: true });
+      fs.writeFileSync(FRIENDS_PATH, JSON.stringify(body.friends || [], null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
     const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
     const PINNED_PATH = path.join(ROOT, 'source', '_data', 'pinned.json');
     if (p === '/api/pinned' && req.method === 'GET') {
@@ -332,6 +343,7 @@ select:focus{border-color:var(--accent)}
 .pin-tag{font-size:11px;color:var(--accent-dim);border:1px solid rgba(212,162,78,.3);padding:2px 8px;border-radius:4px;flex-shrink:0}
 .pin-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--text-b)}
 .pin-acts{display:flex;gap:6px;flex-shrink:0}
+.friendrow{display:grid;grid-template-columns:1.2fr 1.4fr 1.2fr auto;gap:8px;margin-top:10px;align-items:center}
 .collrow{border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;background:#0a0a08}
 .collrow input{padding:8px 10px;font-size:13px}
 .coll-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px;flex-shrink:0}
@@ -430,6 +442,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
     <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
+    <a class="nav-link" data-tab="site" onclick="t('site')">站点</a>
   </div>
 </div></nav>
 <div class="wrap">
@@ -521,6 +534,17 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 </section>
 
 </div>
+<section id="tab-site" class="tabpage">
+  <h1>站点 <em>设置</em></h1>
+  <p class="sub">管理网站页脚的「友链」。</p>
+  <div class="card">
+    <div class="list-hd"><span>友链 / Friends</span><button class="btn btn-ghost" onclick="addFriend()">＋ 添加友链</button></div>
+    <div id="friendlist"></div>
+    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveFriends()">保存友链</button></div>
+    <div class="status" id="friendStatus"></div>
+  </div>
+</section>
+
 <div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeImgDetail()">
   <div class="imgdetail-inner">
     <button class="moment-x" onclick="closeImgDetail()" aria-label="关闭">×</button>
