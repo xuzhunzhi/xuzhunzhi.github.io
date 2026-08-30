@@ -36,6 +36,13 @@
       <img class="author-avatar" src="/images/avatar.jpg" alt="流浪猫不是LLM">
       <div class="author-name">流浪猫不是LLM</div>
       <div class="author-bio">我习于冷，志于成冰</div>
+      <% var articleCount = site.posts.length; var dynCount = (site.data.dynamics || []).length; %>
+      <% var photoCount = 0; (site.data.gallery && site.data.gallery.albums || []).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>
+      <div class="author-stats">
+        <div class="author-stat"><span class="num"><%= articleCount %></span><span class="lbl">文章</span></div>
+        <div class="author-stat"><span class="num"><%= dynCount %></span><span class="lbl">动态</span></div>
+        <div class="author-stat"><span class="num"><%= photoCount %></span><span class="lbl">照片</span></div>
+      </div>
       <a class="author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a>
     </div>
   </aside>
@@ -43,8 +50,23 @@
 
 <%
   var totalWords = 0;
-  site.posts.each(function(post){ totalWords += strip_html(post.content || '').replace(/\s/g, '').length; });
-  (site.data.dynamics || []).forEach(function(d){ totalWords += String(d.text || '').replace(/\s/g, '').length; });
+  var lastContentUpdate = null;
+  function recordContentUpdate(value){
+    if (!value) return;
+    var current = new Date(value);
+    if (!isNaN(current.getTime()) && (!lastContentUpdate || current > lastContentUpdate)) lastContentUpdate = current;
+  }
+  site.posts.each(function(post){
+    totalWords += strip_html(post.content || '').replace(/\s/g, '').length;
+    recordContentUpdate(post.updated || post.date);
+  });
+  (site.data.dynamics || []).forEach(function(d){
+    totalWords += String(d.text || '').replace(/\s/g, '').length;
+    recordContentUpdate(d.date);
+  });
+  (site.data.gallery && site.data.gallery.albums || []).forEach(function(album){
+    (album.images || []).forEach(function(image){ recordContentUpdate(image.date); });
+  });
 %>
 <section class="site-stats" aria-label="站点统计">
   <div class="site-stats-head">
@@ -58,7 +80,7 @@
       <span class="site-stat-label">访问人数</span>
     </div>
     <div class="site-stat">
-      <span class="site-stat-value"><%= date(site.time, 'YYYY-MM-DD') %></span>
+      <span class="site-stat-value"><%= lastContentUpdate ? date(lastContentUpdate, 'YYYY-MM-DD') : '—' %></span>
       <span class="site-stat-label">最后更新</span>
     </div>
     <div class="site-stat">
