@@ -1,10 +1,3 @@
-# 主题配置（供模板引用）
-menu:
-  首页: /
-  相册: /photos/
-  归档: /archives/
-  关于: /about/
-
 # 背景音乐：url 填 MP3 直链；留空则尝试同目录 music.mp3
 music:
   url: /audio/it-happening.flac
