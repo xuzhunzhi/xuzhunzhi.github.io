@@ -168,7 +168,7 @@ main{padding-top:12px;min-height:70vh}
 .site-stat:last-child{padding-right:0}
 .site-stat-value{font-family:var(--font-serif);font-size:30px;line-height:1;color:var(--text-p);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .site-stat-label{font-size:11px;letter-spacing:.12em;color:var(--text-m)}
-.home-side{position:sticky;top:24px;align-self:end}
+.home-side{position:sticky;top:24px;align-self:end;margin-bottom:8px}
 .author-card{border:1px solid var(--border);padding:26px 22px;text-align:center;background:var(--surface);border-radius:14px;flex-shrink:0;margin-top:10px}
 .author-avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:1px solid var(--border)}
 .author-name{font-family:var(--font-serif);font-size:22px;color:var(--text-p)}
@@ -358,7 +358,7 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
 @media (prefers-reduced-motion: reduce){main{animation:none}}
 
 /* ===== 置顶横向卡片 ===== */
-.pinned-wrap{position:relative;margin-bottom:8px}
+.pinned-wrap{position:relative;margin-bottom:0}
 .pinned-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:thin}
 .pinned-track::-webkit-scrollbar{height:6px}
 .pinned-track::-webkit-scrollbar-thumb{background:rgba(107,103,96,.3);border-radius:3px}
@@ -405,7 +405,7 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
   .album-cards{grid-template-columns:1fr}
   .wrap{padding:0 20px}
   .home-top{grid-template-columns:1fr}
-  .home-side{position:static;align-self:start}
+  .home-side{position:static;align-self:start;margin-bottom:0}
   .author-card{min-width:0}
   .post-card{grid-template-columns:1fr;gap:6px;padding:18px 0}
   .post-card .post-date{order:-1}
@@ -417,7 +417,7 @@ main{animation:mainIn .5s cubic-bezier(.22,.61,.36,1) both}
   .collection-grid{grid-template-columns:1fr}
   .post-reading{display:block;margin:32px 0}
   .post-toc{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--border);padding:0 0 16px;margin-bottom:28px}
-  .site-stats{margin:0 0 48px;padding:20px}
+  .site-stats{margin:24px 0 48px;padding:20px}
   .site-stats-grid{grid-template-columns:1fr 1fr;gap:20px 0}
   .site-stat{padding:4px 16px;border-left:1px solid var(--border)}
   .site-stat:nth-child(odd){border-left:0;padding-left:0}
