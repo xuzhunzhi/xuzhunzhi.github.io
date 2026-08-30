@@ -160,12 +160,6 @@ main{padding-top:12px;min-height:70vh}
 .home-top{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start}
 .home-left{min-width:0}
 .home-bottom{margin-top:8px}
-.stat-card{margin-top:18px;border:1px solid var(--border);border-radius:14px;padding:18px 16px;background:var(--surface)}
-.stat-hd{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-m);margin-bottom:14px}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stat-cell{border-top:1px solid var(--border);padding-top:10px}
-.stat-num{font-family:var(--font-serif);font-size:28px;line-height:1;color:var(--text-p)}
-.stat-lbl{font-size:11px;color:var(--text-m);margin-top:5px}
 .home-side{position:sticky;top:24px;align-self:start}
 .author-card{border:1px solid var(--border);padding:26px 22px;text-align:center;background:var(--surface);border-radius:14px;flex-shrink:0;margin-top:10px}
 .author-avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:1px solid var(--border)}
