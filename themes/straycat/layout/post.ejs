@@ -1,17 +1,29 @@
-<article class="post-single">
-  <h1 class="post-title"><%= page.title %></h1>
-  <div class="post-meta">
-    <time datetime="<%= date(page.date, 'YYYY-MM-DD') %>"><%= date(page.date, 'YYYY-MM-DD') %></time>
-    <% if (page.categories && page.categories.length) { %> · <% page.categories.each(function(c){ %><a class="meta-tag" href="<%= url_for('/categories/' + encodeURIComponent(c.name)) %>"><%= c.name %></a><% }) %><% } %>
-  </div>
-  <div class="post-content"><%- page.content %></div>
-  <% if (page.tags && page.tags.length) { %>
-    <div class="post-tags">
-      <% page.tags.each(function(t){ %><a class="meta-tag" href="<%= url_for('/tags/' + encodeURIComponent(t.name)) %>"># <%= t.name %></a><% }) %>
+<article class="post-single post-reading">
+  <aside class="post-toc" aria-label="文章目录">
+    <div class="post-toc-label">目录 / Contents</div>
+    <div class="post-toc-list"><%- toc(page.content, {list_number: false}) %></div>
+  </aside>
+  <div class="post-main">
+    <% var plain = strip_html(page.content || '').replace(/\s/g, ''); var wordCount = plain.length; var readMinutes = Math.max(1, Math.ceil(wordCount / 400)); %>
+    <h1 class="post-title"><%= page.title %></h1>
+    <div class="post-meta">
+      <span>发布 <time datetime="<%= date(page.date, 'YYYY-MM-DD HH:mm') %>"><%= date(page.date, 'YYYY-MM-DD HH:mm') %></time></span>
+      <% if (page.updated) { %><span>修改 <time datetime="<%= date(page.updated, 'YYYY-MM-DD HH:mm') %>"><%= date(page.updated, 'YYYY-MM-DD HH:mm') %></time></span><% } %>
+      <span><%= wordCount %> 字</span><span>约 <%= readMinutes %> 分钟</span>
+      <% if (page.edits) { %><span>编辑 <%= page.edits %> 次</span><% } %>
+      <% if (page.categories && page.categories.length) { %><span class="post-meta-cats">· <% page.categories.each(function(c){ %><a class="meta-tag" href="<%= url_for('/categories/' + encodeURIComponent(c.name)) %>"><%= c.name %></a><% }) %></span><% } %>
     </div>
-  <% } %>
-  <nav class="post-nav">
-    <% if (page.prev) { %><span>上一篇：<a href="<%= url_for(page.prev.path) %>"><%= page.prev.title %></a></span><% } %>
-    <% if (page.next) { %><span>下一篇：<a href="<%= url_for(page.next.path) %>"><%= page.next.title %></a></span><% } %>
-  </nav>
+    <div class="post-content"><%- page.content %></div>
+    <% if (page.tags && page.tags.length) { %>
+      <div class="post-tags"><% page.tags.each(function(t){ %><a class="meta-tag" href="<%= url_for('/tags/' + encodeURIComponent(t.name)) %>"># <%= t.name %></a><% }) %></div>
+    <% } %>
+    <nav class="post-nav">
+      <% if (page.prev) { %><span>上一篇：<a href="<%= url_for(page.prev.path) %>"><%= page.prev.title %></a></span><% } %>
+      <% if (page.next) { %><span>下一篇：<a href="<%= url_for(page.next.path) %>"><%= page.next.title %></a></span><% } %>
+    </nav>
+    <section class="comments" aria-label="评论">
+      <div class="comments-label">评论 / Comments</div>
+      <script src="https://utteranc.es/client.js" repo="xuzhunzhi/xuzhunzhi.github.io" issue-term="pathname" label="评论" theme="github-dark" crossorigin="anonymous" async></script>
+    </section>
+  </div>
 </article>

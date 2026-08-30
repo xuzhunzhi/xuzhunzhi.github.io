@@ -12,6 +12,7 @@ function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u
 
 const ROOT = __dirname;                                   // 仓库根目录
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
+const HISTORY_DIR = path.join(ROOT, 'source', '_data', 'post-history');
 const PORT = process.env.PORT || 4001;
 
 // ---------- 工具 ----------
@@ -49,7 +50,7 @@ function listPosts() {
 function readPost(file) {
   const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
   const { fm, body } = parseFM(raw);
-  return { file, title: fm.title || '', date: fm.date || '', categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, ''), description: fm.description || '', content: body.trim() };
+  return { file, title: fm.title || '', date: fm.date || '', updated: fm.updated || '', edits: Number(fm.edits || 0), categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, ''), description: fm.description || '', content: body.trim() };
 }
 
 // ---------- HTTP ----------
@@ -75,13 +76,44 @@ const server = http.createServer(async (req, res) => {
       ensure();
       let file = body.file || (slug(body.title) + '.md');
       if (!file.endsWith('.md')) file += '.md';
-      const lines = ['---', `title: ${body.title || ''}`, `date: ${body.date || ''}`];
+      const target = path.join(POSTS_DIR, file);
+      const exists = fs.existsSync(target);
+      let old = null;
+      if (exists) {
+        try { old = readPost(file); } catch (e) {}
+        fs.mkdirSync(HISTORY_DIR, { recursive: true });
+        const hp = path.join(HISTORY_DIR, slug(file) + '.json');
+        let versions = [];
+        try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+        versions.push({ savedAt: new Date().toISOString(), title: old.title, date: old.date, updated: old.updated || '', edits: old.edits || 0, description: old.description || '', categories: old.categories || '', content: old.content || '' });
+        fs.writeFileSync(hp, JSON.stringify(versions, null, 2), 'utf8');
+      }
+      const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      const edits = exists ? (Number((old && old.edits) || 0) + 1) : 0;
+      const lines = ['---', `title: ${body.title || ''}`, `date: ${body.date || now}`];
+      if (body.updated || exists) lines.push(`updated: ${body.updated || now}`);
+      lines.push(`edits: ${edits}`);
       if (body.description) lines.push(`description: ${body.description}`);
       const cats = arr(body.categories); if (cats) lines.push(`categories: ${cats}`);
       const tags = arr(body.tags); if (tags) lines.push(`tags: ${tags}`);
       lines.push('---', '', body.content || '');
-      fs.writeFileSync(path.join(POSTS_DIR, file), lines.join('\n'), 'utf8');
-      return json(res, 200, { ok: true, file });
+      fs.writeFileSync(target, lines.join('\n'), 'utf8');
+      return json(res, 200, { ok: true, file, updated: exists ? now : '', edits });
+    }
+    if (p === '/api/history' && req.method === 'GET') {
+      const file = u.searchParams.get('file') || '';
+      const hp = path.join(HISTORY_DIR, slug(file) + '.json');
+      let versions = []; try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+      return json(res, 200, { file, versions });
+    }
+    if (p === '/api/history/restore' && req.method === 'POST') {
+      const body = await readBody(req);
+      const file = body.file || ''; const index = Number(body.index);
+      const hp = path.join(HISTORY_DIR, slug(file) + '.json');
+      let versions = []; try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+      const v = versions[index]; if (!v) return json(res, 404, { ok: false, msg: '版本不存在' });
+      fs.writeFileSync(path.join(POSTS_DIR, file), ['---', `title: ${v.title || ''}`, `date: ${v.date || ''}`, `updated: ${new Date().toISOString().replace('T', ' ').slice(0, 19)}`, `edits: ${Number(v.edits || 0) + 1}`, v.description ? `description: ${v.description}` : '', v.categories ? `categories: ${arr(v.categories)}` : '', '---', '', v.content || ''].filter(Boolean).join('\n'), 'utf8');
+      return json(res, 200, { ok: true });
     }
     if (p === '/api/delete' && req.method === 'POST') {
       const body = await readBody(req);

@@ -1,17 +1,46 @@
-<% if (page.posts && page.posts.length) { %>
-  <h1 class="archive-title"><%= page.tag ? page.tag.name : '标签' %></h1>
-  <ul class="archive-list">
-    <% page.posts.each(function(post){ %>
-      <li><span class="date"><%= date(post.date, 'YYYY-MM-DD') %></span><a href="<%= url_for(post.path) %>"><%= post.title %></a></li>
+<% if (page.tag && page.posts && page.posts.length) { %>
+  <section class="tag-hero">
+    <div class="tag-kind">Tag / 标签</div>
+    <h1 class="tag-name"># <%= page.tag.name %></h1>
+    <p class="tag-count">共 <%= page.posts.length %> 篇文章</p>
+  </section>
+
+  <div class="sec-hd"><span class="sec-num">posts</span><span class="sec-title">相关文章</span><span class="sec-line"></span></div>
+  <div class="feed-list">
+    <% page.posts.sort('date', -1).each(function(post){ %>
+      <article class="post-card">
+        <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
+        <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+        <span class="post-arrow">→</span>
+      </article>
     <% }) %>
-  </ul>
+  </div>
 <% } else if (page.tags && page.tags.length) { %>
-  <h1 class="archive-title">标签</h1>
-  <ul class="archive-list">
-    <% page.tags.forEach(function(tag){ %>
-      <li><a href="<%= url_for(tag.path) %>"><%= tag.name %></a> <span class="count">(<%= tag.length %>)</span></li>
+  <% var maxCount = 1; page.tags.forEach(function(tag){ if (tag.length > maxCount) maxCount = tag.length; }); %>
+  <section class="tag-index-head">
+    <div class="tag-kind">Index / 标签索引</div>
+    <h1 class="tag-index-title">所有标签</h1>
+    <p class="tag-index-desc"><%= page.tags.length %> 个标签，记录不同方向的文字。</p>
+  </section>
+
+  <div class="tag-cloud" aria-label="标签列表">
+    <% page.tags.sort(function(a,b){ return b.length - a.length || a.name.localeCompare(b.name); }).forEach(function(tag){ var scale = 0.9 + (tag.length / maxCount) * 0.35; %>
+      <a class="tag-chip" href="<%= url_for(tag.path) %>" style="--tag-scale:<%= scale.toFixed(2) %>">
+        <span># <%= tag.name %></span><small><%= tag.length %></small>
+      </a>
+    <% }) %>
+  </div>
+
+  <div class="sec-hd tag-list-hd"><span class="sec-num">list</span><span class="sec-title">按数量浏览</span><span class="sec-line"></span></div>
+  <ul class="archive-list tag-list">
+    <% page.tags.sort(function(a,b){ return b.length - a.length || a.name.localeCompare(b.name); }).forEach(function(tag){ %>
+      <li><a href="<%= url_for(tag.path) %>"># <%= tag.name %></a><span class="count"><%= tag.length %> 篇</span></li>
     <% }) %>
   </ul>
 <% } else { %>
-  <p class="empty">暂无标签。</p>
+  <section class="tag-index-head">
+    <div class="tag-kind">Index / 标签索引</div>
+    <h1 class="tag-index-title">所有标签</h1>
+    <p class="empty">暂无标签，给文章添加 tags 后会显示在这里。</p>
+  </section>
 <% } %>
