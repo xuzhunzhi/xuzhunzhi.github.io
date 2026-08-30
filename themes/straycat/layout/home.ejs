@@ -29,6 +29,7 @@
       <button class="pin-nav pin-next" onclick="pinScroll(1)" aria-label="下一个">›</button>
     </div>
     <% } %>
+
   </div>
 
   <aside class="home-side">
@@ -58,7 +59,8 @@
   }
   site.posts.each(function(post){
     totalWords += strip_html(post.content || '').replace(/\s/g, '').length;
-    recordContentUpdate(post.updated || post.date);
+    var updatedMatch = String(post.raw || '').match(/^updated\s*:\s*(.+)$/mi);
+    recordContentUpdate(updatedMatch ? updatedMatch[1].trim() : post.date);
   });
   (site.data.dynamics || []).forEach(function(d){
     totalWords += String(d.text || '').replace(/\s/g, '').length;
