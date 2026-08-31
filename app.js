@@ -77,20 +77,22 @@ function upWatchCover(i){var input=document.createElement('input');input.type='f
 async function fetchMoegirl(i){
   var input=document.querySelector('.watch-page-url');
   var pageUrl=input?input.value.trim():(watching[i].pageUrl||'');
+  var titleInput=document.querySelector('.watch-edit-fields .watch-field input');
+  var name=titleInput?titleInput.value.trim():(watching[i].title||'');
   watching[i].pageUrl=pageUrl;
-  var name=watching[i].title||'';
+  watching[i].title=name;
   if(!pageUrl&&!name){show('watchStatus','请先填写番名或萌娘百科网址',false);return}
   show('watchStatus','抓取萌娘百科…',true);
   try{
-    var endpoint=pageUrl?'/api/moegirl?url='+encodeURIComponent(pageUrl):'/api/moegirl?name='+encodeURIComponent(name);
+    var endpoint=pageUrl?'/api/moegirl?url='+encodeURIComponent(pageUrl)+(name?'&name='+encodeURIComponent(name):''):'/api/moegirl?name='+encodeURIComponent(name);
     var d=await api(endpoint);
     if(d.ok===false){show('watchStatus',d.msg||'萌娘百科地址无效',false);return}
-    pendingMoegirl[i]={title:d.title,cover:d.cover,pageUrl:d.pageUrl,searchUrl:d.searchUrl,found:d.found,total:d.total};
+    pendingMoegirl[i]={title:name||d.title,sourceTitle:d.sourceTitle||d.title,cover:d.cover,pageUrl:d.pageUrl,searchUrl:d.searchUrl,found:d.found,total:d.total};
     show('watchStatus',d.msg||'',!!d.found);
     renderWatch()
   }catch(e){show('watchStatus','抓取出错：'+(e.message||''),false)}
 }
-function confirmMoegirl(i){var m=pendingMoegirl[i];if(m){watching[i].cover=m.cover;watching[i].title=m.title||watching[i].title;watching[i].pageUrl=m.pageUrl;if(m.total)watching[i].total=m.total}delete pendingMoegirl[i];saveWatch()}
+function confirmMoegirl(i){var m=pendingMoegirl[i];if(m){watching[i].cover=m.cover||watching[i].cover;watching[i].title=watching[i].title||m.title;watching[i].pageUrl=m.pageUrl;if(m.total)watching[i].total=m.total}delete pendingMoegirl[i];saveWatch()}
 function rejectMoegirl(i){var m=pendingMoegirl[i];if(m&&m.searchUrl){window.open(m.searchUrl,'_blank')}delete pendingMoegirl[i];renderWatch()}
 function addWatch(){watching.push({title:'',status:'watching',total:'',progress:'',rating:'',note:'',finishedAt:'',cover:'',pageUrl:''});renderWatch()}
 function delWatch(i){watching.splice(i,1);renderWatch()}

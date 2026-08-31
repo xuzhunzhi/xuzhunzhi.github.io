@@ -294,6 +294,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/moegirl' && req.method === 'GET') {
       const requestedUrl = decodeURIComponent(u.searchParams.get('url') || '').trim();
       let name = decodeURIComponent(u.searchParams.get('name') || '').trim();
+      const manualName = name;
       let pageUrl = '';
       if (requestedUrl) {
         if (!isMoegirlPageUrl(requestedUrl)) return json(res, 200, { ok: false, msg: '请输入萌娘百科页面地址' });
@@ -326,7 +327,7 @@ const server = http.createServer(async (req, res) => {
         const cleanTitle = decodeHtml(ptitle || name).replace(/\s*[—｜|·-].*$/, '').trim();
         let total = ''; const tm = html.match(/(?:话数|集数|话)\s*[:：]?\s*(\d+)/) || html.match(/(\d+)\s*话/) || html.match(/总话数\s*[:：]?\s*(\d+)/); if (tm) total = tm[1];
         const msg = localCover ? '已抓取：' + (cleanTitle || name) : (coverUrl ? '找到了封面地址，但下载失败' + (coverError ? '：' + coverError : '') : '未取到封面，可能页面不存在');
-        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!localCover, total, msg });
+        return json(res, 200, { ok: true, title: manualName || cleanTitle || name, sourceTitle: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!localCover, total, msg });
       } catch (e) {
         return json(res, 200, { ok: true, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + (e.message || e.code || String(e)) });
       }
