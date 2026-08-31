@@ -10,7 +10,7 @@ const path = require('path');
 const { exec } = require('child_process');
 function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const req = lib.get(u, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url)).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = Buffer.concat(chunks); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(15000, () => req.destroy(new Error('timeout'))); }); }
 
-const ROOT = __dirname;                                   // 仓库根目录
+const ROOT = process.env.ADMIN_ROOT || __dirname;         // 仓库根目录（Electron 可指定外部工作区）
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
 const HISTORY_DIR = path.join(ROOT, 'source', '_data', 'post-history');
 const PORT = process.env.PORT || 4001;
@@ -317,8 +317,12 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-function startAdmin(port) {
-  server.listen(port, () => console.log('\n▶ 流浪猫管理面板已启动：http://localhost:' + port + '\n   文章目录：' + POSTS_DIR + '\n   按 Ctrl+C 停止\n'));
+function startAdmin(port, onReady) {
+  server.listen(port, () => {
+    const actualPort = server.address().port;
+    console.log('\n▶ 流浪猫管理面板已启动：http://localhost:' + actualPort + '\n   文章目录：' + POSTS_DIR + '\n   按 Ctrl+C 停止\n');
+    if (onReady) onReady(actualPort);
+  });
   return server;
 }
 if (require.main === module) {
@@ -463,7 +467,29 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .wrow-links a:hover{text-decoration:underline}
 .wrow input{padding:8px 10px;font-size:13px}
 .img-thumb{width:46px;height:46px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
-@media(max-width:760px){.row,.imgrow,.wrow{grid-template-columns:1fr}.navlinks{gap:16px}}
+/* ===== 桌面管理台排版 ===== */
+body{min-width:1000px;background:radial-gradient(circle at 50% -20%,rgba(212,162,78,.08),transparent 34%),var(--bg)}
+.topnav{position:sticky;top:0;z-index:100;background:rgba(10,10,8,.94);backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(0,0,0,.16)}
+.navwrap{max-width:1180px;padding:18px 32px}.brand{font-size:19px}.navlinks{gap:6px}.nav-link{padding:8px 13px;border:1px solid transparent;border-radius:7px;letter-spacing:.12em}.nav-link:hover,.nav-link.active{border-color:rgba(212,162,78,.35);background:rgba(212,162,78,.08)}
+.wrap{max-width:1180px;padding:48px 32px 100px}h1{font-size:38px;letter-spacing:.01em;margin-bottom:10px}.sub{max-width:720px;margin-bottom:32px;color:var(--text-m);font-size:14px}
+.tabpage{animation:tab-in .22s ease-out}@keyframes tab-in{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{padding:26px;border-radius:14px;background:linear-gradient(145deg,rgba(20,20,18,.98),rgba(16,16,14,.98));border-color:rgba(107,103,96,.24);box-shadow:0 12px 32px rgba(0,0,0,.12)}
+.list-hd,.form-hd{min-height:38px;margin-bottom:20px}.list-hd span,.form-hd span{font-size:12px;letter-spacing:.12em;color:var(--text-b)}.form-hd{border-bottom:1px solid rgba(107,103,96,.2);padding-bottom:16px}.form-hd #form_hd{font-size:17px;letter-spacing:0;color:var(--text-p)}
+label{margin:18px 0 7px;font-size:10px;letter-spacing:.14em;color:var(--accent-dim)}input,textarea,select{min-height:42px;padding:10px 13px;border-color:rgba(107,103,96,.3);background:#0e0e0c;border-radius:8px}textarea{min-height:260px}
+.row{gap:18px}.btn{min-height:40px;padding:9px 16px;border-radius:8px}.btn-ghost{background:rgba(255,255,255,.018);border-color:rgba(107,103,96,.3)}.btn-ghost:hover{background:rgba(212,162,78,.08)}
+#tab-posts{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}#tab-posts>h1,#tab-posts>.sub{grid-column:1/-1}#tab-posts>.sub{margin-bottom:10px}#tab-posts>.card:nth-of-type(1){grid-column:1;grid-row:3}#tab-posts>.card:nth-of-type(2){grid-column:2;grid-row:3}#tab-posts>.card:nth-of-type(3){grid-column:1/-1}
+#tab-posts:not(.active){display:none}.tabpage:not(#tab-posts){display:none}.tabpage.active:not(#tab-posts){display:block}
+.plist{border-top:0;display:flex;flex-direction:column;gap:8px}.pitem{padding:13px 12px;border:1px solid rgba(107,103,96,.18);border-radius:9px;background:rgba(255,255,255,.018);font-family:var(--font-sans);font-size:14px}.pitem:hover{background:rgba(212,162,78,.07);transform:translateX(2px)}
+.collrow{padding:16px;border-color:rgba(107,103,96,.24);border-radius:11px;background:#0f0f0d}.collrow>div:first-child{gap:12px!important}.collrow>input{margin-top:14px!important}.collrow>div:last-child{margin-top:14px!important}.collrow>div:last-child input{flex:1}
+.album-item{margin-top:12px;border-color:rgba(107,103,96,.24);border-radius:12px;background:#0f0f0d}.album-row{padding:16px 18px}.album-row-name{font-size:16px}.album-edit{padding:20px 18px 22px;background:rgba(10,10,8,.52);border-top-color:rgba(107,103,96,.22)}.album-edit-grid{grid-template-columns:210px 1fr;gap:24px}.album-edit-fields{gap:15px}.field{display:block}.field label{min-width:0;margin:0 0 7px}.imgcards{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}.imgcard{border-color:rgba(107,103,96,.22);border-radius:10px}.imgcard-body{padding:12px}.imgcard-fields{gap:7px}.imgcard-fields input,.imgcard-src{min-height:36px;padding:8px 9px}.imgcard-thumb{height:145px}
+.wrow2{margin-top:12px;padding:16px 18px;border:1px solid rgba(107,103,96,.24);border-radius:11px;background:#0f0f0d}.wrow2-title{font-size:16px}.wrow2-sub{margin-top:5px;color:var(--accent-dim)}.wrow-edit{margin-top:-13px;padding:22px 18px 20px;border:1px solid rgba(107,103,96,.24);border-top:0;border-radius:0 0 11px 11px;background:rgba(10,10,8,.58)}.wrow-edit label{margin-top:4px}.wrow-confirm{padding:14px;border-radius:10px;background:rgba(212,162,78,.06)}
+.dynrow{margin-top:10px;padding:16px;border:1px solid rgba(107,103,96,.22);border-radius:10px;background:#0f0f0d}.dynrow-text{font-family:var(--font-sans);font-size:14px}.dynrow-meta{margin-top:7px}
+.pinrow2{margin-top:8px;padding:12px 14px;border:1px solid rgba(107,103,96,.2);border-radius:9px;background:#0f0f0d}.pinrow2:first-child{margin-top:0}.pin-idx{color:var(--accent-dim)}
+.friendrow{margin-top:10px;padding:10px;border:1px solid rgba(107,103,96,.2);border-radius:9px;background:#0f0f0d}.dd-btn{min-height:42px;border-color:rgba(107,103,96,.3);border-radius:8px}.dd-menu{border-color:rgba(212,162,78,.3);box-shadow:0 14px 30px rgba(0,0,0,.45)}.dd-item{padding:11px 13px}.dd-item:hover{background:rgba(212,162,78,.08)}
+.status{min-height:22px;margin-top:16px}.small{font-family:var(--font-sans)}
+#tab-dynamics .card:first-of-type textarea{min-height:190px}
+#tab-dynamics .card:first-of-type .row{margin-top:18px!important}
+#tab-site{max-width:1180px;margin:0 auto;padding:48px 32px 100px}
 </style>
 </head><body>
 <nav class="topnav"><div class="navwrap">
@@ -565,7 +591,6 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
   </div>
 </section>
 
-</div>
 <section id="tab-site" class="tabpage">
   <h1>站点 <em>设置</em></h1>
   <p class="sub">管理网站页脚的「友链」。</p>
@@ -576,6 +601,8 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
     <div class="status" id="friendStatus"></div>
   </div>
 </section>
+
+</div>
 
 <div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeImgDetail()">
   <div class="imgdetail-inner">

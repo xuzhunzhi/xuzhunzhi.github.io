@@ -2,11 +2,77 @@
   "name": "straycat-admin",
   "version": "1.0.0",
   "description": "流浪猫的避难所 · 本地管理面板 (Electron GUI)",
+  "author": "流浪猫的避难所",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win portable"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.xuzhunzhi.straycat.admin",
+    "productName": "流浪猫管理台",
+    "artifactName": "StrayCat-Admin-${version}.${ext}",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "main.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../admin.js",
+        "to": "app-runtime/admin.js"
+      },
+      {
+        "from": "../app.js",
+        "to": "app-runtime/site/app.js"
+      },
+      {
+        "from": "../source",
+        "to": "app-runtime/site/source"
+      },
+      {
+        "from": "../themes",
+        "to": "app-runtime/site/themes"
+      },
+      {
+        "from": "../scripts",
+        "to": "app-runtime/site/scripts"
+      },
+      {
+        "from": "../.github",
+        "to": "app-runtime/site/.github"
+      },
+      {
+        "from": "../.git",
+        "to": "app-runtime/site/.git"
+      },
+      {
+        "from": "../.gitignore",
+        "to": "app-runtime/site/.gitignore"
+      },
+      {
+        "from": "../_config.yml",
+        "to": "app-runtime/site/_config.yml"
+      },
+      {
+        "from": "../package.json",
+        "to": "app-runtime/site/package.json"
+      },
+      {
+        "from": "../README.md",
+        "to": "app-runtime/site/README.md"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    }
   }
 }
