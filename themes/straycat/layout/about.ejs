@@ -1,6 +1,7 @@
+<% var siteMeta = site.data.site || {}; var aboutName = siteMeta.aboutName || '许纯之'; %>
 <div class="about-hero">
-  <div class="about-name">许<em>纯之</em></div>
-  <div class="about-aka">Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超</div>
+  <div class="about-name"><%= aboutName.slice(0, -1) %><em><%= aboutName.slice(-1) %></em></div>
+  <div class="about-aka"><%= siteMeta.aboutAka || 'Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超' %></div>
   <div class="about-poem">一只被抛弃在尘世之中的猫。<br>
 感谢尘世还有那些值得猫眷恋的。<br>
 希望这里成为流浪猫的坟茔。</div>

@@ -1,8 +1,9 @@
+<% var siteMeta = site.data.site || {}; %>
 <div class="home-top">
   <div class="home-left">
     <section class="hero">
-      <h1 class="hero-title">流浪猫的<em>避难所</em></h1>
-      <p class="hero-sub">一只被抛弃在尘世之中的猫。<br>感谢尘世还有那些值得猫眷恋的。<br>希望这里成为流浪猫的坟茔。</p>
+      <h1 class="hero-title"><%= siteMeta.homeTitle || '流浪猫的避难所' %></h1>
+      <p class="hero-sub"><% var homeSubtitleLines = (siteMeta.homeSubtitle || '一只被抛弃在尘世之中的猫。\n感谢尘世还有那些值得猫眷恋的。\n希望这里成为流浪猫的坟茔。').split(/\r?\n/); homeSubtitleLines.forEach(function(line, i){ %><%= line %><% if(i < homeSubtitleLines.length - 1){ %><br><% } %><% }); %></p>
     </section>
 
     <% var pinned = site.data.pinned || []; %>

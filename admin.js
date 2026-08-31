@@ -224,6 +224,16 @@ const server = http.createServer(async (req, res) => {
     const COLLECTIONS_PATH = path.join(ROOT, 'source', '_data', 'collections.json');
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
     const FRIENDS_PATH = path.join(ROOT, 'source', '_data', 'friends.json');
+    const SITE_PATH = path.join(ROOT, 'source', '_data', 'site.json');
+    if (p === '/api/site' && req.method === 'GET') {
+      return json(res, 200, { site: readJson(SITE_PATH, {}) });
+    }
+    if (p === '/api/site' && req.method === 'POST') {
+      const body = await readBody(req);
+      fs.mkdirSync(path.dirname(SITE_PATH), { recursive: true });
+      fs.writeFileSync(SITE_PATH, JSON.stringify(body.site || {}, null, 2), 'utf8');
+      return json(res, 200, { ok: true });
+    }
     if (p === '/api/friends' && req.method === 'GET') {
       const data = readJson(FRIENDS_PATH, []);
       return json(res, 200, { friends: data });
@@ -599,127 +609,195 @@ textarea{line-height:1.75}
 .collrow>div:last-child{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;margin:0!important}
 .collrow>div:last-child input{min-width:0}
 .dynrow>div:last-child{display:flex!important;align-items:center;gap:9px!important;flex-shrink:0}
+/* ===== 内容工作区：浏览优先，编辑使用弹窗 ===== */
+#tab-overview,#tab-posts{display:block}
+.overview-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(380px,.88fr);gap:24px;align-items:start}.overview-friends-card{grid-column:1/-1}
+.panel-note,.list-caption{color:var(--text-m);font-size:12px}.panel-note{margin:-10px 0 18px}
+.overview-add-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-wide{grid-column:1/-1}.settings-grid textarea{min-height:100px}
+.quick-links,.card-actions{display:flex;align-items:center;gap:10px;margin-top:18px}.card-actions .status{flex:1;margin:0}
+.article-admin-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:24px;align-items:start}.article-admin-grid .card{margin-bottom:0}
+.site-like-list{display:flex;flex-direction:column;gap:10px}.site-like-list .pitem{min-height:82px;padding:15px 17px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.012));border:1px solid rgba(107,103,96,.25);border-radius:12px}.site-like-list .pitem:hover{transform:translateX(3px);border-color:rgba(212,162,78,.55)}
+.post-admin-main{min-width:0}.post-admin-title{display:block;font-family:Georgia,serif;font-size:20px;color:var(--text-p);line-height:1.3}.post-admin-meta{display:block;margin-top:6px;color:var(--accent-dim);font-size:12px}.post-admin-desc{display:block;margin-top:5px;color:var(--text-m);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collection-admin-list{display:flex;flex-direction:column;gap:12px}.collection-admin-card{position:relative;display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid rgba(107,103,96,.24);border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.012))}.collection-admin-cover{width:92px;height:92px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#263d2b,#101b14);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:28px}.collection-admin-cover img{width:100%;height:100%;object-fit:cover}.collection-admin-name{font-family:Georgia,serif;font-size:19px;color:var(--text-p)}.collection-admin-meta{margin-top:6px;color:var(--accent-dim);font-size:12px}.collection-admin-desc{margin-top:7px;color:var(--text-m);font-size:13px;line-height:1.45}
+.content-browser-card{position:relative}.moment-admin-feed{display:flex;flex-direction:column;gap:14px}.admin-moment{padding:22px 24px;border:1px solid rgba(107,103,96,.24);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}.admin-moment:hover{border-color:rgba(212,162,78,.55);transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.18)}.admin-moment-head{display:flex;align-items:center;gap:11px}.admin-moment-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}.admin-moment-author{color:var(--text-p);font-size:14px}.admin-moment-publish{display:block;margin-top:2px;color:var(--text-m);font-family:var(--font-mono);font-size:11px}.admin-moment-text{margin-top:17px;color:var(--text-b);font-size:15px;line-height:1.8;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}.admin-moment-edited{margin-top:14px;color:var(--accent-dim);font-family:var(--font-mono);font-size:11px}.admin-moment-gallery,.compose-image-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:16px}.admin-moment-gallery img,.compose-image-grid img{width:100%;aspect-ratio:1.3;object-fit:cover;border-radius:7px;background:#0b0b09}.admin-moment-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:17px;padding-top:13px;border-top:1px solid var(--border)}.admin-moment-actions{display:flex;gap:7px}.content-fab{position:fixed;right:34px;bottom:30px;z-index:150;min-width:58px;height:48px;padding:0 18px;border:1px solid rgba(212,162,78,.55);border-radius:13px;background:var(--accent);color:var(--bg);font-size:23px;line-height:1;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}.content-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.45)}
+.album-admin-grid{display:flex;flex-direction:column;gap:18px}.album-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:14px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012))}.album-admin-head{display:grid;grid-template-columns:124px minmax(0,1fr) auto;gap:17px;align-items:center;padding:15px}.album-admin-cover{width:124px;height:92px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#263d2b,#101b14);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:28px}.album-admin-cover img{width:100%;height:100%;object-fit:cover}.album-admin-name{font-family:Georgia,serif;color:var(--text-p);font-size:20px}.album-admin-meta{margin-top:5px;color:var(--text-m);font-size:12px}.album-admin-desc{margin-top:7px;color:var(--text-m);font-size:13px}.album-admin-images{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:0 15px 15px}.admin-image-card{position:relative;overflow:hidden;aspect-ratio:4/3;border-radius:9px;background:#0b0b09;border:1px solid var(--border)}.admin-image-card>img{width:100%;height:100%;object-fit:cover;display:block}.admin-image-caption{position:absolute;left:0;right:0;bottom:0;padding:24px 8px 7px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:var(--text-p);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.admin-image-actions{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;padding:9px;opacity:0;background:linear-gradient(transparent,rgba(0,0,0,.66));transition:opacity .2s}.admin-image-card:hover .admin-image-actions{opacity:1}.admin-image-actions .btn{min-height:30px;padding:5px 8px;font-size:11px}.admin-image-actions .image-actions-top{display:flex;justify-content:space-between;gap:7px}.admin-image-actions .image-preview-btn{width:100%}
+.anime-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.anime-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:13px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}.anime-admin-card:hover{transform:translateY(-3px);border-color:rgba(212,162,78,.55);box-shadow:0 14px 28px rgba(0,0,0,.2)}.anime-admin-cover{position:relative;height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#11110f}.anime-admin-cover-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(13px);opacity:.55;transform:scale(1.12)}.anime-admin-cover img{position:relative;z-index:1;max-width:82%;max-height:88%;object-fit:contain;border-radius:7px;box-shadow:0 14px 24px rgba(0,0,0,.48)}.anime-admin-cover-empty{color:var(--accent);font-size:32px}.anime-admin-body{padding:15px}.anime-admin-title{color:var(--text-p);font-family:Georgia,serif;font-size:19px;line-height:1.3}.anime-admin-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;color:var(--accent-dim);font-size:12px}.anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.3);border-radius:5px}.anime-admin-note{margin-top:9px;color:var(--text-m);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(6,6,5,.82);backdrop-filter:blur(10px)}.admin-modal.show{display:flex}.admin-modal-inner{position:relative;width:min(760px,100%);max-height:90vh;overflow:auto;padding:30px 34px;background:linear-gradient(145deg,#171714,#0d0d0b);border:1px solid rgba(212,162,78,.28);border-radius:16px;box-shadow:0 28px 80px rgba(0,0,0,.58)}.post-modal-inner{width:min(860px,100%)}.dyn-modal-inner{width:min(700px,100%)}.album-modal-inner{width:min(960px,100%)}.watch-modal-inner{width:min(900px,100%)}.image-edit-modal-inner,.collection-modal-inner{width:min(520px,100%)}.modal-kicker{margin-bottom:9px;color:var(--accent-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.2em}.admin-modal .form-hd{margin-bottom:22px}.admin-modal .moment-x{position:absolute;right:18px;top:15px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}.dyn-time-note{display:flex;justify-content:space-between;gap:14px;margin-top:17px;padding:12px 14px;border:1px solid rgba(107,103,96,.24);border-radius:8px;background:rgba(255,255,255,.018);font-size:12px}.dyn-time-note span{color:var(--text-m)}.dyn-time-note b{font-weight:400;color:var(--accent-dim);font-family:var(--font-mono)}.dyn-edit-time{margin-top:8px}.compose-image-grid img{aspect-ratio:1}.album-editor-head{display:grid;grid-template-columns:190px minmax(0,1fr);gap:20px;align-items:stretch}.album-editor-head .album-edit-cover{min-height:150px}.album-image-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.album-image-edit-card{padding:8px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,.18)}.album-image-edit-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px}.album-image-edit-card input{min-height:34px;margin-top:7px;padding:6px 8px;font-size:12px}.album-image-edit-card .btn{width:100%;min-height:30px;margin-top:7px;padding:5px;font-size:11px}.watch-editor{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px}.watch-editor-cover{height:260px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:#0b0b09;overflow:hidden;cursor:pointer}.watch-editor-cover img{max-width:100%;max-height:100%;object-fit:contain}.watch-editor-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.watch-editor-fields .wide{grid-column:1/-1}.image-edit-preview{height:180px;margin-bottom:18px;border:1px solid var(--border);border-radius:9px;background:#0a0a08;display:flex;align-items:center;justify-content:center;overflow:hidden}.image-edit-preview img{max-width:100%;max-height:100%;object-fit:contain}.image-edit-defaults{display:flex;align-items:center;gap:10px;margin-top:13px;color:var(--text-m);font-size:12px}
+@media(max-width:1100px){.overview-grid,.article-admin-grid{grid-template-columns:1fr}.overview-friends-card{grid-column:auto}.anime-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head><body>
-<nav class="topnav"><div class="navwrap">
-  <span class="brand">避难所<em>管理台</em></span>
-  <div class="navlinks">
-    <a class="nav-link active" data-tab="posts" onclick="t('posts')">文章</a>
-    <a class="nav-link" data-tab="home" onclick="t('home')">首页</a>
-    <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
-    <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
-    <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
-    <a class="nav-link" data-tab="site" onclick="t('site')">站点</a>
-  </div>
-</div></nav>
-<div class="wrap">
+ <nav class="topnav"><div class="navwrap">
+   <span class="brand">避难所<em>管理台</em></span>
+   <div class="navlinks">
+     <a class="nav-link active" data-tab="overview" onclick="t('overview')">综合</a>
+     <a class="nav-link" data-tab="posts" onclick="t('posts')">文章</a>
+     <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
+     <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
+     <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
+   </div>
+ </div></nav>
+ <div class="wrap">
 
-<section id="tab-posts" class="tabpage active">
-  <h1>文章 <em>合集</em></h1>
-  <p class="sub">上传本地文档 → 自动标题 → 填简介、选合集 → 发布。历史文章点「编辑」可修改。</p>
-  <div class="card">
-    <div class="list-hd"><span>文章列表</span><button class="btn btn-ghost" onclick="newPost()">＋ 新建</button></div>
-    <div class="plist" id="posts"></div>
-  </div>
-  <div class="card">
-    <div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" style="display:none" onclick="cancelEdit()">取消编辑</button></div>
-    <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label>
-    <input type="file" id="up_folder" multiple onchange="onFilesChanged()">
-    <div class="status" id="upStatus"></div>
-    <label>标题</label><input id="f_title" placeholder="文章标题">
-    <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
-    <div class="row">
-      <div><label>合集</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDD()"><span id="col_label">无合集</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="col_menu" style="display:none"></div></div><input type="hidden" id="f_collection"></div>
-      <div><label>发布日期（自动 = 现在）</label><input id="f_date" placeholder="自动"></div>
-    </div>
-    <div id="f_newcol" style="display:none;margin-top:8px"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
-    <input type="hidden" id="f_file"><input type="hidden" id="f_content"><input type="hidden" id="f_catsave">
-    <div style="display:flex;gap:12px;margin-top:20px"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button></div>
-    <div class="status" id="status"></div>
-  </div>
-  <div class="card">
-    <div class="list-hd"><span>合集管理（封面 / 名字 / 简介）</span></div>
-    <div id="collist"></div>
-    <div style="margin-top:12px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveColls()">保存合集</button><button class="btn btn-ghost" onclick="addColl()">＋ 添加合集</button></div>
-    <div class="status" id="collStatus"></div>
-  </div>
-</section>
+ <section id="tab-overview" class="tabpage active">
+   <h1>综合 <em>Overview</em></h1>
+   <p class="sub">首页置顶、站点文字、页脚友链等零散设置集中在这里。</p>
+   <div class="overview-grid">
+     <div class="card overview-pin-card">
+       <div class="list-hd"><span>首页置顶 · <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
+       <div class="panel-note">首页置顶会按这里的顺序展示文章和动态。</div>
+       <div id="pinnedList"></div>
+       <div class="overview-add-grid">
+         <div><label>添加文章</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinPostMenu')"><span id="addPinPostLbl">选择文章…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinPostMenu" style="display:none"></div></div></div>
+         <div><label>添加动态</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinDynMenu')"><span id="addPinDynLbl">选择动态…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinDynMenu" style="display:none"></div></div></div>
+       </div>
+       <div class="status" id="pinStatus"></div>
+     </div>
+     <div class="card overview-settings-card">
+       <div class="list-hd"><span>站点文字</span><button class="btn btn-pub" onclick="saveSiteSettings()">保存设置</button></div>
+       <div class="settings-grid">
+         <div><label>页头英文名</label><input id="site_header" placeholder="Shelter"></div>
+         <div><label>首页大标题</label><input id="site_home_title" placeholder="流浪猫的避难所"></div>
+         <div class="settings-wide"><label>首页副标题（每行一句）</label><textarea id="site_home_subtitle" rows="3"></textarea></div>
+         <div><label>页脚署名</label><input id="site_footer_byline" placeholder="by 流浪猫不是LLM"></div>
+         <div><label>关于页姓名</label><input id="site_about_name" placeholder="许纯之"></div>
+         <div class="settings-wide"><label>关于页别名</label><input id="site_about_aka" placeholder="Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超"></div>
+       </div>
+       <div class="quick-links"><a class="btn btn-ghost" href="/" target="_blank">打开首页 ↗</a><a class="btn btn-ghost" href="/about/" target="_blank">打开关于页 ↗</a></div>
+       <div class="status" id="siteStatus"></div>
+     </div>
+     <div class="card overview-friends-card">
+       <div class="list-hd"><span>友链 / Friends</span><button class="btn btn-ghost" onclick="addFriend()">＋ 添加友链</button></div>
+       <div id="friendlist"></div>
+       <div class="card-actions"><button class="btn btn-pub" onclick="saveFriends()">保存友链</button><div class="status" id="friendStatus"></div></div>
+     </div>
+   </div>
+ </section>
 
-<section id="tab-home" class="tabpage">
-  <h1>首页 <em>置顶</em></h1>
-  <p class="sub">选择并排序置顶（文章 + 动态），最多 8 篇，首页用横向卡片展示。</p>
-  <div class="card">
-    <div class="list-hd"><span>置顶列表（<b id="pinCount">0</b>/8）</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
-    <div id="pinnedList"></div>
-    <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div><label>添加文章</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinPostMenu')"><span id="addPinPostLbl">选择文章…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinPostMenu" style="display:none"></div></div></div>
-      <div><label>添加动态</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinDynMenu')"><span id="addPinDynLbl">选择动态…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinDynMenu" style="display:none"></div></div></div>
-    </div>
-    <div class="status" id="pinStatus"></div>
-  </div>
-</section>
+ <section id="tab-posts" class="tabpage">
+   <h1>文章 <em>Notes</em></h1>
+   <p class="sub">文章列表和合集展示与网站本体保持一致；需要编辑时再打开对应弹窗。</p>
+   <div class="article-admin-grid">
+     <div class="card article-list-panel">
+       <div class="list-hd"><span>文章列表 · <b id="postCount">0</b></span><button class="btn btn-pub" onclick="newPost()">＋ 新建文章</button></div>
+       <div class="plist site-like-list" id="posts"></div>
+     </div>
+     <div class="card collection-list-panel">
+       <div class="list-hd"><span>合集</span><button class="btn btn-ghost" onclick="addColl()">＋ 新建合集</button></div>
+       <div id="collist" class="collection-admin-list"></div>
+       <div class="card-actions"><button class="btn btn-pub" onclick="saveColls()">保存合集</button><div class="status" id="collStatus"></div></div>
+     </div>
+   </div>
+ </section>
 
-<section id="tab-dynamics" class="tabpage">
-  <h1>动态 <em>会动</em></h1>
-  <p class="sub">QQ 空间式短动态：一句话 + 可选图片。</p>
-  <div class="card">
-    <div class="list-hd"><span id="dyn_mode">发布新动态</span></div>
-    <textarea id="dyn_text" rows="3" placeholder="说点什么…"></textarea>
-    <div class="row" style="margin-top:8px">
-      <div><label>日期</label><input id="dyn_date"></div>
-      <div><label>图片(可选)</label><div style="display:flex;gap:8px;align-items:center"><input id="dyn_img" placeholder="/images/…"><button class="btn btn-ghost" onclick="upDynCompose()">传图</button></div></div>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:12px"><button class="btn btn-pub" id="dyn_pubbtn" onclick="publishDyn()">发布</button><button class="btn btn-ghost" onclick="resetDyn()">重置</button></div>
-    <div class="status" id="dynStatus"></div>
-  </div>
-  <div class="card">
-    <div class="list-hd"><span>动态列表</span></div>
-    <div id="dynlist"></div>
-  </div>
-</section>
+ <section id="tab-dynamics" class="tabpage">
+   <h1>动态 <em>Moments</em></h1>
+   <p class="sub">按首次发布时间排序，卡片显示最后编辑时间；详情、编辑和多图上传都在弹窗中完成。</p>
+   <div class="card content-browser-card">
+     <div class="list-hd"><span>动态时间线</span><span class="list-caption">共 <b id="dynCount">0</b> 条</span></div>
+     <div id="dynlist" class="moment-admin-feed"></div>
+   </div>
+   <button class="content-fab" onclick="newDyn()" aria-label="发布新动态">＋</button>
+ </section>
 
-<section id="tab-gallery" class="tabpage">
-  <h1>图片 <em>相册</em></h1>
-  <p class="sub">管理相册与图片。上传图片后会自动写入仓库地址。</p>
-  <div class="card">
-    <div class="list-hd"><span>相册</span><button class="btn btn-ghost" onclick="addAlbum()">＋ 添加相册</button></div>
-    <div id="albums"></div>
-    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveGallery()">保存图片</button><button class="btn btn-ghost" onclick="loadGallery()">读取当前</button></div>
-    <div class="status" id="galStatus"></div>
-  </div>
-</section>
+ <section id="tab-gallery" class="tabpage">
+   <h1>图片 <em>Fragments</em></h1>
+   <p class="sub">相册与图片沿用网站本体的视觉层级，悬停图片即可进行删除、编辑或预览。</p>
+   <div class="card content-browser-card">
+     <div class="list-hd"><span>相册时间线</span><button class="btn btn-pub" onclick="newAlbum()">＋ 新建相册</button></div>
+     <div id="albums" class="album-admin-grid"></div>
+     <div class="card-actions"><button class="btn btn-pub" onclick="saveGallery()">保存图片</button><button class="btn btn-ghost" onclick="loadGallery()">重新读取</button><div class="status" id="galStatus"></div></div>
+   </div>
+ </section>
 
-<section id="tab-watching" class="tabpage">
-  <h1>番剧 <em>在追</em></h1>
-  <p class="sub">管理「在追」「Preparing」和已归档的番剧，前台会按状态分别展示。</p>
-  <div class="card">
-    <div class="list-hd"><span>列表</span><button class="btn btn-ghost" onclick="addWatch()">＋ 添加</button></div>
-    <div id="watchlist"></div>
-    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveWatch()">保存番剧</button><button class="btn btn-ghost" onclick="loadWatch()">读取当前</button></div>
-    <div class="status" id="watchStatus"></div>
-  </div>
-</section>
+ <section id="tab-watching" class="tabpage">
+   <h1>番剧 <em>Watching</em></h1>
+   <p class="sub">番剧管理采用与网站本体相同的纵向大卡片预览，点击编辑打开完整表单。</p>
+   <div class="card content-browser-card">
+     <div class="list-hd"><span>番剧列表</span><button class="btn btn-pub" onclick="newWatch()">＋ 添加番剧</button></div>
+     <div id="watchlist" class="anime-admin-grid"></div>
+     <div class="card-actions"><button class="btn btn-pub" onclick="saveWatch()">保存番剧</button><button class="btn btn-ghost" onclick="loadWatch()">重新读取</button><div class="status" id="watchStatus"></div></div>
+   </div>
+ </section>
 
-<section id="tab-site" class="tabpage">
-  <h1>站点 <em>设置</em></h1>
-  <p class="sub">管理网站页脚的「友链」。</p>
-  <div class="card">
-    <div class="list-hd"><span>友链 / Friends</span><button class="btn btn-ghost" onclick="addFriend()">＋ 添加友链</button></div>
-    <div id="friendlist"></div>
-    <div style="margin-top:20px;display:flex;gap:12px"><button class="btn btn-pub" onclick="saveFriends()">保存友链</button></div>
-    <div class="status" id="friendStatus"></div>
-  </div>
-</section>
+ </div>
 
-</div>
+ <div class="admin-modal" id="postModal" onclick="if(event.target===this)closeAdminModal('postModal')">
+   <div class="admin-modal-inner post-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('postModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">ARTICLE EDITOR</div><div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" onclick="cancelEdit()">取消编辑</button></div>
+     <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label><input type="file" id="up_folder" multiple onchange="onFilesChanged()"><div class="status" id="upStatus"></div>
+     <label>标题</label><input id="f_title" placeholder="文章标题">
+     <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
+     <div class="row"><div><label>合集</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDD()"><span id="col_label">无合集</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="col_menu" style="display:none"></div></div><input type="hidden" id="f_collection"></div><div><label>发布日期（新文章自动使用现在）</label><input id="f_date" placeholder="自动" readonly></div></div>
+     <div id="f_newcol" style="display:none"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
+     <label>正文（上传 Markdown 后可继续修改）</label><textarea id="f_content" rows="12" placeholder="正文内容…"></textarea>
+     <input type="hidden" id="f_file"><input type="hidden" id="f_catsave">
+     <div class="modal-actions"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button><button class="btn btn-ghost" onclick="closeAdminModal('postModal')">取消</button></div><div class="status" id="status"></div>
+   </div>
+ </div>
 
-<div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeImgDetail()">
-  <div class="imgdetail-inner">
-    <button class="moment-x" onclick="closeImgDetail()" aria-label="关闭">×</button>
-    <div class="imgdetail-media"><img id="imgDetailImg" alt=""></div>
-    <div class="imgdetail-info" id="imgDetailInfo"></div>
-  </div>
-</div>
-<script src="/app.js"></script>
-</body></html>
+ <div class="admin-modal" id="collectionModal" onclick="if(event.target===this)closeAdminModal('collectionModal')">
+   <div class="admin-modal-inner collection-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('collectionModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">COLLECTION EDITOR</div><div class="form-hd"><span id="collection_mode">新建合集</span></div>
+     <label>合集名称</label><input id="collection_name" placeholder="合集名称">
+     <label>简介</label><textarea id="collection_desc" rows="4" placeholder="一句话简介"></textarea>
+     <label>封面地址</label><input id="collection_cover" placeholder="/images/…">
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveCollectionEditor()">保存合集</button><button class="btn btn-ghost" onclick="closeAdminModal('collectionModal')">取消</button></div><div class="status" id="collectionStatus"></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="dynModal" onclick="if(event.target===this)closeAdminModal('dynModal')">
+   <div class="admin-modal-inner dyn-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('dynModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">MOMENT EDITOR</div><div class="form-hd"><span id="dyn_mode">发布新动态</span></div>
+     <textarea id="dyn_text" rows="7" placeholder="说点什么…"></textarea>
+     <div class="dyn-time-note"><span>首次发布</span><b id="dyn_publish_time">新动态将使用系统时间</b></div>
+     <div class="dyn-edit-time"><label>编辑时间</label><input id="dyn_edit_time" type="datetime-local"></div>
+     <label>图片（可一次选择多张）</label><input type="file" id="dyn_img_files" accept="image/*" multiple onchange="upDynCompose()"><input type="hidden" id="dyn_img"><div id="dyn_image_preview" class="compose-image-grid"></div>
+     <div class="modal-actions"><button class="btn btn-pub" id="dyn_pubbtn" onclick="publishDyn()">发布</button><button class="btn btn-ghost" onclick="resetDyn()">取消</button></div><div class="status" id="dynStatus"></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="albumModal" onclick="if(event.target===this)closeAdminModal('albumModal')">
+   <div class="admin-modal-inner album-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('albumModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">ALBUM EDITOR</div><div class="form-hd"><span id="album_mode">新建相册</span></div>
+     <div class="album-editor-head"><div class="album-edit-cover" id="album_editor_cover" onclick="upAlbumCover(editAlbumIdx)"></div><div class="album-edit-fields"><div class="field"><label>相册名</label><input id="album_name" placeholder="相册名称"></div><div class="field"><label>简介</label><input id="album_desc" placeholder="可选简介"></div></div></div>
+     <label>上传图片（可一次选择多张）</label><input type="file" id="album_img_files" accept="image/*" multiple onchange="uploadGalImg(editAlbumIdx)"><div id="album_image_editor" class="album-image-editor"></div>
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveAlbumEditor()">保存相册</button><button class="btn btn-ghost" onclick="closeAdminModal('albumModal')">取消</button></div><div class="status" id="albumStatus"></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="watchModal" onclick="if(event.target===this)closeAdminModal('watchModal')">
+   <div class="admin-modal-inner watch-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('watchModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">ANIME EDITOR</div><div class="form-hd"><span id="watch_mode">添加番剧</span></div>
+     <div id="watch_editor" class="watch-editor"></div>
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchEditor()">保存番剧</button><button class="btn btn-ghost" onclick="closeAdminModal('watchModal')">取消</button></div><div class="status" id="watchModalStatus"></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="imageEditModal" onclick="if(event.target===this)closeAdminModal('imageEditModal')">
+   <div class="admin-modal-inner image-edit-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('imageEditModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">IMAGE DETAILS</div><div class="form-hd"><span>编辑图片信息</span></div>
+     <div id="image_edit_preview" class="image-edit-preview"></div>
+     <label>图片名称</label><input id="image_edit_caption" placeholder="默认读取文件名 / EXIF">
+     <label>日期</label><input id="image_edit_date" type="date">
+     <div class="image-edit-defaults"><button class="btn btn-ghost" onclick="restoreImageDefaults()">恢复 EXIF 默认值</button><span>留空后恢复为图片默认信息</span></div>
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveImageEditor()">保存修改</button><button class="btn btn-ghost" onclick="closeAdminModal('imageEditModal')">取消</button></div>
+   </div>
+ </div>
+
+ <div class="imgdetail" id="imgdetail" onclick="if(event.target===this)closeImgDetail()">
+   <div class="imgdetail-inner">
+     <button class="moment-x" onclick="closeImgDetail()" aria-label="关闭">×</button>
+     <div class="imgdetail-media"><img id="imgDetailImg" alt=""></div>
+     <div class="imgdetail-info" id="imgDetailInfo"></div>
+   </div>
+ </div>
+ <script src="/app.js"></script>
+ </body></html>
 `;
