@@ -651,3 +651,14 @@ body{font-size:15px}
 .image-calendar-months button.has-images{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-left:15px;border-color:var(--accent);background:rgba(212,162,78,.16);box-shadow:inset 3px 0 0 var(--accent)}
 .image-calendar-months button.has-images::after{display:none}
 .image-calendar-months button.has-images small{font-family:var(--font-sans);font-size:10px;color:var(--accent-dim);white-space:nowrap}
+
+/* 时间目录按钮：统一为站内控件，不使用浏览器原生按钮外观。 */
+.archive-timeline-index-label,.image-timeline-index-label,.post-toc-button{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:0 14px;border:1px solid rgba(107,103,96,.34);border-radius:8px;background:linear-gradient(135deg,rgba(212,162,78,.09),rgba(255,255,255,.025));box-shadow:0 6px 18px rgba(0,0,0,.12);color:var(--text-b);font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;line-height:1;text-align:left;cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s,box-shadow .2s}
+.archive-timeline-index-label:hover,.image-timeline-index-label:hover,.post-toc-button:hover{border-color:rgba(212,162,78,.65);background:linear-gradient(135deg,rgba(212,162,78,.16),rgba(255,255,255,.04));box-shadow:0 8px 22px rgba(0,0,0,.2);color:var(--accent);transform:translateY(-1px)}
+.archive-timeline-index-label:active,.image-timeline-index-label:active,.post-toc-button:active{transform:translateY(0);box-shadow:0 4px 12px rgba(0,0,0,.14)}
+.archive-timeline-index-label:focus-visible,.image-timeline-index-label:focus-visible,.post-toc-button:focus-visible{outline:2px solid rgba(212,162,78,.62);outline-offset:3px}
+.timeline-index-glyph{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:1px solid rgba(212,162,78,.42);border-radius:5px;color:var(--accent);font-family:var(--font-sans);font-size:13px;line-height:1;letter-spacing:0}
+.archive-timeline-index-label{margin:0 0 13px}
+.image-timeline-index-label{margin:0 0 13px}
+.post-toc-button{display:none;width:100%;justify-content:flex-start;margin:0 0 27px}
+@media(max-width:900px){.archive-timeline-index-label,.image-timeline-index-label{min-height:42px;padding:0 14px}.post-toc-button{display:flex}}

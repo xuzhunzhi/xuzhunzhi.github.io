@@ -16,7 +16,7 @@
     <% var years={},articleCalendarDays={}; site.posts.sort('date',-1).each(function(post){var d=new Date(post.date),y=d.getFullYear(),m=d.getMonth()+1,key=y+'-'+('0'+m).slice(-2),day=String(d.getDate());if(!years[y])years[y]={};if(!years[y][m])years[y][m]=[];years[y][m].push(post);if(!articleCalendarDays[key])articleCalendarDays[key]={};if(!articleCalendarDays[key][day])articleCalendarDays[key][day]={count:0,target:'article-month-'+y+'-'+m};articleCalendarDays[key][day].count++;}); %>
     <div class="archive-timeline-layout articles-timeline-layout">
       <aside class="archive-timeline-index" aria-label="文章时间线目录">
-        <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(ARTICLE_CALENDAR_DATA)" aria-label="打开文章时间线日历">▦ <span>时间目录</span></button>
+        <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(ARTICLE_CALENDAR_DATA)" aria-label="打开文章时间线日历"><span class="timeline-index-glyph" aria-hidden="true">▦</span><span>时间目录</span></button>
         <nav>
           <% var articleMonthIndex=0; Object.keys(years).sort(function(a,b){return b-a;}).forEach(function(y){ Object.keys(years[y]).sort(function(a,b){return b-a;}).forEach(function(m){ var target='article-month-'+y+'-'+m,calendarMonth=y+'-'+('0'+m).slice(-2); %><a href="#<%= target %>" data-target="<%= target %>" data-month="<%= calendarMonth %>" onclick="event.preventDefault();openArchiveTimelineCalendar(ARTICLE_CALENDAR_DATA,this.getAttribute('data-month'))"<% if(articleMonthIndex++===0){ %> class="active" aria-current="location"<% } %>><%= y %> 年 <%= m %> 月</a><% }); }); %>
         </nav>

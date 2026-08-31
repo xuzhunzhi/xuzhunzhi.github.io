@@ -8,7 +8,7 @@
 <% var dyn=site.data.dynamics||[],dynMonths={},dynamicCalendarDays={}; dyn.forEach(function(d,i){var raw=String(d.date||''),key=raw.slice(0,7)||'未分类',day=raw.slice(8,10).replace(/^0/,'')||'—';if(typeof dynMonths[key]==='undefined')dynMonths[key]=i;if(/^\d{4}-\d{2}$/.test(key)&&/^\d+$/.test(day)){if(!dynamicCalendarDays[key])dynamicCalendarDays[key]={};if(!dynamicCalendarDays[key][day])dynamicCalendarDays[key][day]={count:0,target:'moment-'+i};dynamicCalendarDays[key][day].count++;}}); function momentImages(d){return d.images&&d.images.length?d.images:(d.image?[d.image]:[]);} %>
 <div class="archive-timeline-layout dynamics-timeline-layout">
   <aside class="archive-timeline-index" aria-label="动态时间线目录">
-    <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(DYNAMIC_CALENDAR_DATA)" aria-label="打开动态时间线日历">▦ <span>时间目录</span></button>
+    <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(DYNAMIC_CALENDAR_DATA)" aria-label="打开动态时间线日历"><span class="timeline-index-glyph" aria-hidden="true">▦</span><span>时间目录</span></button>
     <nav>
       <% Object.keys(dynMonths).sort(function(a,b){return b.localeCompare(a);}).forEach(function(key,index){ var target='moment-'+dynMonths[key]; %><a href="#<%= target %>" data-target="<%= target %>"<% if(/^\d{4}-\d{2}$/.test(key)){ %> data-month="<%= key %>" onclick="event.preventDefault();openArchiveTimelineCalendar(DYNAMIC_CALENDAR_DATA,this.getAttribute('data-month'))"<% } %><% if(index===0){ %> class="active" aria-current="location"<% } %>><%= key==='未分类'?key:key.replace('-', ' 年 ')+' 月' %></a><% }); %>
     </nav>
