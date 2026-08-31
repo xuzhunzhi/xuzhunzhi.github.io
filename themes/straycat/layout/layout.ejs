@@ -34,7 +34,7 @@
   </main>
   <footer class="site-footer">
     <div class="wrap">
-      <% var friends = (site.data.friends && site.data.friends.length) ? site.data.friends : theme.friends; %>
+      <% var friends = Array.isArray(site.data.friends) ? site.data.friends : theme.friends; %>
       <% if (friends && friends.length) { %>
         <div class="footer-friends">
           <span class="friends-label">友链 / Friends</span>

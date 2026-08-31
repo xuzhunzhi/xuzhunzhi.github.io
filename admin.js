@@ -614,7 +614,7 @@ textarea{line-height:1.75}
 .overview-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(380px,.88fr);gap:24px;align-items:start}.overview-friends-card{grid-column:1/-1}
 .panel-note,.list-caption{color:var(--text-m);font-size:12px}.panel-note{margin:-10px 0 18px}
 .overview-add-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-wide{grid-column:1/-1}.settings-grid textarea{min-height:100px}
+ .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-wide{grid-column:1/-1}.settings-grid textarea{min-height:100px}.settings-divider{display:flex;align-items:center;gap:12px;margin-top:24px;padding-top:19px;border-top:1px solid rgba(107,103,96,.22);color:var(--accent-dim);font-family:monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase}.settings-divider::after{content:"";height:1px;flex:1;background:rgba(107,103,96,.18)}
 .quick-links,.card-actions{display:flex;align-items:center;gap:10px;margin-top:18px}.card-actions .status{flex:1;margin:0}
 .article-admin-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:24px;align-items:start}.article-admin-grid .card{margin-bottom:0}
 .site-like-list{display:flex;flex-direction:column;gap:10px}.site-like-list .pitem{min-height:82px;padding:15px 17px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.012));border:1px solid rgba(107,103,96,.25);border-radius:12px}.site-like-list .pitem:hover{transform:translateX(3px);border-color:rgba(212,162,78,.55)}
@@ -662,6 +662,14 @@ textarea{line-height:1.75}
          <div><label>页脚署名</label><input id="site_footer_byline" placeholder="by 流浪猫不是LLM"></div>
          <div><label>关于页姓名</label><input id="site_about_name" placeholder="许纯之"></div>
          <div class="settings-wide"><label>关于页别名</label><input id="site_about_aka" placeholder="Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超"></div>
+         <div class="settings-wide settings-divider"><span>关于页内容</span></div>
+         <div class="settings-wide"><label>关于页诗句（每行一句）</label><textarea id="site_about_poem" rows="3"></textarea></div>
+         <div class="settings-wide"><label>About Me（段落之间空一行）</label><textarea id="site_about_bio" rows="6"></textarea></div>
+         <div><label>正在做的项目</label><input id="site_about_projects" placeholder="03"></div>
+         <div><label>深夜灵感次数</label><input id="site_about_inspiration" placeholder="∞"></div>
+         <div><label>喝掉的咖啡</label><input id="site_about_coffee" placeholder="42"></div>
+         <div><label>窗外的月亮</label><input id="site_about_moon" placeholder="01"></div>
+         <div class="settings-wide"><label>联系邮箱</label><input id="site_about_contact" placeholder="xuzhunzhi@foxmail.com"></div>
        </div>
        <div class="quick-links"><a class="btn btn-ghost" href="/" target="_blank">打开首页 ↗</a><a class="btn btn-ghost" href="/about/" target="_blank">打开关于页 ↗</a></div>
        <div class="status" id="siteStatus"></div>
