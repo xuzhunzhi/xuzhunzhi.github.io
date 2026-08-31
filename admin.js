@@ -8,7 +8,31 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
-function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const req = lib.get(u, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url)).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = Buffer.concat(chunks); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(15000, () => req.destroy(new Error('timeout'))); }); }
+function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const req = lib.get(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; StrayCatAdmin/1.0)', 'Accept': isText ? 'text/html,application/xhtml+xml' : '*/*' } }, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url), isText).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = Buffer.concat(chunks); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(15000, () => req.destroy(new Error('timeout'))); }); }
+function isMoegirlPageUrl(value) { try { const u = new URL(value); return /^https?:$/.test(u.protocol) && /(^|\.)moegirl\.org\.cn$/i.test(u.hostname); } catch (e) { return false; } }
+function tagAttr(tag, name) { const m = tag.match(new RegExp(name + "\\s*=\\s*(?:\\\"([^\\\"]+)\\\"|'([^']+)'|([^\\s>]+))", 'i')); return m ? (m[1] || m[2] || m[3] || '') : ''; }
+function decodeHtml(s) { return String(s || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+function moegirlCover(html, baseUrl) {
+  const metas = html.match(/<meta\b[^>]*>/gi) || [];
+  let cover = '';
+  metas.some(function(tag) { const key = (tagAttr(tag, 'property') || tagAttr(tag, 'name')).toLowerCase(); if (key === 'og:image' || key === 'twitter:image') { cover = tagAttr(tag, 'content'); return !!cover; } return false; });
+  if (!cover) {
+    const imgs = html.match(/<img\b[^>]*>/gi) || [];
+    const blockMatch = html.match(/<(?:table|aside)\b[^>]*\bclass\s*=\s*["'][^"']*\binfobox\b[^"']*["'][^>]*>[\s\S]*?<\/(?:table|aside)>/i);
+    const infoImgs = blockMatch ? (blockMatch[0].match(/<img\b[^>]*>/gi) || []) : [];
+    const sourceOf = function(tag) { return tagAttr(tag, 'src') || tagAttr(tag, 'data-src') || tagAttr(tag, 'data-original'); };
+    const info = infoImgs.find(sourceOf) || imgs.find(function(tag) { return /\binfobox\b/i.test(tagAttr(tag, 'class') || '') && sourceOf(tag); });
+    cover = info ? sourceOf(info) : '';
+  }
+  if (!cover) return '';
+  try {
+    const u = new URL(decodeHtml(cover).replace(/\\\//g, '/'), baseUrl);
+    if (!/^https?:$/.test(u.protocol)) return '';
+    u.hash = '';
+    u.pathname = u.pathname.replace(/\/thumb\/(.+?)\/(?:\d+px-)?([^/]+)$/, '/$1/$2');
+    return u.href;
+  } catch (e) { return ''; }
+}
 
 const ROOT = process.env.ADMIN_ROOT || __dirname;         // 仓库根目录（Electron 可指定外部工作区）
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
@@ -268,34 +292,43 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/moegirl' && req.method === 'GET') {
-      const name = decodeURIComponent(u.searchParams.get('name') || '').trim();
-      if (!name) return json(res, 200, { ok: false, msg: '请输入名称' });
-      const pageUrl = 'https://zh.moegirl.org.cn/' + encodeURIComponent(name);
+      const requestedUrl = decodeURIComponent(u.searchParams.get('url') || '').trim();
+      let name = decodeURIComponent(u.searchParams.get('name') || '').trim();
+      let pageUrl = '';
+      if (requestedUrl) {
+        if (!isMoegirlPageUrl(requestedUrl)) return json(res, 200, { ok: false, msg: '请输入萌娘百科页面地址' });
+        pageUrl = new URL(requestedUrl).href;
+        const lastPart = decodeURIComponent(new URL(pageUrl).pathname.split('/').filter(Boolean).pop() || '').replace(/_/g, ' ').trim();
+        if (!name) name = lastPart || '番剧';
+      } else {
+        if (!name) return json(res, 200, { ok: false, msg: '请输入番名或萌娘百科网址' });
+        pageUrl = 'https://zh.moegirl.org.cn/' + encodeURIComponent(name);
+      }
       const searchUrl = 'https://zh.moegirl.org.cn/index.php?search=' + encodeURIComponent(name);
       try {
         const html = await httpsGet(pageUrl, true);
         const ptitle = (html.match(/<title>([^<]*)<\/title>/) || [])[1];
-        let coverUrl = (html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) || [])[1] || '';
-        if (!coverUrl) { const m = html.match(/<img[^>]*class="[^"]*infobox[^"]*"[^>]*src=["']([^"']+)["']/i) || html.match(/infobox[\s\S]{0,800}?<img[^>]*src=["']([^"']+)["']/i); if (m) coverUrl = m[1] || ''; }
-        if (coverUrl) { if (coverUrl.startsWith('//')) coverUrl = 'https:' + coverUrl; else if (coverUrl.startsWith('/')) coverUrl = 'https://zh.moegirl.org.cn' + coverUrl; coverUrl = coverUrl.replace(/\/thumb\/(.+?)\/\d+px-([^\/]+)$/, '/$1/$2'); }
+        const coverUrl = moegirlCover(html, pageUrl);
         let localCover = '';
+        let coverError = '';
         if (coverUrl) {
           try {
-            const extM = coverUrl.match(/\.(jpg|jpeg|png|webp|gif|svg)/i);
-            const ext = extM ? extM[1].toLowerCase().replace('jpeg','jpg') : 'jpg';
+            const extM = path.extname(new URL(coverUrl).pathname).replace('.', '').toLowerCase();
+            const ext = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(extM) ? extM.replace('jpeg', 'jpg') : 'jpg';
             const buf = await httpsGet(coverUrl, false);
             const animeDir = path.join(ROOT, 'source', 'images', 'anime');
             fs.mkdirSync(animeDir, { recursive: true });
             const fp = path.join(animeDir, slug(name) + '.' + ext);
             fs.writeFileSync(fp, buf);
             localCover = '/images/anime/' + slug(name) + '.' + ext;
-          } catch (e) {}
+          } catch (e) { coverError = e.message; }
         }
-        const cleanTitle = (ptitle || name).replace(/\s*[—｜|·-].*$/, '').trim();
+        const cleanTitle = decodeHtml(ptitle || name).replace(/\s*[—｜|·-].*$/, '').trim();
         let total = ''; const tm = html.match(/(?:话数|集数|话)\s*[:：]?\s*(\d+)/) || html.match(/(\d+)\s*话/) || html.match(/总话数\s*[:：]?\s*(\d+)/); if (tm) total = tm[1];
-        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!coverUrl, total, msg: coverUrl ? '已抓取：' + (cleanTitle || name) : '未取到封面，可能页面不存在' });
+        const msg = localCover ? '已抓取：' + (cleanTitle || name) : (coverUrl ? '找到了封面地址，但下载失败' + (coverError ? '：' + coverError : '') : '未取到封面，可能页面不存在');
+        return json(res, 200, { ok: true, title: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!localCover, total, msg });
       } catch (e) {
-        return json(res, 200, { ok: true, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + e.message });
+        return json(res, 200, { ok: true, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + (e.message || e.code || String(e)) });
       }
     }
     if (p === '/api/img' && req.method === 'POST') {
@@ -490,6 +523,19 @@ label{margin:18px 0 7px;font-size:10px;letter-spacing:.14em;color:var(--accent-d
 #tab-dynamics .card:first-of-type textarea{min-height:190px}
 #tab-dynamics .card:first-of-type .row{margin-top:18px!important}
 #tab-site{max-width:1180px;margin:0 auto;padding:48px 32px 100px}
+/* 番剧编辑区：字段按信息层级排列，操作控件固定在各自行内 */
+.watch-edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;align-items:start}
+.watch-field{min-width:0}
+.watch-field-wide{grid-column:1/-1}
+.watch-field label{display:block;margin:0 0 7px}
+.watch-field input,.watch-field select{width:100%;box-sizing:border-box}
+.watch-inline{display:flex;align-items:center;gap:10px;min-width:0}
+.watch-inline input{flex:1;min-width:0}
+.watch-inline .btn{flex:0 0 auto}
+.watch-row-actions{display:flex;gap:8px;flex-shrink:0}
+.watch-confirm-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.wrow-edit{margin-top:-1px;padding:22px 18px 20px;border:1px solid rgba(107,103,96,.24);border-top:0;border-radius:0 0 11px 11px;background:rgba(10,10,8,.58)}
+.wrow-confirm{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center}
 </style>
 </head><body>
 <nav class="topnav"><div class="navwrap">

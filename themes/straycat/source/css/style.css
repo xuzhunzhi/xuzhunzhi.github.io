@@ -517,6 +517,15 @@ body{font-size:15px}
 .back-top{width:auto;height:42px;padding:0 15px;border-radius:8px;display:flex;align-items:center;gap:7px;font-size:16px}.back-top span{display:inline;font-size:10px;margin:0;letter-spacing:.12em}
 @media(min-width:761px) and (max-width:900px){.home-top{grid-template-columns:1fr 300px}}
 @media(max-width:760px){.home-top{grid-template-columns:1fr}.home-side{width:100%}.author-card{width:100%;max-width:none}.post-info-card{grid-template-columns:repeat(2,1fr)}.post-info-item:nth-child(3){border-left:0;border-top:1px solid var(--border)}.post-info-item:nth-child(4){border-top:1px solid var(--border)}.image-day-row{grid-template-columns:45px minmax(0,1fr);gap:12px}.image-day-row>time{font-size:25px;padding-top:10px}.image-day-images{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
+
+/* ===== 番剧最终修正：按实际封面比例展示、弹窗脱离页面定位 ===== */
+.watching-cover-link{display:block;flex:0 0 auto;aspect-ratio:auto;height:auto;min-height:0;overflow:hidden;background:#171715;line-height:0}
+.watching-cover{width:100%;height:auto;aspect-ratio:auto;object-fit:contain;background:#171715;display:block}
+.watching-cover-empty{aspect-ratio:4/3;min-height:160px;height:auto;line-height:normal}
+.watching-card{min-height:0}
+.anime-modal{position:fixed;inset:0;width:100%;height:100%;margin:0;display:none;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.anime-modal.show{display:flex}
+.anime-modal-inner{width:min(620px,100%);max-height:min(85vh,760px);margin:auto;transform:none}
 @media(max-width:480px){.music-btn{right:16px;bottom:16px}.music-card{right:16px;bottom:72px}.moment-modal-actions{flex-wrap:wrap}.moment-modal-actions .content-action{flex:1;justify-content:center}.post-nav{gap:8px}.post-nav-card{min-height:100px;padding-left:13px!important;padding-right:38px!important}.post-nav-card strong{font-size:15px}.post-info-item{padding:12px 10px}.post-info-item b{font-size:11px}}
 @media(min-width:700px) and (max-width:900px){.home-top{grid-template-columns:minmax(0,1fr) 300px}.home-side{position:static;align-self:end;width:auto;display:block;margin-bottom:0}.author-card{width:300px;max-width:300px}}
 @media(max-width:699px){.home-top{grid-template-columns:1fr}.home-side{width:100%;display:flex}.author-card{width:100%;max-width:none}}

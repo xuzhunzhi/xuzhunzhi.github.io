@@ -52,6 +52,8 @@
 
 <script>
 var ANIME_LIST=<%- JSON.stringify(watching).replace(/</g,'\\u003c') %>;
+var animeModal=document.getElementById('animeModal');
+if(animeModal&&animeModal.parentNode!==document.body)document.body.appendChild(animeModal);
 function openAnime(i){var w=ANIME_LIST[i];if(!w)return;document.getElementById('animeModalTitle').textContent=w.title||'';document.getElementById('animeModalMeta').textContent=(w.status==='finished'?'已看完 · '+(w.finishedAt||w.completedAt||'时间未记录'):(w.progress?(w.progress+(w.total?'/'+w.total:'')+' 集'):'进度未记录'))+(w.rating?' · 评分 '+w.rating:'');document.getElementById('animeModalNote').textContent=w.note||'暂无备注。';var d=[];[['简介',w.summary],['类型 / 标签',w.tags],['播出时间',w.airDate],['集数',w.total],['制作公司',w.studio],['原作',w.original],['角色 / 声优',w.cast]].forEach(function(x){if(x[1])d.push('<div><span>'+x[0]+'</span><b>'+escHtml(String(x[1]))+'</b></div>')});document.getElementById('animeModalDetails').innerHTML=d.join('')||'<div class="anime-no-details">暂无抓取资料，后续可从萌娘百科补充公开元数据。</div>';var a=document.getElementById('animeModalLink');a.href=w.pageUrl||'#';a.style.display=w.pageUrl?'inline-flex':'none';document.getElementById('animeModal').classList.add('show');lockBody();}
 function closeAnime(){closeModal(document.getElementById('animeModal'));}
 </script>
