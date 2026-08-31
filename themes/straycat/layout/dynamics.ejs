@@ -5,8 +5,15 @@
 
 <div class="sec-hd"><span class="sec-num">live</span><span class="sec-title">随笔</span><span class="sec-line"></span></div>
 
-<div class="moment-feed">
-  <% var dyn=site.data.dynamics||[]; function momentImages(d){return d.images&&d.images.length?d.images:(d.image?[d.image]:[]);} %>
+<% var dyn=site.data.dynamics||[],dynMonths={},dynamicCalendarDays={}; dyn.forEach(function(d,i){var raw=String(d.date||''),key=raw.slice(0,7)||'未分类',day=raw.slice(8,10).replace(/^0/,'')||'—';if(typeof dynMonths[key]==='undefined')dynMonths[key]=i;if(/^\d{4}-\d{2}$/.test(key)&&/^\d+$/.test(day)){if(!dynamicCalendarDays[key])dynamicCalendarDays[key]={};if(!dynamicCalendarDays[key][day])dynamicCalendarDays[key][day]={count:0,target:'moment-'+i};dynamicCalendarDays[key][day].count++;}}); function momentImages(d){return d.images&&d.images.length?d.images:(d.image?[d.image]:[]);} %>
+<div class="archive-timeline-layout dynamics-timeline-layout">
+  <aside class="archive-timeline-index" aria-label="动态时间线目录">
+    <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(DYNAMIC_CALENDAR_DATA)" aria-label="打开动态时间线日历">▦ <span>时间目录</span></button>
+    <nav>
+      <% Object.keys(dynMonths).sort(function(a,b){return b.localeCompare(a);}).forEach(function(key,index){ var target='moment-'+dynMonths[key]; %><a href="#<%= target %>" data-target="<%= target %>"<% if(/^\d{4}-\d{2}$/.test(key)){ %> data-month="<%= key %>" onclick="event.preventDefault();openArchiveTimelineCalendar(DYNAMIC_CALENDAR_DATA,this.getAttribute('data-month'))"<% } %><% if(index===0){ %> class="active" aria-current="location"<% } %>><%= key==='未分类'?key:key.replace('-', ' 年 ')+' 月' %></a><% }); %>
+    </nav>
+  </aside>
+  <div class="moment-feed">
   <% if(dyn.length){ %>
     <% dyn.forEach(function(d,i){ var ims=momentImages(d); var layout=ims.length<=1?1:(ims.length<=2?2:(ims.length<=3?3:(ims.length<=4?4:(ims.length<=6?6:9)))); var needsMore=String(d.text||'').split(/\r?\n/).length>6||String(d.text||'').length>180; %>
       <article class="moment" id="moment-<%= i %>" onclick="openMoment(<%= i %>)">
@@ -19,4 +26,10 @@
       </article>
     <% }) %>
   <% }else{ %><p class="empty">还没有动态，等流浪猫慢慢写。</p><% } %>
+  </div>
 </div>
+
+<script>
+var DYNAMIC_CALENDAR_DATA={kind:'dynamic',months:<%- JSON.stringify(dynamicCalendarDays).replace(/</g, '\\u003c') %>};
+(function(){var root=document.querySelector('.dynamics-timeline-layout');if(!root)return;var sections=Array.prototype.slice.call(root.querySelectorAll('.moment')),links=Array.prototype.slice.call(root.querySelectorAll('.archive-timeline-index a'));if(!sections.length||!links.length)return;function active(id){links.forEach(function(link){var on=link.getAttribute('data-target')===id;link.classList.toggle('active',on);if(on)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});}function update(){var current=sections[0],marker=Math.min(180,window.innerHeight*.28);sections.forEach(function(section){if(section.getBoundingClientRect().top<=marker)current=section;});active(current.id);}links.forEach(function(link){link.addEventListener('click',function(){active(link.getAttribute('data-target'));});});window.addEventListener('scroll',update,{passive:true});window.addEventListener('resize',update);update();})();
+</script>

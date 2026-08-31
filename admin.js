@@ -556,7 +556,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 
 <section id="tab-watching" class="tabpage">
   <h1>番剧 <em>在追</em></h1>
-  <p class="sub">管理「在追的番」。</p>
+  <p class="sub">管理「在追」「Preparing」和已归档的番剧，前台会按状态分别展示。</p>
   <div class="card">
     <div class="list-hd"><span>列表</span><button class="btn btn-ghost" onclick="addWatch()">＋ 添加</button></div>
     <div id="watchlist"></div>

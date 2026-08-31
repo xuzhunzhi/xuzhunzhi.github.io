@@ -13,9 +13,17 @@
   <div class="view-toggle"><button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button><button class="toggle-btn" data-view="collection" onclick="switchView(this,'collection')">合集</button></div>
 
   <div class="view-panel" id="view-timeline">
-    <div class="articles-timeline">
-      <% var years={}; site.posts.sort('date',-1).each(function(post){var d=new Date(post.date),y=d.getFullYear(),m=d.getMonth()+1;if(!years[y])years[y]={};if(!years[y][m])years[y][m]=[];years[y][m].push(post);}); %>
-      <% Object.keys(years).sort(function(a,b){return b-a;}).forEach(function(y){ %><div class="articles-year"><div class="year-label"><%= y %></div><% Object.keys(years[y]).sort(function(a,b){return b-a;}).forEach(function(m){ %><section class="year-month"><div class="month-label"><%= ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][m] %></div><div class="article-list-cards"><% years[y][m].forEach(function(post){var cat=post.categories&&post.categories.length?post.categories.first().name:'';var col=findCollection(cat);var cover=postCover(post); %><a class="article-list-card" href="<%= url_for(post.path) %>"><div class="article-list-cover <%= cover?'':'article-list-cover-empty' %>"<% if(cover){ %> style="background-image:url('<%= cover %>')"<% } %>><% if(!cover){ %><span>✦</span><% } %></div><div class="article-list-info"><time><%= new Date(post.date).getDate() %> 日 · <%= date(post.date,'YYYY-MM-DD') %></time><h2><%= post.title %></h2><div class="article-list-collection"><%= collectionName(cat)||'随笔' %></div><p><%= post.description||strip_html(post.content||'').replace(/\s+/g,' ').substring(0,120)||'by 幼儿班的小超超' %></p></div><span class="article-list-arrow">→</span></a><% }) %></div></section><% }) %></div><% }) %>
+    <% var years={},articleCalendarDays={}; site.posts.sort('date',-1).each(function(post){var d=new Date(post.date),y=d.getFullYear(),m=d.getMonth()+1,key=y+'-'+('0'+m).slice(-2),day=String(d.getDate());if(!years[y])years[y]={};if(!years[y][m])years[y][m]=[];years[y][m].push(post);if(!articleCalendarDays[key])articleCalendarDays[key]={};if(!articleCalendarDays[key][day])articleCalendarDays[key][day]={count:0,target:'article-month-'+y+'-'+m};articleCalendarDays[key][day].count++;}); %>
+    <div class="archive-timeline-layout articles-timeline-layout">
+      <aside class="archive-timeline-index" aria-label="文章时间线目录">
+        <button type="button" class="archive-timeline-index-label" onclick="openArchiveTimelineCalendar(ARTICLE_CALENDAR_DATA)" aria-label="打开文章时间线日历">▦ <span>时间目录</span></button>
+        <nav>
+          <% var articleMonthIndex=0; Object.keys(years).sort(function(a,b){return b-a;}).forEach(function(y){ Object.keys(years[y]).sort(function(a,b){return b-a;}).forEach(function(m){ var target='article-month-'+y+'-'+m,calendarMonth=y+'-'+('0'+m).slice(-2); %><a href="#<%= target %>" data-target="<%= target %>" data-month="<%= calendarMonth %>" onclick="event.preventDefault();openArchiveTimelineCalendar(ARTICLE_CALENDAR_DATA,this.getAttribute('data-month'))"<% if(articleMonthIndex++===0){ %> class="active" aria-current="location"<% } %>><%= y %> 年 <%= m %> 月</a><% }); }); %>
+        </nav>
+      </aside>
+      <div class="articles-timeline">
+        <% Object.keys(years).sort(function(a,b){return b-a;}).forEach(function(y){ %><div class="articles-year"><div class="year-label"><%= y %></div><% Object.keys(years[y]).sort(function(a,b){return b-a;}).forEach(function(m){ %><section class="year-month" id="article-month-<%= y %>-<%= m %>"><div class="month-label"><%= ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][m] %></div><div class="article-list-cards"><% years[y][m].forEach(function(post){var cat=post.categories&&post.categories.length?post.categories.first().name:'';var col=findCollection(cat);var cover=postCover(post); %><a class="article-list-card" href="<%= url_for(post.path) %>"><div class="article-list-cover <%= cover?'':'article-list-cover-empty' %>"<% if(cover){ %> style="background-image:url('<%= cover %>')"<% } %>><% if(!cover){ %><span>✦</span><% } %></div><div class="article-list-info"><time><%= new Date(post.date).getDate() %> 日 · <%= date(post.date,'YYYY-MM-DD') %></time><h2><%= post.title %></h2><div class="article-list-collection"><%= collectionName(cat)||'随笔' %></div><p><%= post.description||strip_html(post.content||'').replace(/\s+/g,' ').substring(0,120)||'by 幼儿班的小超超' %></p></div><span class="article-list-arrow">→</span></a><% }) %></div></section><% }) %></div><% }) %>
+      </div>
     </div>
   </div>
 
@@ -25,3 +33,8 @@
     </div>
   </div>
 </div>
+
+<script>
+var ARTICLE_CALENDAR_DATA={kind:'article',months:<%- JSON.stringify(articleCalendarDays).replace(/</g, '\\u003c') %>};
+(function(){var root=document.querySelector('.articles-timeline-layout');if(!root)return;var sections=Array.prototype.slice.call(root.querySelectorAll('.year-month')),links=Array.prototype.slice.call(root.querySelectorAll('.archive-timeline-index a'));if(!sections.length||!links.length)return;function active(id){links.forEach(function(link){var on=link.getAttribute('data-target')===id;link.classList.toggle('active',on);if(on)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});}function update(){var current=sections[0],marker=Math.min(180,window.innerHeight*.28);sections.forEach(function(section){if(section.getBoundingClientRect().top<=marker)current=section;});active(current.id);}links.forEach(function(link){link.addEventListener('click',function(){active(link.getAttribute('data-target'));});});window.addEventListener('scroll',update,{passive:true});window.addEventListener('resize',update);update();})();
+</script>

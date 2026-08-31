@@ -8,6 +8,7 @@
     <h1 class="post-title"><%= page.title %></h1>
     <div class="post-info-card"><div class="post-info-item"><span>发布时间</span><b><%= date(page.date,'YYYY-MM-DD HH:mm') %></b></div><div class="post-info-item"><span>最后修改</span><b><%= postUpdated?date(postUpdated,'YYYY-MM-DD HH:mm'):'未修改' %></b></div><div class="post-info-item"><span>字数</span><b><%= wordCount.toLocaleString('zh-CN') %></b></div><div class="post-info-item"><span>阅读时间</span><b>约 <%= readMinutes %> 分钟</b></div></div>
     <% if(postCol){ %><div class="post-category-line"><span>合集 / COLLECTION</span><a href="<%= url_for('/categories/'+(postColMeta&&postColMeta.slug?postColMeta.slug:postCol)) %>"><%= postColMeta?postColMeta.name:postCol %></a></div><% } %>
+    <button type="button" class="post-toc-button" onclick="openTimelineMenu(document.querySelector('.post-toc'))">▦ <span>文章目录</span></button>
     <div class="post-content"><%- page.content %></div>
     <% if(page.tags&&page.tags.length){ %><div class="post-tags"><% page.tags.each(function(t){ %><a class="meta-tag" href="<%= url_for(t.path) %>"># <%= t.name %></a><% }); %></div><% } %>
     <nav class="post-nav" aria-label="合集文章导航"><% if(collectionPrev){ %><a class="post-nav-card prev" href="<%= url_for(collectionPrev.path) %>"><small>上一篇</small><strong><%= collectionPrev.title %></strong><span>←</span></a><% }else{ %><span class="post-nav-card empty-nav prev"><small>上一篇</small><strong>这是这个合集的第一篇文章</strong></span><% } %><% if(collectionNext){ %><a class="post-nav-card next" href="<%= url_for(collectionNext.path) %>"><small>下一篇</small><strong><%= collectionNext.title %></strong><span>→</span></a><% }else{ %><span class="post-nav-card empty-nav next"><small>下一篇</small><strong>这是这个合集的最后一篇文章</strong></span><% } %></nav>
@@ -15,3 +16,16 @@
     <section class="comments" aria-label="评论"><div class="comments-label">评论 / Comments</div><script src="https://utteranc.es/client.js" repo="xuzhunzhi/xuzhunzhi.github.io" issue-term="pathname" label="评论" theme="github-dark" crossorigin="anonymous" async></script></section>
   </div>
 </article>
+<script>
+(function(){
+  var toc=document.querySelector('.post-toc'),reading=document.querySelector('.post-reading'),main=document.querySelector('.post-main'),content=document.querySelector('.post-content');
+  if(!toc||!reading||!main||!content) return;
+  function alignToc(){
+    if(window.innerWidth<=900){ toc.style.marginTop='0px'; return; }
+    var contentRect=content.getBoundingClientRect(),mainRect=main.getBoundingClientRect();
+    toc.style.marginTop=Math.max(0,Math.round(contentRect.top-mainRect.top))+'px';
+  }
+  window.addEventListener('load',alignToc); window.addEventListener('resize',alignToc); alignToc();
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(alignToc);
+})();
+</script>

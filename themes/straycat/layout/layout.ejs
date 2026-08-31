@@ -17,7 +17,7 @@
 <body>
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="<%= url_for('/') %>"><%= config.title %></a>
+      <a class="brand" href="<%= url_for('/') %>">Shelter</a>
       <nav class="site-nav">
         <a href="<%= url_for('/') %>">首页</a>
         <a href="<%= url_for('/articles/') %>">文章</a>
@@ -127,9 +127,60 @@
 
   <button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="回到顶部">↑ <span>TOP</span></button>
 
+  <div class="timeline-menu-modal" id="timelineMenuModal" onclick="if(event.target===this)closeTimelineMenu()">
+    <div class="timeline-menu-inner" role="dialog" aria-modal="true" aria-labelledby="timelineMenuTitle">
+      <button class="moment-x" onclick="closeTimelineMenu()" aria-label="关闭">×</button>
+      <div class="image-calendar-kicker">CONTENTS</div>
+      <h2 id="timelineMenuTitle">时间目录</h2>
+      <nav id="timelineMenuBody"></nav>
+    </div>
+  </div>
+
+  <div class="image-calendar-modal" id="archiveTimelineCalendar" onclick="if(event.target===this)closeArchiveTimelineCalendar()">
+    <div class="image-calendar-inner" role="dialog" aria-modal="true" aria-labelledby="archiveCalendarTitle">
+      <button class="moment-x" onclick="closeArchiveTimelineCalendar()" aria-label="关闭">×</button>
+      <div class="image-calendar-head"><button class="image-calendar-arrow" id="archiveCalendarPrev" type="button" onclick="shiftArchiveTimelineCalendar(-1)" aria-label="上一个月">←</button><div class="image-calendar-heading"><div class="image-calendar-kicker">ARCHIVE TIMELINE</div><div class="image-calendar-title-line"><button class="image-calendar-title-button year" id="archiveCalendarYear" type="button" onclick="showArchiveTimelineYears()">选择年份</button><span class="image-calendar-separator" aria-hidden="true">/</span><button class="image-calendar-title-button" id="archiveCalendarMonth" type="button" onclick="showArchiveTimelineMonths()">选择月份</button></div></div><button class="image-calendar-arrow" id="archiveCalendarNext" type="button" onclick="shiftArchiveTimelineCalendar(1)" aria-label="下一个月">→</button></div>
+      <div id="archiveCalendarBody"></div>
+    </div>
+  </div>
+
   <script>
     var MOMENTS = <%- JSON.stringify((site.data.dynamics||[])).replace(/</g, '\\u003c') %>;
     function escHtml(s){ return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function openTimelineMenu(source){
+      var modal=document.getElementById('timelineMenuModal'),body=document.getElementById('timelineMenuBody'); if(!modal||!body||!source)return;
+      var isPost=source.classList.contains('post-toc'),links=Array.prototype.slice.call(source.querySelectorAll('a')); if(isPost){var list=source.querySelector('.post-toc-list');body.innerHTML=list?'<div class="timeline-menu-post-list post-toc-list">'+list.innerHTML+'</div>':'<p class="timeline-menu-empty">这里还没有目录内容</p>';}else{body.innerHTML=links.length?links.map(function(link){return '<a href="'+escHtml(link.getAttribute('href')||'#')+'" data-target="'+escHtml(link.getAttribute('data-target')||'')+'">'+escHtml(link.textContent.trim())+'</a>';}).join(''):'<p class="timeline-menu-empty">这里还没有目录内容</p>';}
+      document.getElementById('timelineMenuTitle').textContent=source.classList.contains('post-toc')?'文章目录':'时间目录';
+      body.querySelectorAll('a').forEach(function(link){link.addEventListener('click',function(e){var raw=link.getAttribute('data-target')||link.getAttribute('href')||'';if(raw.charAt(0)!=='#')return;e.preventDefault();closeTimelineMenu();setTimeout(function(){scrollToContentAnchor(raw);},260);});});
+      modal.classList.remove('closing');modal.classList.add('show');lockBody();
+    }
+    function closeTimelineMenu(){ closeModal(document.getElementById('timelineMenuModal')); }
+    function scrollToContentAnchor(raw){var id=String(raw||'').replace(/^#/,'');try{id=decodeURIComponent(id);}catch(e){}var target=document.getElementById(id);if(!target)return;history.replaceState(null,'','#'+encodeURIComponent(id));var offset=88,top=window.pageYOffset+target.getBoundingClientRect().top-offset;window.scrollTo({top:Math.max(0,top),behavior:'smooth'});}
+    var archiveCalendarState={kind:'',months:{},current:'',view:'month',yearStart:0};
+    function archiveCalendarTarget(id){return String(id||'').replace(/[^0-9A-Za-z_-]/g,'-');}
+    function setArchiveCalendarHeader(view,key){
+      var month=document.getElementById('archiveCalendarMonth'),year=document.getElementById('archiveCalendarYear'),prev=document.getElementById('archiveCalendarPrev'),next=document.getElementById('archiveCalendarNext');if(!month||!year)return;
+      var y=/^\d{4}-\d{2}$/.test(key)?key.slice(0,4):String(key||'').slice(0,4);month.disabled=view!=='month';year.disabled=view==='years';prev.style.visibility=next.style.visibility='visible';
+      if(view==='month'){month.textContent=/^\d{4}-\d{2}$/.test(key)?key.slice(5)+'月':'选择月份';year.textContent=y?y+'年':'选择年份';}
+      else if(view==='months'){month.textContent='选择月份';year.textContent=y+'年';}
+      else{month.textContent='选择年份';year.textContent=archiveCalendarState.yearStart+'—'+(archiveCalendarState.yearStart+19);}
+    }
+    function openArchiveTimelineCalendar(config,key){
+      var modal=document.getElementById('archiveTimelineCalendar'),keys=Object.keys((config&&config.months)||{}).sort(function(a,b){return b.localeCompare(a);});if(!modal||!keys.length)return;archiveCalendarState={kind:config.kind||'archive',months:config.months||{},current:key&&config.months[key]?key:keys[0],view:'month',yearStart:0};renderArchiveTimelineCalendar(archiveCalendarState.current);modal.classList.remove('closing');modal.classList.add('show');lockBody();
+    }
+    function renderArchiveTimelineMonths(year){
+      var body=document.getElementById('archiveCalendarBody'),labels=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];if(!body)return;archiveCalendarState.view='months';archiveCalendarState.current=year+'-01';setArchiveCalendarHeader('months',archiveCalendarState.current);body.innerHTML='<div class="image-calendar-months">'+labels.map(function(label,i){var key=year+'-'+('0'+(i+1)).slice(-2),days=archiveCalendarState.months[key]||{},count=Object.keys(days).length;return '<button type="button" class="'+(count?'has-images':'')+'" data-archive-month="'+key+'">'+label+(count?'<small>'+count+'天有记录</small>':'')+'</button>';}).join('')+'</div>';
+    }
+    function showArchiveTimelineMonths(){var y=/^\d{4}-\d{2}$/.test(archiveCalendarState.current)?+archiveCalendarState.current.slice(0,4):new Date().getFullYear();renderArchiveTimelineMonths(y);}
+    function renderArchiveTimelineYears(center){var body=document.getElementById('archiveCalendarBody');if(!body)return;archiveCalendarState.view='years';archiveCalendarState.yearStart=(+center||new Date().getFullYear())-9;setArchiveCalendarHeader('years',String(archiveCalendarState.yearStart));var html='<div class="image-calendar-years">';for(var y=archiveCalendarState.yearStart;y<archiveCalendarState.yearStart+20;y++)html+='<button type="button" data-archive-year="'+y+'">'+y+'</button>';body.innerHTML=html+'</div>';}
+    function showArchiveTimelineYears(){var y=/^\d{4}-\d{2}$/.test(archiveCalendarState.current)?+archiveCalendarState.current.slice(0,4):new Date().getFullYear();renderArchiveTimelineYears(y);}
+    function renderArchiveTimelineCalendar(key){
+      var body=document.getElementById('archiveCalendarBody'),days=archiveCalendarState.months[key]||{};if(!body)return;archiveCalendarState.view='month';archiveCalendarState.current=key;setArchiveCalendarHeader('month',key);if(!/^\d{4}-\d{2}$/.test(key)){body.innerHTML='<p class="image-calendar-tip">这里还没有可用的日期记录</p>';return;}
+      var parts=key.split('-'),year=+parts[0],month=+parts[1],total=new Date(year,month,0).getDate(),first=(new Date(year,month-1,1).getDay()+6)%7,html='<div class="image-calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div class="image-calendar-grid">';for(var i=0;i<first;i++)html+='<span class="image-calendar-empty"></span>';for(var d=1;d<=total;d++){var rec=days[String(d)],target=rec&&rec.target,count=rec&&rec.count||0;if(target){html+='<a class="has-images" href="#'+archiveCalendarTarget(target)+'" data-archive-jump="'+archiveCalendarTarget(target)+'" aria-label="'+d+'日，有'+count+'条记录"><b>'+d+'</b><small>'+count+'条</small></a>';}else html+='<span>'+d+'</span>';}for(var empty=first+total;empty<42;empty++)html+='<span class="image-calendar-empty"></span>';body.innerHTML=html+'</div><p class="image-calendar-tip"><span aria-hidden="true"></span>金色日期有记录 · 点击日期跳转</p>';
+    }
+    function shiftArchiveTimelineCalendar(delta){if(archiveCalendarState.view==='month'&&/^\d{4}-\d{2}$/.test(archiveCalendarState.current)){var p=archiveCalendarState.current.split('-'),d=new Date(+p[0],+p[1]-1+delta,1);renderArchiveTimelineCalendar(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2));}else if(archiveCalendarState.view==='months'){renderArchiveTimelineMonths(+archiveCalendarState.current.slice(0,4)+delta);}else renderArchiveTimelineYears(archiveCalendarState.yearStart+9+delta*20);}
+    function closeArchiveTimelineCalendar(){closeModal(document.getElementById('archiveTimelineCalendar'));}
+    (function(){var body=document.getElementById('archiveCalendarBody');if(!body)return;body.addEventListener('click',function(e){var month=e.target.closest('[data-archive-month]'),year=e.target.closest('[data-archive-year]'),jump=e.target.closest('[data-archive-jump]');if(month){renderArchiveTimelineCalendar(month.getAttribute('data-archive-month'));return;}if(year){renderArchiveTimelineMonths(+year.getAttribute('data-archive-year'));return;}if(jump){e.preventDefault();var id=jump.getAttribute('data-archive-jump');closeArchiveTimelineCalendar();setTimeout(function(){scrollToContentAnchor(id);},260);}});})();
     function momentImageList(m){ return m.images&&m.images.length?m.images:(m.image?[m.image]:[]); }
     function actionIcon(name){ if(name==='like') return '<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 8.55a5.5 5.5 0 0 0-8.84-1.27 5.5 5.5 0 0 0-8.84 1.27C1.44 12.33 5.5 16 12 20.5c6.5-4.5 10.56-8.17 8.84-11.95Z"/></svg>'; if(name==='comment') return '<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-6.15A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01"/></svg>'; return '<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a7 7 0 0 0-12-2"/><path d="M6 6V2m0 4h4"/><path d="M6 16a7 7 0 0 0 12 2"/><path d="M18 18v4m0-4h-4"/></svg>'; }
     function openMoment(i){ var m=MOMENTS[i]; if(!m) return; document.getElementById('mmDate').textContent=m.date||''; document.getElementById('mmText').textContent=m.text||''; var img=document.getElementById('mmImg'), ims=momentImageList(m); if(ims.length===1){ img.src=ims[0]; img.style.display='block'; } else { img.style.display='none'; } var old=document.getElementById('mmGallery'); if(old) old.remove(); if(ims.length>1){ var g=document.createElement('div');g.id='mmGallery';g.className='moment-modal-gallery';g.innerHTML=ims.map(function(src){return '<img src="'+escHtml(src)+'" alt="">';}).join('');document.querySelector('.moment-modal-inner').appendChild(g); } var mc=document.getElementById('mmComments');if(mc){mc.classList.remove('show');mc.hidden=true;mc.innerHTML='<div class="moment-comments-title">评论 / Comments</div>';delete mc.dataset.mounted;} var acts=document.getElementById('mmActions');if(acts)acts.innerHTML='<button class="content-action" onclick="toggleLike('+i+',this)">'+actionIcon('like')+'<span>点赞</span></button><button class="content-action" onclick="openComment('+i+')">'+actionIcon('comment')+'<span>评论</span></button><button class="content-action" onclick="shareMoment('+i+')">'+actionIcon('share')+'<span>转发</span></button>'; document.getElementById('momentModal').classList.add('show'); lockBody(); }
