@@ -1,32 +1,18 @@
-<% if (page.posts && page.posts.length) { %>
-  <% var colName = page.category ? page.category.name : ''; %>
-  <% var col = null; (site.data.collections || []).forEach(function(c){ if(c.name===colName) col=c; }); %>
+<%
+  var colName=page.category?(page.category.name||page.category):'';var col=null;(site.data.collections||[]).forEach(function(c){if(c.name===colName||c.slug===colName)col=c;});
+  var catPosts=page.posts||[],catWords=0,catUpdated=null;
+  catPosts.each(function(post){catWords+=strip_html(post.content||'').replace(/\s/g,'').length;var updatedMatch=String(post.raw||'').match(/^updated\s*:\s*(.+)$/mi);var u=updatedMatch?updatedMatch[1].trim():post.date;if(u&&(!catUpdated||new Date(u)>new Date(catUpdated)))catUpdated=u;});
+  var catTitle=col?col.name:colName;
+%>
+<% if(catPosts.length){ %>
   <section class="cat-hero">
-    <% if (col && col.cover) { %><div class="cat-cover" style="background-image:url('<%= col.cover %>')"></div><% } %>
-    <div class="cat-body">
-      <div class="cat-kind">合集</div>
-      <h1 class="cat-name"><%= colName %></h1>
-      <% if (col && col.desc) { %><p class="cat-desc"><%= col.desc %></p><% } %>
-      <p class="cat-count">共 <%= page.posts.length %> 篇</p>
-    </div>
+    <div class="cat-cover <%= col&&col.cover?'':'cat-cover-empty' %>"<% if(col&&col.cover){ %> style="background-image:url('<%= col.cover %>')"<% } %>><% if(!(col&&col.cover)){ %><span>collection / <%= catTitle %></span><% } %></div>
+    <div class="cat-body"><div class="cat-kind">合集 / collection</div><h1 class="cat-name"><%= catTitle %></h1><% if(col&&col.desc){ %><p class="cat-desc"><%= col.desc %></p><% } %><div class="cat-stats"><div><b id="busuanzi_value_page_pv">—</b><span>阅读量</span></div><div><b><%= catPosts.length %></b><span>文章数</span></div><div><b><%= catWords.toLocaleString('zh-CN') %></b><span>总字数</span></div><div><b><%= catUpdated?date(catUpdated,'YYYY-MM-DD'):'—' %></b><span>最后更新</span></div></div></div>
   </section>
   <div class="sec-hd"><span class="sec-num">posts</span><span class="sec-title">文章</span><span class="sec-line"></span></div>
-  <div class="feed-list">
-    <% page.posts.each(function(post){ %>
-      <article class="post-card">
-        <span class="post-date"><%= date(post.date, 'YYYY-MM-DD') %></span>
-        <h2 class="post-title"><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
-        <span class="post-arrow">→</span>
-      </article>
-    <% }) %>
+  <div class="article-list-cards category-article-list">
+    <% catPosts.each(function(post){var cover=post.cover||(col&&col.cover)||''; %><a class="article-list-card" href="<%= url_for(post.path) %>"><div class="article-list-cover <%= cover?'':'article-list-cover-empty' %>"<% if(cover){ %> style="background-image:url('<%= cover %>')"<% } %>><% if(!cover){ %><span>✦</span><% } %></div><div class="article-list-info"><time><%= date(post.date,'YYYY-MM-DD') %></time><h2><%= post.title %></h2><div class="article-list-collection"><%= catTitle %></div><p><%= post.description||strip_html(post.content||'').replace(/\s+/g,' ').substring(0,120)||'by 幼儿班的小超超' %></p></div><span class="article-list-arrow">→</span></a><% }); %>
   </div>
-<% } else if (page.categories && page.categories.length) { %>
-  <h1 class="archive-title">分类</h1>
-  <ul class="archive-list">
-    <% page.categories.forEach(function(cat){ %>
-      <li><a href="<%= url_for(cat.path) %>"><%= cat.name %></a> <span class="count">(<%= cat.length %>)</span></li>
-    <% }) %>
-  </ul>
-<% } else { %>
-  <p class="empty">暂无分类。</p>
-<% } %>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<% } else if(page.categories&&page.categories.length){ %><h1 class="archive-title">分类</h1><ul class="archive-list"><% page.categories.forEach(function(cat){var c=(site.data.collections||[]).find(function(x){return x.name===cat.name;}); %><li><a href="<%= url_for('/categories/'+(c&&c.slug?c.slug:cat.path)) %>"><%= c?c.name:cat.name %></a> <span class="count">(<%= cat.length %>)</span></li><% }); %></ul>
+<% } else { %><p class="empty">暂无分类。</p><% } %>

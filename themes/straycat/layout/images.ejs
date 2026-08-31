@@ -10,16 +10,15 @@
   </div>
 
   <div class="view-panel" id="view-timeline">
-    <% var all = []; (site.data.gallery.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); %>
+    <% var all = []; (site.data.gallery.albums || []).forEach(function(a){ (a.images || []).forEach(function(im){ all.push({ caption: im.caption, src: im.src, date: String(im.date || '') }); }); }); var months={}; all.forEach(function(im){ var key=im.date.slice(0,7)||'未分类'; if(!months[key])months[key]=[]; months[key].push(im); }); %>
     <% if (!all.length) { %>
       <p class="empty">还没有图片，等流浪猫慢慢放上来。</p>
     <% } else { %>
-      <div class="img-waterfall">
-        <% all.sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(im){ %>
-          <figure class="img-card" onclick="openLightbox('<%= im.src %>')">
-            <img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')">
-            <figcaption class="img-card-caption"><%= im.date %> · <%= im.caption %></figcaption>
-          </figure>
+      <div class="image-timeline">
+        <% Object.keys(months).sort(function(a,b){return b.localeCompare(a);}).forEach(function(key){ var dayGroups={}; months[key].forEach(function(im){var day=im.date.slice(8)||'—';if(!dayGroups[day])dayGroups[day]=[];dayGroups[day].push(im);}); %>
+          <section class="image-month"><div class="image-month-label"><%= key.replace('-', ' 年 ') %> 月</div><div class="image-month-list">
+            <% Object.keys(dayGroups).sort(function(a,b){return b.localeCompare(a);}).forEach(function(day){ %><div class="image-day-row"><time><%= day %><small>日</small></time><div class="image-day-images"><% dayGroups[day].forEach(function(im){ %><figure class="image-timeline-media" onclick="openLightbox('<%= im.src %>')"><img src="<%= im.src %>" alt="<%= im.caption %>" loading="lazy" onerror="this.classList.add('ph')"><figcaption><%= im.caption %></figcaption></figure><% }); %></div></div><% }); %>
+          </div></section>
         <% }) %>
       </div>
     <% } %>
@@ -60,7 +59,7 @@
 <script>
 var ALBUMS = <%- JSON.stringify((site.data.gallery.albums||[])).replace(/</g, '\\u003c') %>;
 function escHtml(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
-function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; document.getElementById('albumModalTitle').textContent=a.name; var g=document.getElementById('albumModalGrid'); g.innerHTML=(a.images||[]).map(function(im){ return '<figure class="gallery-item"><img data-src="'+im.src+'" src="'+im.src+'" alt="'+escHtml(im.caption||'')+'" loading="lazy"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>'; }).join(''); document.getElementById('albumModal').classList.add('show'); lockBody(); }
+function openAlbum(i){ var a=ALBUMS[i]; if(!a) return; document.getElementById('albumModalTitle').textContent=a.name; var groups={};(a.images||[]).slice().sort(function(x,y){return String(y.date||'').localeCompare(String(x.date||''));}).forEach(function(im){var k=String(im.date||'').slice(0,7)||'未分类';(groups[k]||(groups[k]=[])).push(im);}); var g=document.getElementById('albumModalGrid');g.innerHTML=Object.keys(groups).sort(function(x,y){return y.localeCompare(x);}).map(function(k){var days={};groups[k].forEach(function(im){var d=String(im.date||'').slice(8)||'—';(days[d]||(days[d]=[])).push(im);});return '<section class="image-month"><div class="image-month-label">'+escHtml(k.replace('-', ' 年 ')+' 月')+'</div><div class="image-month-list">'+Object.keys(days).sort(function(x,y){return y.localeCompare(x);}).map(function(d){return '<div class="image-day-row"><time>'+escHtml(d)+'<small>日</small></time><div class="image-day-images">'+days[d].map(function(im){return '<figure class="image-timeline-media"><img data-src="'+escHtml(im.src)+'" src="'+escHtml(im.src)+'" alt="'+escHtml(im.caption||'')+'" loading="lazy"><figcaption>'+escHtml(im.caption||'')+'</figcaption></figure>';}).join('')+'</div></div>';}).join('')+'</div></section>';}).join(''); document.getElementById('albumModal').classList.add('show'); lockBody(); }
 function closeAlbum(){ closeModal(document.getElementById('albumModal')); }
 document.getElementById('albumModalGrid').addEventListener('click',function(e){ var img=e.target.closest('img[data-src]'); if(img) openLightbox(img.getAttribute('data-src')); });
 function switchView(btn, view){ document.querySelectorAll('.view-toggle .toggle-btn').forEach(function(b){ b.classList.toggle('active', b===btn); }); document.querySelectorAll('.view-panel').forEach(function(p){ p.style.display = (p.id==='view-'+view) ? 'block' : 'none'; }); }

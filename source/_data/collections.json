@@ -1,11 +1,13 @@
 [
   {
     "name": "王者荣耀命格自设",
+    "slug": "wangzhe-mingge",
     "cover": "",
     "desc": "一些自设……万一被策划看见采纳了呢awa"
   },
   {
     "name": "王者荣耀平衡调整",
+    "slug": "wangzhe-pingheng",
     "cover": "",
     "desc": "王者的平衡太狗屎了.jpg，我们应该做些什么"
   }

@@ -1,28 +1,51 @@
 <section class="hero">
   <h1 class="hero-title">Now <em>Watching</em></h1>
-  <p class="hero-sub">最近在追的番，慢慢地补。</p>
+  <p class="hero-sub">最近在追的番，慢慢地补。海报通往萌娘百科，信息区可以展开更多资料。</p>
 </section>
+
+<%
+  var WSTATUS={watching:'在看',finished:'已看完',dropped:'弃番',want:'想看'};
+  var watching=site.data.watching||[];
+  var activeAnime=watching.filter(function(w){return w.status!=='finished';});
+  var finishedAnime=watching.filter(function(w){return w.status==='finished';});
+  function animeCard(w,i,archived){
+%>
+  <article class="watching-card <%= archived ? 'is-archived' : '' %>">
+    <a class="watching-cover-link" href="<%= w.pageUrl||'#' %>" target="_blank" rel="noopener" aria-label="在萌娘百科查看 <%= w.title %>">
+      <% if(w.cover){ %><img class="watching-cover" src="<%= w.cover %>" alt="<%= w.title %>" loading="lazy"><% } else { %><div class="watching-cover watching-cover-empty"><span>♪</span></div><% } %>
+    </a>
+    <button class="watching-body" onclick="openAnime(<%= i %>)">
+      <span class="watching-title"><%= w.title %></span>
+      <span class="watching-meta"><span class="watching-tag"><%= WSTATUS[w.status]||w.status||'在看' %></span><% if(archived){ %><span class="watching-progress"><%= w.finishedAt||w.completedAt||'已看完' %></span><% } else if(w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total){ %>/<%= w.total %><% } %> 集</span><% } %><% if(w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
+      <span class="watching-open">查看资料 <span>↗</span></span>
+    </button>
+  </article>
+<% } %>
 
 <div class="sec-hd"><span class="sec-num">watching</span><span class="sec-title">在追的番</span><span class="sec-line"></span></div>
 <div class="watching-grid">
-  <% var WSTATUS={watching:'在看',finished:'已看完',dropped:'弃番',want:'想看'}; %>
-  <% if (site.data.watching && site.data.watching.length) { %>
-    <% site.data.watching.forEach(function(w){ %>
-      <a class="watching-card" href="<%= w.pageUrl ? w.pageUrl : '#' %>" target="_blank" rel="noopener">
-        <% if (w.cover) { %><div class="watching-cover" style="background-image:url('<%= w.cover %>')"></div>
-        <% } else { %><div class="watching-cover">♪</div><% } %>
-        <div class="watching-body">
-          <div class="watching-title"><%= w.title %></div>
-          <div class="watching-meta">
-            <span class="watching-tag"><%= WSTATUS[w.status] || w.status || '在看' %></span>
-            <% if (w.progress) { %><span class="watching-progress"><%= w.progress %><% if (w.total) { %>/<%= w.total %><% } %> 集</span><% } %>
-            <% if (w.rating) { %><span class="watching-rating">★ <%= w.rating %></span><% } %>
-          </div>
-          <% if (w.note) { %><div class="watching-note"><%= w.note %></div><% } %>
-        </div>
-      </a>
-    <% }) %>
-  <% } else { %>
-    <p class="empty">暂无在追的番。</p>
-  <% } %>
+  <% if(activeAnime.length){ activeAnime.forEach(function(w){ animeCard(w,watching.indexOf(w),false); }); } else { %><p class="empty">暂无在追的番。</p><% } %>
 </div>
+
+<div class="anime-archive-head"><div class="sec-hd"><span class="sec-num">archive</span><span class="sec-title">归档</span><span class="sec-line"></span></div><span class="anime-archive-count"><%= finishedAnime.length %> 部</span></div>
+<div class="watching-grid watching-archive">
+  <% if(finishedAnime.length){ finishedAnime.forEach(function(w){ animeCard(w,watching.indexOf(w),true); }); } else { %><p class="empty anime-empty-archive">还没有看完的番，归档会在这里慢慢长出来。</p><% } %>
+</div>
+
+<div class="anime-modal" id="animeModal" onclick="if(event.target===this)closeAnime()">
+  <div class="anime-modal-inner">
+    <button class="moment-x" onclick="closeAnime()" aria-label="关闭">×</button>
+    <div class="anime-modal-kicker">anime notes</div>
+    <h2 id="animeModalTitle"></h2>
+    <div class="anime-modal-meta" id="animeModalMeta"></div>
+    <p class="anime-modal-note" id="animeModalNote"></p>
+    <div class="anime-modal-details" id="animeModalDetails"></div>
+    <a class="anime-modal-link" id="animeModalLink" href="#" target="_blank" rel="noopener">打开萌娘百科 ↗</a>
+  </div>
+</div>
+
+<script>
+var ANIME_LIST=<%- JSON.stringify(watching).replace(/</g,'\\u003c') %>;
+function openAnime(i){var w=ANIME_LIST[i];if(!w)return;document.getElementById('animeModalTitle').textContent=w.title||'';document.getElementById('animeModalMeta').textContent=(w.status==='finished'?'已看完 · '+(w.finishedAt||w.completedAt||'时间未记录'):(w.progress?(w.progress+(w.total?'/'+w.total:'')+' 集'):'进度未记录'))+(w.rating?' · 评分 '+w.rating:'');document.getElementById('animeModalNote').textContent=w.note||'暂无备注。';var d=[];[['简介',w.summary],['类型 / 标签',w.tags],['播出时间',w.airDate],['集数',w.total],['制作公司',w.studio],['原作',w.original],['角色 / 声优',w.cast]].forEach(function(x){if(x[1])d.push('<div><span>'+x[0]+'</span><b>'+escHtml(String(x[1]))+'</b></div>')});document.getElementById('animeModalDetails').innerHTML=d.join('')||'<div class="anime-no-details">暂无抓取资料，后续可从萌娘百科补充公开元数据。</div>';var a=document.getElementById('animeModalLink');a.href=w.pageUrl||'#';a.style.display=w.pageUrl?'inline-flex':'none';document.getElementById('animeModal').classList.add('show');lockBody();}
+function closeAnime(){closeModal(document.getElementById('animeModal'));}
+</script>

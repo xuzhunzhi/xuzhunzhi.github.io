@@ -3,47 +3,25 @@
   <p class="hero-sub">写下的字，和一些舍不得丢的念头。</p>
 </section>
 
+<%
+  var cols=site.data.collections||[];
+  function findCollection(name){var found=null;cols.forEach(function(c){if(c.name===name||c.slug===name)found=c;});return found;}
+  function collectionName(name){var c=findCollection(name);return c?c.name:name;}
+  function postCover(post){var c=post.categories&&post.categories.length?findCollection(post.categories.first().name):null;return post.cover||(c&&c.cover)||'';}
+%>
 <div class="ptoggle">
-  <div class="view-toggle">
-    <button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button>
-    <button class="toggle-btn" data-view="collection" onclick="switchView(this,'collection')">合集</button>
-  </div>
+  <div class="view-toggle"><button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button><button class="toggle-btn" data-view="collection" onclick="switchView(this,'collection')">合集</button></div>
 
   <div class="view-panel" id="view-timeline">
     <div class="articles-timeline">
-      <% var years = {}; %>
-      <% site.posts.sort('date', -1).each(function(post){ var d=new Date(post.date); var y=d.getFullYear(); var m=d.getMonth()+1; if(!years[y])years[y]={}; if(!years[y][m])years[y][m]=[]; years[y][m].push(post); }); %>
-      <% Object.keys(years).sort(function(a,b){return b-a}).forEach(function(y){ %>
-        <div class="articles-year">
-          <div class="year-label"><%= y %></div>
-          <% Object.keys(years[y]).sort(function(a,b){return b-a}).forEach(function(m){ %>
-            <div class="year-month">
-              <div class="month-label"><%= ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][m] %></div>
-              <% years[y][m].forEach(function(post){ %>
-                <a class="month-item" href="<%= url_for(post.path) %>"><span class="month-item-day"><%= new Date(post.date).getDate() %>日</span><span class="month-item-title"><%= post.title %></span></a>
-              <% }) %>
-            </div>
-          <% }) %>
-        </div>
-      <% }) %>
+      <% var years={}; site.posts.sort('date',-1).each(function(post){var d=new Date(post.date),y=d.getFullYear(),m=d.getMonth()+1;if(!years[y])years[y]={};if(!years[y][m])years[y][m]=[];years[y][m].push(post);}); %>
+      <% Object.keys(years).sort(function(a,b){return b-a;}).forEach(function(y){ %><div class="articles-year"><div class="year-label"><%= y %></div><% Object.keys(years[y]).sort(function(a,b){return b-a;}).forEach(function(m){ %><section class="year-month"><div class="month-label"><%= ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][m] %></div><div class="article-list-cards"><% years[y][m].forEach(function(post){var cat=post.categories&&post.categories.length?post.categories.first().name:'';var col=findCollection(cat);var cover=postCover(post); %><a class="article-list-card" href="<%= url_for(post.path) %>"><div class="article-list-cover <%= cover?'':'article-list-cover-empty' %>"<% if(cover){ %> style="background-image:url('<%= cover %>')"<% } %>><% if(!cover){ %><span>✦</span><% } %></div><div class="article-list-info"><time><%= new Date(post.date).getDate() %> 日 · <%= date(post.date,'YYYY-MM-DD') %></time><h2><%= post.title %></h2><div class="article-list-collection"><%= collectionName(cat)||'随笔' %></div><p><%= post.description||strip_html(post.content||'').replace(/\s+/g,' ').substring(0,120)||'by 幼儿班的小超超' %></p></div><span class="article-list-arrow">→</span></a><% }) %></div></section><% }) %></div><% }) %>
     </div>
   </div>
 
   <div class="view-panel" id="view-collection" style="display:none">
     <div class="collection-grid">
-      <% var cats = {}; var names = []; %>
-      <% site.posts.each(function(post){ if(post.categories) post.categories.each(function(c){ if(!cats[c.name]){cats[c.name]=[]; names.push(c.name);} cats[c.name].push(post); }); }); %>
-      <% var grads = ['linear-gradient(135deg,#1a2a1a,#0d1a0d,#1a1a0d)','linear-gradient(135deg,#1a0d1a,#0d0d1a,#1a0d0d)','linear-gradient(135deg,#0d1a1a,#0d0d1a,#1a0d0d)','linear-gradient(135deg,#1a1a0d,#0d1a0d,#0d1a1a)']; %>
-      <% names.forEach(function(name, ni){ var posts=cats[name]; %>
-        <a class="collection-card" href="<%= url_for('/categories/' + encodeURIComponent(name)) %>">
-          <div class="collection-cover" style="background:<%= grads[ni % grads.length] %>"><span class="collection-count"><%= posts.length %></span></div>
-          <div class="collection-body">
-            <div class="collection-name"><%= name %></div>
-            <div class="collection-desc"><%= posts.length %> 篇</div>
-            <ul class="collection-items"><% posts.slice(0,4).forEach(function(p){ %><li><%= p.title %></li><% }) %></ul>
-          </div>
-        </a>
-      <% }) %>
+      <% var cats={};site.posts.each(function(post){if(post.categories)post.categories.each(function(c){if(!cats[c.name])cats[c.name]=[];cats[c.name].push(post);});});var grads=['linear-gradient(135deg,#263d2b,#101b14 70%)','linear-gradient(135deg,#35251b,#17130f 70%)','linear-gradient(135deg,#202d42,#10141e 70%)','linear-gradient(135deg,#3a2436,#181018 70%)'];var names=Object.keys(cats);names.forEach(function(name,ni){var posts=cats[name],col=findCollection(name),slug=col&&col.slug?col.slug:name; %><a class="collection-card" href="<%= url_for('/categories/'+slug+'/') %>"><div class="collection-cover" style="background:<%= col&&col.cover? 'url(\''+col.cover+'\') center/cover':grads[ni%grads.length] %>"><span class="collection-count"><%= posts.length %></span></div><div class="collection-body"><div class="collection-name"><%= collectionName(name) %></div><div class="collection-desc"><%= col&&col.desc?col.desc:posts.length+' 篇文章' %></div><ul class="collection-items"><% posts.slice(0,4).forEach(function(p){ %><li><%= p.title %></li><% }) %></ul><span class="collection-open">浏览合集 ↗</span></div></a><% }); %>
     </div>
   </div>
 </div>
