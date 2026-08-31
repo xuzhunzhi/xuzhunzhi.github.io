@@ -13,7 +13,7 @@
 %>
   <article class="watching-card <%= archived ? 'is-archived' : '' %>">
     <a class="watching-cover-link" href="<%= w.pageUrl||'#' %>" target="_blank" rel="noopener" aria-label="在萌娘百科查看 <%= w.title %>">
-      <% if(w.cover){ %><img class="watching-cover" src="<%= w.cover %>" alt="<%= w.title %>" loading="lazy"><% } else { %><div class="watching-cover watching-cover-empty"><span>♪</span></div><% } %>
+      <% if(w.cover){ %><span class="watching-cover-backdrop" aria-hidden="true" style="background-image:url('<%= w.cover %>')"></span><img class="watching-cover" src="<%= w.cover %>" alt="<%= w.title %>" loading="lazy"><% } else { %><div class="watching-cover watching-cover-empty"><span>♪</span></div><% } %>
     </a>
     <button class="watching-body" onclick="openAnime(<%= i %>)">
       <span class="watching-title"><%= w.title %></span>
