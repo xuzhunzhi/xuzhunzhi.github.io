@@ -80,6 +80,9 @@ function readPost(file) {
 // ---------- HTTP ----------
 function json(res, code, data) { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); }
 function readBody(req) { return new Promise((resolve) => { let b = ''; req.on('data', c => b += c); req.on('end', () => { try { resolve(JSON.parse(b || '{}')); } catch (e) { resolve({}); } }); }); }
+function readJson(file, fallback) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')); } catch (e) { return fallback; }
+}
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');
@@ -108,7 +111,7 @@ const server = http.createServer(async (req, res) => {
         fs.mkdirSync(HISTORY_DIR, { recursive: true });
         const hp = path.join(HISTORY_DIR, slug(file) + '.json');
         let versions = [];
-        try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+        versions = readJson(hp, []);
         versions.push({ savedAt: new Date().toISOString(), title: old.title, date: old.date, updated: old.updated || '', edits: old.edits || 0, description: old.description || '', categories: old.categories || '', content: old.content || '' });
         fs.writeFileSync(hp, JSON.stringify(versions, null, 2), 'utf8');
       }
@@ -127,14 +130,14 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/history' && req.method === 'GET') {
       const file = u.searchParams.get('file') || '';
       const hp = path.join(HISTORY_DIR, slug(file) + '.json');
-      let versions = []; try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+      let versions = readJson(hp, []);
       return json(res, 200, { file, versions });
     }
     if (p === '/api/history/restore' && req.method === 'POST') {
       const body = await readBody(req);
       const file = body.file || ''; const index = Number(body.index);
       const hp = path.join(HISTORY_DIR, slug(file) + '.json');
-      let versions = []; try { versions = JSON.parse(fs.readFileSync(hp, 'utf8')); } catch (e) {}
+      let versions = readJson(hp, []);
       const v = versions[index]; if (!v) return json(res, 404, { ok: false, msg: '版本不存在' });
       fs.writeFileSync(path.join(POSTS_DIR, file), ['---', `title: ${v.title || ''}`, `date: ${v.date || ''}`, `updated: ${new Date().toISOString().replace('T', ' ').slice(0, 19)}`, `edits: ${Number(v.edits || 0) + 1}`, v.description ? `description: ${v.description}` : '', v.categories ? `categories: ${arr(v.categories)}` : '', '---', '', v.content || ''].filter(Boolean).join('\n'), 'utf8');
       return json(res, 200, { ok: true });
@@ -222,7 +225,7 @@ const server = http.createServer(async (req, res) => {
     const WATCHING_PATH = path.join(ROOT, 'source', '_data', 'watching.json');
     const FRIENDS_PATH = path.join(ROOT, 'source', '_data', 'friends.json');
     if (p === '/api/friends' && req.method === 'GET') {
-      let data=[]; try { data = JSON.parse(fs.readFileSync(FRIENDS_PATH, 'utf8')); } catch (e) {}
+      const data = readJson(FRIENDS_PATH, []);
       return json(res, 200, { friends: data });
     }
     if (p === '/api/friends' && req.method === 'POST') {
@@ -234,8 +237,7 @@ const server = http.createServer(async (req, res) => {
     const DYNAMICS_PATH = path.join(ROOT, 'source', '_data', 'dynamics.json');
     const PINNED_PATH = path.join(ROOT, 'source', '_data', 'pinned.json');
     if (p === '/api/pinned' && req.method === 'GET') {
-      let data = [];
-      try { data = JSON.parse(fs.readFileSync(PINNED_PATH, 'utf8')); } catch (e) {}
+      const data = readJson(PINNED_PATH, []);
       return json(res, 200, { pinned: data });
     }
     if (p === '/api/pinned' && req.method === 'POST') {
@@ -245,8 +247,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/dynamics' && req.method === 'GET') {
-      let data = [];
-      try { data = JSON.parse(fs.readFileSync(DYNAMICS_PATH, 'utf8')); } catch (e) {}
+      const data = readJson(DYNAMICS_PATH, []);
       return json(res, 200, { dynamics: data });
     }
     if (p === '/api/dynamics' && req.method === 'POST') {
@@ -256,12 +257,14 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/collections' && req.method === 'GET') {
-      let meta = [];
-      try { meta = JSON.parse(fs.readFileSync(COLLECTIONS_PATH, 'utf8')); } catch (e) {}
+      const meta = readJson(COLLECTIONS_PATH, []);
       const set = new Set();
       listPosts().forEach(po => { (po.categories || '').split(/[,，]/).forEach(c => { c = c.trim().replace(/^\[|\]$/g, ''); if (c) set.add(c); }); });
-      const names = meta.map(c => c.name).concat(Array.from(set).filter(n => !meta.some(c => c.name === n)));
-      return json(res, 200, { collections: meta, names });
+      const options = [];
+      const optionValues = new Set();
+      meta.forEach(c => { const value = String(c.slug || c.name || '').trim(); const label = String(c.name || value).trim(); if (value && !optionValues.has(value)) { options.push({ value, label }); optionValues.add(value); } });
+      Array.from(set).forEach(value => { if (!optionValues.has(value)) { options.push({ value, label: value }); optionValues.add(value); } });
+      return json(res, 200, { collections: meta, names: options.map(o => o.value), options });
     }
     if (p === '/api/collections' && req.method === 'POST') {
       const body = await readBody(req);
@@ -270,8 +273,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/gallery' && req.method === 'GET') {
-      let data = { albums: [] };
-      try { data = JSON.parse(fs.readFileSync(GALLERY_PATH, 'utf8')); } catch (e) {}
+      const data = readJson(GALLERY_PATH, { albums: [] });
       return json(res, 200, data);
     }
     if (p === '/api/gallery' && req.method === 'POST') {
@@ -281,8 +283,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (p === '/api/watching' && req.method === 'GET') {
-      let data = [];
-      try { data = JSON.parse(fs.readFileSync(WATCHING_PATH, 'utf8')); } catch (e) {}
+      const data = readJson(WATCHING_PATH, []);
       return json(res, 200, { watching: data });
     }
     if (p === '/api/watching' && req.method === 'POST') {
@@ -537,6 +538,67 @@ label{margin:18px 0 7px;font-size:10px;letter-spacing:.14em;color:var(--accent-d
 .watch-confirm-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .wrow-edit{margin-top:-1px;padding:22px 18px 20px;border:1px solid rgba(107,103,96,.24);border-top:0;border-radius:0 0 11px 11px;background:rgba(10,10,8,.58)}
 .wrow-confirm{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center}
+/* ===== 管理台最终收口：统一桌面工作区的层级与密度 ===== */
+body{font-size:15px;line-height:1.65;color:var(--text-b)}
+.navwrap{max-width:1240px;padding:16px 30px}
+.brand{font-size:20px}
+.navlinks{gap:4px;padding:4px;border:1px solid rgba(107,103,96,.2);border-radius:10px;background:rgba(20,20,18,.62)}
+.nav-link{padding:9px 15px;border:1px solid transparent;border-radius:7px;font-size:12px;letter-spacing:.1em}
+.nav-link:hover,.nav-link.active{border-color:rgba(212,162,78,.38);background:rgba(212,162,78,.1);color:var(--accent)}
+.wrap{max-width:1240px;padding:46px 30px 110px}
+h1{font-size:40px;line-height:1.2;margin-bottom:12px}
+.sub{max-width:780px;margin-bottom:30px;font-size:15px;line-height:1.7}
+.card{padding:28px 30px;margin-bottom:24px;border-radius:15px;border-color:rgba(107,103,96,.28);background:linear-gradient(145deg,rgba(21,21,19,.98),rgba(15,15,13,.98));box-shadow:0 16px 38px rgba(0,0,0,.16)}
+.list-hd,.form-hd{min-height:42px;margin-bottom:22px}
+.list-hd span,.form-hd span{font-size:13px;letter-spacing:.1em;color:var(--text-b)}
+.list-hd button,.form-hd button{align-self:center}
+.form-hd{padding-bottom:17px;border-bottom-color:rgba(107,103,96,.28)}
+.form-hd #form_hd{font-size:18px}
+label{margin:20px 0 8px;font-size:11px;letter-spacing:.11em;color:#928b7d}
+input,textarea,select{min-height:44px;padding:10px 14px;border-radius:9px;font-size:14px;border-color:rgba(107,103,96,.34)}
+textarea{line-height:1.75}
+.btn{min-height:42px;padding:9px 17px;border-radius:9px;font-size:13px}
+.btn-pub{box-shadow:0 5px 14px rgba(212,162,78,.13)}
+.plist{gap:10px}
+.pitem{min-height:58px;padding:11px 14px;border-radius:10px;font-size:15px}
+.pitem .small{font-size:12px}
+#tab-posts{grid-template-columns:330px minmax(0,1fr);gap:24px}
+#tab-posts>.card:nth-of-type(3){margin-top:0}
+.collrow{padding:18px;border-radius:12px;background:rgba(12,12,10,.72)}
+.collrow>div:first-child{gap:13px!important}
+.wrow2{min-height:74px;padding:15px 18px;border-radius:12px;background:rgba(14,14,12,.8)}
+.wrow2-title{font-size:17px}
+.wrow2-sub{font-size:13px;margin-top:5px}
+.wrow-edit{padding:24px 20px 22px;border-color:rgba(107,103,96,.28);background:rgba(9,9,8,.72)}
+.watch-edit-fields{gap:20px 24px}
+.watch-field label{margin:0 0 8px}
+.watch-confirm-actions{gap:9px}
+.wrow-confirm{padding:16px;border-color:rgba(212,162,78,.32);background:rgba(212,162,78,.055)}
+.album-item{border-radius:13px;background:rgba(14,14,12,.82)}
+.album-row{min-height:76px;padding:16px 18px}
+.album-row-name{font-size:17px}
+.album-row-meta{font-size:13px;margin-top:3px}
+.album-edit{padding:22px 20px 24px;background:rgba(9,9,8,.7)}
+.album-edit-grid{grid-template-columns:210px minmax(0,1fr);gap:24px}
+.album-edit-fields{gap:15px}
+.imgcards{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(107,103,96,.22)}
+.imgcard{border-radius:11px;border-color:rgba(107,103,96,.28);background:rgba(10,10,8,.8)}
+.imgcard-thumb{height:160px;object-fit:contain;padding:12px;background:#080807}
+.imgcard-body{padding:13px}
+.imgcard-fields input,.imgcard-src{min-height:38px}
+.dynrow{min-height:72px;padding:15px 16px;border-radius:10px;background:rgba(14,14,12,.8)}
+.dynrow-text{font-size:15px}
+#tab-dynamics .card:first-of-type textarea{min-height:170px}
+.friendrow{padding:12px;border-radius:10px;background:rgba(14,14,12,.8)}
+.status{font-size:13px}
+.dd-btn{min-height:44px}
+.dd-menu{border-radius:10px}
+.collrow{display:grid;grid-template-columns:1fr;gap:12px;padding:18px;border-radius:12px;background:rgba(12,12,10,.72)}
+.collrow>div:first-child{display:grid!important;grid-template-columns:46px minmax(0,1fr);align-items:center;gap:13px!important}
+.collrow>input{margin:0!important}
+.collrow>div:last-child{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;margin:0!important}
+.collrow>div:last-child input{min-width:0}
+.dynrow>div:last-child{display:flex!important;align-items:center;gap:9px!important;flex-shrink:0}
 </style>
 </head><body>
 <nav class="topnav"><div class="navwrap">
