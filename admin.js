@@ -622,9 +622,47 @@ textarea{line-height:1.75}
 .collection-admin-list{display:flex;flex-direction:column;gap:12px}.collection-admin-card{position:relative;display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid rgba(107,103,96,.24);border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.012))}.collection-admin-cover{width:92px;height:92px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#263d2b,#101b14);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:28px}.collection-admin-cover img{width:100%;height:100%;object-fit:cover}.collection-admin-name{font-family:Georgia,serif;font-size:19px;color:var(--text-p)}.collection-admin-meta{margin-top:6px;color:var(--accent-dim);font-size:12px}.collection-admin-desc{margin-top:7px;color:var(--text-m);font-size:13px;line-height:1.45}
 .content-browser-card{position:relative}.moment-admin-feed{display:flex;flex-direction:column;gap:14px}.admin-moment{padding:22px 24px;border:1px solid rgba(107,103,96,.24);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}.admin-moment:hover{border-color:rgba(212,162,78,.55);transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.18)}.admin-moment-head{display:flex;align-items:center;gap:11px}.admin-moment-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}.admin-moment-author{color:var(--text-p);font-size:14px}.admin-moment-publish{display:block;margin-top:2px;color:var(--text-m);font-family:var(--font-mono);font-size:11px}.admin-moment-text{margin-top:17px;color:var(--text-b);font-size:15px;line-height:1.8;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}.admin-moment-edited{margin-top:14px;color:var(--accent-dim);font-family:var(--font-mono);font-size:11px}.admin-moment-gallery,.compose-image-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:16px}.admin-moment-gallery img,.compose-image-grid img{width:100%;aspect-ratio:1.3;object-fit:cover;border-radius:7px;background:#0b0b09}.admin-moment-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:17px;padding-top:13px;border-top:1px solid var(--border)}.admin-moment-actions{display:flex;gap:7px}.content-fab{position:fixed;right:34px;bottom:30px;z-index:150;min-width:58px;height:48px;padding:0 18px;border:1px solid rgba(212,162,78,.55);border-radius:13px;background:var(--accent);color:var(--bg);font-size:23px;line-height:1;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}.content-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.45)}
 .album-admin-grid{display:flex;flex-direction:column;gap:18px}.album-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:14px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012))}.album-admin-head{display:grid;grid-template-columns:124px minmax(0,1fr) auto;gap:17px;align-items:center;padding:15px}.album-admin-cover{width:124px;height:92px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#263d2b,#101b14);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:28px}.album-admin-cover img{width:100%;height:100%;object-fit:cover}.album-admin-name{font-family:Georgia,serif;color:var(--text-p);font-size:20px}.album-admin-meta{margin-top:5px;color:var(--text-m);font-size:12px}.album-admin-desc{margin-top:7px;color:var(--text-m);font-size:13px}.album-admin-images{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:0 15px 15px}.admin-image-card{position:relative;overflow:hidden;aspect-ratio:4/3;border-radius:9px;background:#0b0b09;border:1px solid var(--border)}.admin-image-card>img{width:100%;height:100%;object-fit:cover;display:block}.admin-image-caption{position:absolute;left:0;right:0;bottom:0;padding:24px 8px 7px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:var(--text-p);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.admin-image-actions{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:7px;padding:9px;opacity:0;background:linear-gradient(transparent,rgba(0,0,0,.66));transition:opacity .2s}.admin-image-card:hover .admin-image-actions{opacity:1}.admin-image-actions .btn{min-height:30px;padding:5px 8px;font-size:11px}.admin-image-actions .image-actions-top{display:flex;justify-content:space-between;gap:7px}.admin-image-actions .image-preview-btn{width:100%}
-.anime-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.anime-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:13px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}.anime-admin-card:hover{transform:translateY(-3px);border-color:rgba(212,162,78,.55);box-shadow:0 14px 28px rgba(0,0,0,.2)}.anime-admin-cover{position:relative;height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#11110f}.anime-admin-cover-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(13px);opacity:.55;transform:scale(1.12)}.anime-admin-cover img{position:relative;z-index:1;max-width:82%;max-height:88%;object-fit:contain;border-radius:7px;box-shadow:0 14px 24px rgba(0,0,0,.48)}.anime-admin-cover-empty{color:var(--accent);font-size:32px}.anime-admin-body{padding:15px}.anime-admin-title{color:var(--text-p);font-family:Georgia,serif;font-size:19px;line-height:1.3}.anime-admin-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;color:var(--accent-dim);font-size:12px}.anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.3);border-radius:5px}.anime-admin-note{margin-top:9px;color:var(--text-m);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anime-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.anime-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:13px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}.anime-admin-card:hover{transform:translateY(-3px);border-color:rgba(212,162,78,.55);box-shadow:0 14px 28px rgba(0,0,0,.2)}.anime-admin-cover{position:relative;height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#11110f}.anime-admin-cover-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(13px);opacity:.55;transform:scale(1.12)}.anime-admin-cover img{position:relative;z-index:1;max-width:82%;max-height:88%;object-fit:contain;border-radius:7px;box-shadow:0 14px 24px rgba(0,0,0,.48)}.anime-admin-cover-empty{color:var(--accent);font-size:32px}.anime-admin-body{padding:15px}.anime-admin-title{color:var(--text-p);font-family:Georgia,serif;font-size:19px;line-height:1.3}.anime-admin-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;color:var(--accent-dim);font-size:12px}.anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.3);border-radius:5px}.anime-admin-note{margin-top:9px;color:var(--text-m);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.anime-admin-card-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(107,103,96,.2)}.anime-admin-card-actions .btn{min-height:34px;padding:6px 12px;font-size:12px}.watch-moegirl-pending{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px;padding:13px 15px;border:1px solid rgba(212,162,78,.32);border-radius:9px;background:rgba(212,162,78,.06)}.watch-moegirl-pending>div:first-child{display:flex;flex-direction:column;gap:3px;min-width:0}.watch-moegirl-pending strong{color:var(--text-p);font-size:13px}.watch-moegirl-pending span{color:var(--text-m);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.watch-moegirl-pending .watch-confirm-actions{flex-shrink:0}
 .admin-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(6,6,5,.82);backdrop-filter:blur(10px)}.admin-modal.show{display:flex}.admin-modal-inner{position:relative;width:min(760px,100%);max-height:90vh;overflow:auto;padding:30px 34px;background:linear-gradient(145deg,#171714,#0d0d0b);border:1px solid rgba(212,162,78,.28);border-radius:16px;box-shadow:0 28px 80px rgba(0,0,0,.58)}.post-modal-inner{width:min(860px,100%)}.dyn-modal-inner{width:min(700px,100%)}.album-modal-inner{width:min(960px,100%)}.watch-modal-inner{width:min(900px,100%)}.image-edit-modal-inner,.collection-modal-inner{width:min(520px,100%)}.modal-kicker{margin-bottom:9px;color:var(--accent-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.2em}.admin-modal .form-hd{margin-bottom:22px}.admin-modal .moment-x{position:absolute;right:18px;top:15px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}.dyn-time-note{display:flex;justify-content:space-between;gap:14px;margin-top:17px;padding:12px 14px;border:1px solid rgba(107,103,96,.24);border-radius:8px;background:rgba(255,255,255,.018);font-size:12px}.dyn-time-note span{color:var(--text-m)}.dyn-time-note b{font-weight:400;color:var(--accent-dim);font-family:var(--font-mono)}.dyn-edit-time{margin-top:8px}.compose-image-grid img{aspect-ratio:1}.album-editor-head{display:grid;grid-template-columns:190px minmax(0,1fr);gap:20px;align-items:stretch}.album-editor-head .album-edit-cover{min-height:150px}.album-image-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.album-image-edit-card{padding:8px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,.18)}.album-image-edit-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px}.album-image-edit-card input{min-height:34px;margin-top:7px;padding:6px 8px;font-size:12px}.album-image-edit-card .btn{width:100%;min-height:30px;margin-top:7px;padding:5px;font-size:11px}.watch-editor{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px}.watch-editor-cover{height:260px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:#0b0b09;overflow:hidden;cursor:pointer}.watch-editor-cover img{max-width:100%;max-height:100%;object-fit:contain}.watch-editor-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.watch-editor-fields .wide{grid-column:1/-1}.image-edit-preview{height:180px;margin-bottom:18px;border:1px solid var(--border);border-radius:9px;background:#0a0a08;display:flex;align-items:center;justify-content:center;overflow:hidden}.image-edit-preview img{max-width:100%;max-height:100%;object-fit:contain}.image-edit-defaults{display:flex;align-items:center;gap:10px;margin-top:13px;color:var(--text-m);font-size:12px}
 @media(max-width:1100px){.overview-grid,.article-admin-grid{grid-template-columns:1fr}.overview-friends-card{grid-column:auto}.anime-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ===== 弹窗最终收口：内容宽度由容器决定，避免表单网格被内容反向压窄 ===== */
+body.admin-modal-open{overflow:hidden}
+.admin-modal{overflow:hidden}
+.admin-modal-inner{width:min(960px,calc(100vw - 56px));max-height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable}
+.post-modal-inner{width:min(860px,calc(100vw - 56px))}.dyn-modal-inner{width:min(700px,calc(100vw - 56px))}.album-modal-inner{width:min(960px,calc(100vw - 56px))}.watch-modal-inner{width:min(1020px,calc(100vw - 56px))}.image-edit-modal-inner,.collection-modal-inner{width:min(520px,calc(100vw - 56px))}
+.watch-editor{width:100%;min-width:0;grid-template-columns:190px minmax(0,1fr);align-items:start}
+.watch-editor-fields{width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 18px}
+.watch-editor-fields>div{min-width:0}
+.watch-editor-fields label{display:block;margin:0 0 8px}
+.watch-editor-fields input,.watch-editor-fields select,.watch-editor-fields textarea{display:block;width:100%;min-width:0;box-sizing:border-box}
+.watch-editor-fields .wide{grid-column:1/-1}
+.admin-modal .moment-x{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;position:absolute;top:17px;right:19px;width:32px;height:32px;padding:0;border:1px solid rgba(107,103,96,.34);border-radius:7px;background:rgba(255,255,255,.025);color:var(--text-m);font:400 19px/1 var(--font-sans);cursor:pointer}
+.admin-modal .moment-x:hover{border-color:var(--accent);background:rgba(212,162,78,.08);color:var(--accent)}
+/* ===== 文章工作区：单一内容区，通过按钮切换文章与合集 ===== */
+#tab-posts{display:block}
+.article-workspace{display:flex;flex-direction:column;gap:18px}
+.article-workspace-head,.article-view-head{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.admin-segmented{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid rgba(107,103,96,.28);border-radius:11px;background:rgba(14,14,12,.82)}
+.admin-segmented .btn{min-height:36px;padding:7px 15px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text-m);font-size:12px}
+.admin-segmented .btn:hover{background:rgba(212,162,78,.08);color:var(--text-p)}
+.admin-segmented .btn.is-active{border-color:rgba(212,162,78,.35);background:rgba(212,162,78,.13);color:var(--accent)}
+.article-view-panel{margin-bottom:0}
+.article-view-head{margin-bottom:22px;padding-bottom:17px;border-bottom:1px solid rgba(107,103,96,.24)}
+.article-view-head>div:first-child{display:flex;align-items:baseline;gap:12px}
+.panel-eyebrow{color:var(--text-p);font-size:18px;font-weight:600}
+.post-group{display:flex;flex-direction:column;gap:10px}
+.post-group+.post-group{margin-top:24px;padding-top:22px;border-top:1px solid rgba(107,103,96,.22)}
+.post-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 2px 2px;color:var(--text-p);font-size:15px}
+.post-group-head b{color:var(--accent-dim);font-size:12px;font-weight:400}
+#articleViewArticles[hidden],#articleViewCollections[hidden]{display:none}
+/* 相册无独立封面时，使用与网站相同的图片叠放封面 */
+.album-admin-cover-row{width:46px;height:46px;min-width:46px;flex:0 0 46px;position:relative;padding:0;border:1px solid var(--border);border-radius:7px}
+.album-admin-cover-inner{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#121210}
+.album-admin-cover-inner>img{position:absolute;width:68%;height:72%;object-fit:cover;border:1px solid #0d0d0b;border-radius:3px;box-shadow:0 2px 7px rgba(0,0,0,.45);transform:rotate(calc((var(--i) - 1) * 6deg)) translateY(calc((var(--i) - 1) * 3px));opacity:.95}
+.album-admin-cover-inner>img:nth-child(1){left:5%;top:14%}.album-admin-cover-inner>img:nth-child(2){left:16%;top:9%}.album-admin-cover-inner>img:nth-child(3){left:27%;top:14%}.album-admin-cover-inner>img:nth-child(4){left:16%;top:19%}.album-admin-cover-inner>img:nth-child(5){left:27%;top:9%}
+.album-admin-cover-count{position:absolute;right:3px;bottom:2px;z-index:4;padding:0 3px;border-radius:3px;background:rgba(0,0,0,.62);color:var(--text-p);font:11px/1.35 var(--font-mono)}
+.album-admin-cover-placeholder{color:var(--accent);font-size:21px}
+.album-edit-cover .album-admin-cover-inner{position:absolute}
 </style>
 </head><body>
  <nav class="topnav"><div class="navwrap">
@@ -641,7 +679,7 @@ textarea{line-height:1.75}
 
  <section id="tab-overview" class="tabpage active">
    <h1>综合 <em>Overview</em></h1>
-   <p class="sub">首页置顶、站点文字、页脚友链等零散设置集中在这里。</p>
+    <p class="sub">首页、页头、页脚、关于页内容和友链等站点杂项集中在这里。</p>
    <div class="overview-grid">
      <div class="card overview-pin-card">
        <div class="list-hd"><span>首页置顶 · <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
@@ -654,7 +692,7 @@ textarea{line-height:1.75}
        <div class="status" id="pinStatus"></div>
      </div>
      <div class="card overview-settings-card">
-       <div class="list-hd"><span>站点文字</span><button class="btn btn-pub" onclick="saveSiteSettings()">保存设置</button></div>
+       <div class="list-hd"><span>站点与关于页</span><button class="btn btn-pub" onclick="saveSiteSettings()">保存设置</button></div>
        <div class="settings-grid">
          <div><label>页头英文名</label><input id="site_header" placeholder="Shelter"></div>
          <div><label>首页大标题</label><input id="site_home_title" placeholder="流浪猫的避难所"></div>
@@ -685,13 +723,26 @@ textarea{line-height:1.75}
  <section id="tab-posts" class="tabpage">
    <h1>文章 <em>Notes</em></h1>
    <p class="sub">文章列表和合集展示与网站本体保持一致；需要编辑时再打开对应弹窗。</p>
-   <div class="article-admin-grid">
-     <div class="card article-list-panel">
-       <div class="list-hd"><span>文章列表 · <b id="postCount">0</b></span><button class="btn btn-pub" onclick="newPost()">＋ 新建文章</button></div>
+   <div class="article-workspace">
+     <div class="article-workspace-head">
+       <div class="admin-segmented" role="tablist" aria-label="文章管理视图">
+         <button class="btn is-active" id="postViewArticles" onclick="setPostView('articles')">文章列表</button>
+         <button class="btn" id="postViewCollections" onclick="setPostView('collections')">合集列表</button>
+       </div>
+       <button class="btn btn-pub" onclick="newPost()">＋ 新建文章</button>
+     </div>
+     <div class="card article-view-panel" id="articleViewArticles">
+       <div class="article-view-head">
+         <div><span class="panel-eyebrow">文章列表</span><span class="list-caption">共 <b id="postCount">0</b> 篇</span></div>
+         <div class="admin-segmented" role="tablist" aria-label="文章排序方式">
+           <button class="btn is-active" id="postModeTimeline" onclick="setPostListMode('timeline')">时间线</button>
+           <button class="btn" id="postModeCollections" onclick="setPostListMode('collections')">按合集</button>
+         </div>
+       </div>
        <div class="plist site-like-list" id="posts"></div>
      </div>
-     <div class="card collection-list-panel">
-       <div class="list-hd"><span>合集</span><button class="btn btn-ghost" onclick="addColl()">＋ 新建合集</button></div>
+     <div class="card article-view-panel" id="articleViewCollections" hidden>
+       <div class="list-hd"><span>合集列表</span><button class="btn btn-ghost" onclick="addColl()">＋ 新建合集</button></div>
        <div id="collist" class="collection-admin-list"></div>
        <div class="card-actions"><button class="btn btn-pub" onclick="saveColls()">保存合集</button><div class="status" id="collStatus"></div></div>
      </div>
@@ -782,7 +833,7 @@ textarea{line-height:1.75}
    <div class="admin-modal-inner watch-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('watchModal')" aria-label="关闭">×</button>
      <div class="modal-kicker">ANIME EDITOR</div><div class="form-hd"><span id="watch_mode">添加番剧</span></div>
-     <div id="watch_editor" class="watch-editor"></div>
+     <div id="watch_editor"></div>
      <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchEditor()">保存番剧</button><button class="btn btn-ghost" onclick="closeAdminModal('watchModal')">取消</button></div><div class="status" id="watchModalStatus"></div>
    </div>
  </div>

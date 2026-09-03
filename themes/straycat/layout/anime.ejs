@@ -39,14 +39,25 @@
 </div>
 
 <div class="anime-modal" id="animeModal" onclick="if(event.target===this)closeAnime()">
-  <div class="anime-modal-inner">
+  <div class="anime-modal-inner anime-detail-modal">
     <button class="moment-x" onclick="closeAnime()" aria-label="关闭">×</button>
-    <div class="anime-modal-kicker">anime notes</div>
-    <h2 id="animeModalTitle"></h2>
-    <div class="anime-modal-meta" id="animeModalMeta"></div>
-    <p class="anime-modal-note" id="animeModalNote"></p>
-    <div class="anime-modal-details" id="animeModalDetails"></div>
-    <a class="anime-modal-link" id="animeModalLink" href="#" target="_blank" rel="noopener">打开萌娘百科 ↗</a>
+    <div class="anime-modal-top">
+      <div class="anime-modal-poster" id="animeModalPoster"></div>
+      <div class="anime-modal-heading">
+        <div class="anime-modal-kicker">anime / detail</div>
+        <h2 id="animeModalTitle"></h2>
+        <div class="anime-modal-meta" id="animeModalMeta"></div>
+        <a class="anime-modal-link" id="animeModalLink" href="#" target="_blank" rel="noopener">打开萌娘百科 ↗</a>
+      </div>
+    </div>
+    <div class="anime-modal-note-block" id="animeModalNoteBlock">
+      <div class="anime-modal-section-label">我的记录</div>
+      <p class="anime-modal-note" id="animeModalNote"></p>
+    </div>
+    <div class="anime-modal-data-block">
+      <div class="anime-modal-section-label">作品资料</div>
+      <div class="anime-modal-details" id="animeModalDetails"></div>
+    </div>
   </div>
 </div>
 
@@ -54,6 +65,20 @@
 var ANIME_LIST=<%- JSON.stringify(watching).replace(/</g,'\\u003c') %>;
 var animeModal=document.getElementById('animeModal');
 if(animeModal&&animeModal.parentNode!==document.body)document.body.appendChild(animeModal);
-function openAnime(i){var w=ANIME_LIST[i];if(!w)return;document.getElementById('animeModalTitle').textContent=w.title||'';document.getElementById('animeModalMeta').textContent=(w.status==='finished'?'已看完 · '+(w.finishedAt||w.completedAt||'时间未记录'):(w.progress?(w.progress+(w.total?'/'+w.total:'')+' 集'):'进度未记录'))+(w.rating?' · 评分 '+w.rating:'');document.getElementById('animeModalNote').textContent=w.note||'暂无备注。';var d=[];[['简介',w.summary],['类型 / 标签',w.tags],['播出时间',w.airDate],['集数',w.total],['制作公司',w.studio],['原作',w.original],['角色 / 声优',w.cast]].forEach(function(x){if(x[1])d.push('<div><span>'+x[0]+'</span><b>'+escHtml(String(x[1]))+'</b></div>')});document.getElementById('animeModalDetails').innerHTML=d.join('')||'<div class="anime-no-details">暂无抓取资料，后续可从萌娘百科补充公开元数据。</div>';var a=document.getElementById('animeModalLink');a.href=w.pageUrl||'#';a.style.display=w.pageUrl?'inline-flex':'none';document.getElementById('animeModal').classList.add('show');lockBody();}
+function animeValue(w,keys){for(var i=0;i<keys.length;i++){var v=w[keys[i]];if(v!==undefined&&v!==null&&String(v).trim()!=='')return Array.isArray(v)?v.join('、'):String(v);}return '';}
+function animeStatus(w){return {watching:'在看',finished:'已看完',preparing:'Preparing',want:'Preparing',dropped:'弃番'}[w.status]||w.status||'在看';}
+function animeProgress(w){if(w.status==='finished')return '看完于 '+(w.finishedAt||w.completedAt||'时间未记录');if(w.status==='preparing'||w.status==='want')return '准备追';if(w.status==='dropped')return '已停止观看';if(w.progress)return '看到 '+w.progress+(w.total?'/'+w.total:'')+' 集';return '进度未记录';}
+function openAnime(i){
+  var w=ANIME_LIST[i];if(!w)return;
+  var poster=document.getElementById('animeModalPoster');
+  poster.innerHTML=w.cover?'<span class="anime-modal-poster-backdrop" style="background-image:url(\''+escHtml(w.cover)+'\')"></span><img src="'+escHtml(w.cover)+'" alt="'+escHtml(w.title||'')+'">':'<div class="anime-modal-poster-empty">♪</div>';
+  document.getElementById('animeModalTitle').textContent=w.title||'';
+  document.getElementById('animeModalMeta').innerHTML='<span class="anime-modal-status">'+escHtml(animeStatus(w))+'</span><span>'+escHtml(animeProgress(w))+'</span>'+(w.rating?'<span class="anime-modal-rating">★ '+escHtml(w.rating)+'</span>':'');
+  var noteBlock=document.getElementById('animeModalNoteBlock');noteBlock.style.display=w.note?'block':'none';document.getElementById('animeModalNote').textContent=w.note||'';
+  var fields=[['简介',['summary','synopsis','description']],['类型 / 标签',['tags','genres','genre']],['播出时间',['airDate','broadcast','releaseDate','startDate']],['集数',['total','episodes']],['制作公司',['studio','company','production']],['原作',['original','originalWork']],['导演',['director']],['角色 / 声优',['cast','voiceCast']]];
+  var rows=[];fields.forEach(function(field){var value=animeValue(w,field[1]);if(value)rows.push('<div class="anime-modal-detail-row"><span>'+field[0]+'</span><b>'+escHtml(value)+'</b></div>')});
+  document.getElementById('animeModalDetails').innerHTML=rows.length?rows.join(''):'<div class="anime-no-details">暂时没有更多作品资料。后续从萌娘百科补充后，会在这里按项目显示。</div>';
+  var link=document.getElementById('animeModalLink');link.href=w.pageUrl||'#';link.style.display=w.pageUrl?'inline-flex':'none';document.getElementById('animeModal').classList.add('show');lockBody();
+}
 function closeAnime(){closeModal(document.getElementById('animeModal'));}
 </script>

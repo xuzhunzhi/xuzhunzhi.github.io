@@ -9,7 +9,7 @@
   function collectionName(name){var c=findCollection(name);return c?c.name:name;}
   function postCover(post){var c=post.categories&&post.categories.length?findCollection(post.categories.first().name):null;return post.cover||(c&&c.cover)||'';}
 %>
-<div class="ptoggle">
+<div class="ptoggle animated-view-toggle">
   <div class="view-toggle"><button class="toggle-btn active" data-view="timeline" onclick="switchView(this,'timeline')">时间线</button><button class="toggle-btn" data-view="collection" onclick="switchView(this,'collection')">合集</button></div>
 
   <div class="view-panel" id="view-timeline">
