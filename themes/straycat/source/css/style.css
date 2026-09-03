@@ -266,11 +266,14 @@ main{padding-top:12px;min-height:70vh}
 .animated-view-toggle[data-switch-direction="backward"] .view-item-leaving{animation:site-item-out-right .36s cubic-bezier(.62,0,.82,.2) forwards}
 .animated-view-toggle[data-switch-direction="forward"] .view-item-entering{animation:site-item-in-right .48s cubic-bezier(.2,.82,.24,1) both}
 .animated-view-toggle[data-switch-direction="backward"] .view-item-entering{animation:site-item-in-left .48s cubic-bezier(.2,.82,.24,1) both}
-@keyframes site-item-out-left{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) skewX(0)}58%{opacity:.86;filter:blur(1px);transform:translate3d(-18px,0,0) skewX(-1deg)}100%{opacity:0;filter:blur(6px);transform:translate3d(-92px,0,0) skewX(-2deg)}}
-@keyframes site-item-out-right{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) skewX(0)}58%{opacity:.86;filter:blur(1px);transform:translate3d(18px,0,0) skewX(1deg)}100%{opacity:0;filter:blur(6px);transform:translate3d(92px,0,0) skewX(2deg)}}
-@keyframes site-item-in-right{0%{opacity:0;filter:blur(5px);transform:translate3d(92px,0,0) skewX(2deg)}58%{opacity:1;filter:blur(.5px);transform:translate3d(-9px,0,0) skewX(-.35deg)}100%{opacity:1;filter:blur(0);transform:var(--switch-final-transform,none)}}
-@keyframes site-item-in-left{0%{opacity:0;filter:blur(5px);transform:translate3d(-92px,0,0) skewX(-2deg)}58%{opacity:1;filter:blur(.5px);transform:translate3d(9px,0,0) skewX(.35deg)}100%{opacity:1;filter:blur(0);transform:var(--switch-final-transform,none)}}
+@keyframes site-item-out-left{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}76%{opacity:.82;filter:blur(0);transform:translate3d(-18px,0,0)}100%{opacity:0;filter:blur(2px);transform:translate3d(-92px,0,0)}}
+@keyframes site-item-out-right{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}76%{opacity:.82;filter:blur(0);transform:translate3d(18px,0,0)}100%{opacity:0;filter:blur(2px);transform:translate3d(92px,0,0)}}
+@keyframes site-item-in-right{0%{opacity:0;transform:translate3d(92px,0,0)}100%{opacity:1;transform:var(--switch-final-transform,none)}}
+@keyframes site-item-in-left{0%{opacity:0;transform:translate3d(-92px,0,0)}100%{opacity:1;transform:var(--switch-final-transform,none)}}
 @media(prefers-reduced-motion:reduce){.animated-view-toggle .view-item-leaving,.animated-view-toggle .view-item-entering{animation:none}}
+
+/* 换场卡片的悬浮只保留边框和阴影，避免动画结束后再次改变位置。 */
+.animated-view-toggle .article-list-card:hover,.animated-view-toggle .collection-card:hover,.animated-view-toggle .album-card:hover{transform:none}
 
 /* ===== 文章-时间线 ===== */
 .articles-timeline{position:relative}
