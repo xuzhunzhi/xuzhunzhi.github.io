@@ -477,6 +477,7 @@ body{font-size:15px}
 .watching-body{display:flex;flex:1;flex-direction:column;align-items:flex-start;justify-content:space-between;width:100%;padding:17px 18px 16px;border:0;background:var(--surface);text-align:left;color:inherit;cursor:pointer}
 .watching-title{font-family:var(--font-serif);font-size:21px;line-height:1.2;font-weight:600;color:var(--text-p)}
 .watching-meta{flex-wrap:wrap;line-height:1.6;margin:10px 0 0;font-size:13px}
+.watching-format{color:var(--text-m);font-family:var(--font-mono);font-size:11px}
 .watching-open{display:flex;justify-content:space-between;width:100%;margin-top:13px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--text-m)}
 .watching-open span{color:var(--accent);font-size:16px;line-height:1}
 .watching-archive{margin-bottom:32px}
@@ -555,6 +556,7 @@ body{font-size:15px}
 .anime-modal-meta{display:flex;align-items:center;flex-wrap:wrap;gap:9px 13px;margin-bottom:0;font-size:13px;line-height:1.6}
 .anime-modal-meta>span:not(.anime-modal-status){color:var(--text-m)}
 .anime-modal-status,.anime-modal-rating{color:var(--accent)!important}
+.anime-modal-format{color:var(--text-m)!important;font-family:var(--font-mono);font-size:11px}
 .anime-modal-status{padding:3px 9px;border:1px solid rgba(212,162,78,.4);border-radius:5px;background:rgba(212,162,78,.08)}
 .anime-modal-rating{font-family:var(--font-mono)}
 .anime-modal-link{margin-top:24px;border:1px solid rgba(212,162,78,.35);border-radius:7px;padding:9px 12px;color:var(--accent);font-size:12px;text-decoration:none}

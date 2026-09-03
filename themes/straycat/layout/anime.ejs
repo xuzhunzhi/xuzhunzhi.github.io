@@ -9,6 +9,8 @@
   var activeAnime=watching.filter(function(w){return w.status!=='finished'&&w.status!=='preparing'&&w.status!=='want';});
   var preparingAnime=watching.filter(function(w){return w.status==='preparing'||w.status==='want';});
   var finishedAnime=watching.filter(function(w){return w.status==='finished';});
+  function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';var title=String(w.title||'');return /剧场版|电影版|电影|movie|film/i.test(title)||Number(w.total)===1?'movie':'tv';}
+  function animeFormatLabel(w){return animeFormat(w)==='movie'?'剧场版':'TV版';}
   function animeCard(w,i,archived){
 %>
   <article class="watching-card <%= archived ? 'is-archived' : '' %>">
@@ -17,7 +19,7 @@
     </a>
     <button class="watching-body" onclick="openAnime(<%= i %>)">
       <span class="watching-title"><%= w.title %></span>
-      <span class="watching-meta"><span class="watching-tag"><%= WSTATUS[w.status]||w.status||'在看' %></span><% if(archived){ %><span class="watching-progress"><%= w.finishedAt||w.completedAt||'已看完' %></span><% } else if(w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total){ %>/<%= w.total %><% } %> 集</span><% } %><% if(w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
+      <span class="watching-meta"><span class="watching-tag"><%= WSTATUS[w.status]||w.status||'在看' %></span><span class="watching-format"><%= animeFormatLabel(w) %></span><% if(archived){ %><span class="watching-progress"><%= w.finishedAt||w.completedAt||'已看完' %></span><% } else if(w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total && animeFormat(w)!=='movie'){ %>/<%= w.total %><% } %> 集</span><% } %><% if(w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
       <span class="watching-open">查看资料</span>
     </button>
   </article>
@@ -67,15 +69,17 @@ var animeModal=document.getElementById('animeModal');
 if(animeModal&&animeModal.parentNode!==document.body)document.body.appendChild(animeModal);
 function animeValue(w,keys){for(var i=0;i<keys.length;i++){var v=w[keys[i]];if(v!==undefined&&v!==null&&String(v).trim()!=='')return Array.isArray(v)?v.join('、'):String(v);}return '';}
 function animeStatus(w){return {watching:'在看',finished:'已看完',preparing:'Preparing',want:'Preparing',dropped:'弃番'}[w.status]||w.status||'在看';}
-function animeProgress(w){if(w.status==='finished')return '看完于 '+(w.finishedAt||w.completedAt||'时间未记录');if(w.status==='preparing'||w.status==='want')return '准备追';if(w.status==='dropped')return '已停止观看';if(w.progress)return '看到 '+w.progress+(w.total?'/'+w.total:'')+' 集';return '进度未记录';}
+function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';var title=String(w.title||'');return /剧场版|电影版|电影|movie|film/i.test(title)||Number(w.total)===1?'movie':'tv';}
+function animeFormatLabel(w){return animeFormat(w)==='movie'?'剧场版':'TV版';}
+function animeProgress(w){if(w.status==='finished')return '看完于 '+(w.finishedAt||w.completedAt||'时间未记录');if(w.status==='preparing'||w.status==='want')return '准备追';if(w.status==='dropped')return '已停止观看';if(animeFormat(w)==='movie')return '观看中';if(w.progress)return '看到 '+w.progress+(w.total?'/'+w.total:'')+' 集';return '进度未记录';}
 function openAnime(i){
   var w=ANIME_LIST[i];if(!w)return;
   var poster=document.getElementById('animeModalPoster');
   poster.innerHTML=w.cover?'<span class="anime-modal-poster-backdrop" style="background-image:url(\''+escHtml(w.cover)+'\')"></span><img src="'+escHtml(w.cover)+'" alt="'+escHtml(w.title||'')+'">':'<div class="anime-modal-poster-empty">♪</div>';
   document.getElementById('animeModalTitle').textContent=w.title||'';
-  document.getElementById('animeModalMeta').innerHTML='<span class="anime-modal-status">'+escHtml(animeStatus(w))+'</span><span>'+escHtml(animeProgress(w))+'</span>'+(w.rating?'<span class="anime-modal-rating">★ '+escHtml(w.rating)+'</span>':'');
+  document.getElementById('animeModalMeta').innerHTML='<span class="anime-modal-status">'+escHtml(animeStatus(w))+'</span><span class="anime-modal-format">'+escHtml(animeFormatLabel(w))+'</span><span>'+escHtml(animeProgress(w))+'</span>'+(w.rating?'<span class="anime-modal-rating">★ '+escHtml(w.rating)+'</span>':'');
   var noteBlock=document.getElementById('animeModalNoteBlock');noteBlock.style.display=w.note?'block':'none';document.getElementById('animeModalNote').textContent=w.note||'';
-  var fields=[['简介',['summary','synopsis','description']],['类型 / 标签',['tags','genres','genre']],['播出时间',['airDate','broadcast','releaseDate','startDate']],['集数',['total','episodes']],['制作公司',['studio','company','production']],['原作',['original','originalWork']],['导演',['director']],['角色 / 声优',['cast','voiceCast']]];
+  var fields=[['简介',['summary','synopsis','description']],['类型 / 标签',['tags','genres','genre']],['播出时间',['airDate','broadcast','releaseDate','startDate']]];if(animeFormat(w)!=='movie')fields.push(['集数',['total','episodes']]);fields.push(['制作公司',['studio','company','production']],['原作',['original','originalWork']],['导演',['director']],['角色 / 声优',['cast','voiceCast']]);
   var rows=[];fields.forEach(function(field){var value=animeValue(w,field[1]);if(value)rows.push('<div class="anime-modal-detail-row"><span>'+field[0]+'</span><b>'+escHtml(value)+'</b></div>')});
   document.getElementById('animeModalDetails').innerHTML=rows.length?rows.join(''):'<div class="anime-no-details">暂时没有更多作品资料。后续从萌娘百科补充后，会在这里按项目显示。</div>';
   var link=document.getElementById('animeModalLink');link.href=w.pageUrl||'#';link.style.display=w.pageUrl?'inline-flex':'none';document.getElementById('animeModal').classList.add('show');lockBody();
