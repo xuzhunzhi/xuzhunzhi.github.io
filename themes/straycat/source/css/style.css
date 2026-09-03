@@ -257,19 +257,20 @@ main{padding-top:12px;min-height:70vh}
 .toggle-btn:first-child{border-right:none}
 .toggle-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 
-/* 文章 / 图片视图切换：内容带一点甩尾出场和回弹入场。 */
-.animated-view-toggle{overflow-x:clip;overflow-y:visible}
-.animated-view-toggle .view-panel{will-change:transform,opacity}
-.animated-view-toggle .view-panel-leaving{pointer-events:none}
-.animated-view-toggle[data-switch-direction="forward"] .view-panel-leaving{animation:site-panel-out-left .28s cubic-bezier(.62,0,.82,.2) forwards}
-.animated-view-toggle[data-switch-direction="backward"] .view-panel-leaving{animation:site-panel-out-right .28s cubic-bezier(.62,0,.82,.2) forwards}
-.animated-view-toggle[data-switch-direction="forward"] .view-panel-entering{animation:site-panel-in-right .52s cubic-bezier(.2,.82,.24,1) both}
-.animated-view-toggle[data-switch-direction="backward"] .view-panel-entering{animation:site-panel-in-left .52s cubic-bezier(.2,.82,.24,1) both}
-@keyframes site-panel-out-left{0%{opacity:1;transform:translate3d(0,0,0) skewX(0)}72%{opacity:.78;transform:translate3d(-24px,0,0) skewX(-1deg)}100%{opacity:0;transform:translate3d(-68px,0,0) skewX(-2deg)}}
-@keyframes site-panel-out-right{0%{opacity:1;transform:translate3d(0,0,0) skewX(0)}72%{opacity:.78;transform:translate3d(24px,0,0) skewX(1deg)}100%{opacity:0;transform:translate3d(68px,0,0) skewX(2deg)}}
-@keyframes site-panel-in-right{0%{opacity:0;transform:translate3d(68px,0,0) skewX(2deg)}62%{opacity:1;transform:translate3d(-8px,0,0) skewX(-.3deg)}100%{opacity:1;transform:none}}
-@keyframes site-panel-in-left{0%{opacity:0;transform:translate3d(-68px,0,0) skewX(-2deg)}62%{opacity:1;transform:translate3d(8px,0,0) skewX(.3deg)}100%{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.animated-view-toggle .view-panel-leaving,.animated-view-toggle .view-panel-entering{animation:none}}
+/* 文章 / 图片视图切换：面板换场保持安静，内容项按顺序甩入甩出。 */
+.animated-view-toggle{overflow:visible}
+.animated-view-toggle .view-panel{will-change:contents}
+.animated-view-toggle .view-item-leaving,.animated-view-toggle .view-item-entering{will-change:transform,opacity}
+.animated-view-toggle .view-item-leaving{pointer-events:none}
+.animated-view-toggle[data-switch-direction="forward"] .view-item-leaving{animation:site-item-out-left .36s cubic-bezier(.62,0,.82,.2) forwards}
+.animated-view-toggle[data-switch-direction="backward"] .view-item-leaving{animation:site-item-out-right .36s cubic-bezier(.62,0,.82,.2) forwards}
+.animated-view-toggle[data-switch-direction="forward"] .view-item-entering{animation:site-item-in-right .48s cubic-bezier(.2,.82,.24,1) both}
+.animated-view-toggle[data-switch-direction="backward"] .view-item-entering{animation:site-item-in-left .48s cubic-bezier(.2,.82,.24,1) both}
+@keyframes site-item-out-left{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) skewX(0)}58%{opacity:.86;filter:blur(1px);transform:translate3d(-18px,0,0) skewX(-1deg)}100%{opacity:0;filter:blur(6px);transform:translate3d(-92px,0,0) skewX(-2deg)}}
+@keyframes site-item-out-right{0%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) skewX(0)}58%{opacity:.86;filter:blur(1px);transform:translate3d(18px,0,0) skewX(1deg)}100%{opacity:0;filter:blur(6px);transform:translate3d(92px,0,0) skewX(2deg)}}
+@keyframes site-item-in-right{0%{opacity:0;filter:blur(5px);transform:translate3d(92px,0,0) skewX(2deg)}58%{opacity:1;filter:blur(.5px);transform:translate3d(-9px,0,0) skewX(-.35deg)}100%{opacity:1;filter:blur(0);transform:var(--switch-final-transform,none)}}
+@keyframes site-item-in-left{0%{opacity:0;filter:blur(5px);transform:translate3d(-92px,0,0) skewX(-2deg)}58%{opacity:1;filter:blur(.5px);transform:translate3d(9px,0,0) skewX(.35deg)}100%{opacity:1;filter:blur(0);transform:var(--switch-final-transform,none)}}
+@media(prefers-reduced-motion:reduce){.animated-view-toggle .view-item-leaving,.animated-view-toggle .view-item-entering{animation:none}}
 
 /* ===== 文章-时间线 ===== */
 .articles-timeline{position:relative}
