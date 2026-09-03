@@ -9,24 +9,32 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 function httpsGet(url, isText) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const req = lib.get(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; StrayCatAdmin/1.0)', 'Accept': isText ? 'text/html,application/xhtml+xml' : '*/*' } }, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url), isText).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = Buffer.concat(chunks); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(15000, () => req.destroy(new Error('timeout'))); }); }
-function isMoegirlPageUrl(value) { try { const u = new URL(value); return /^https?:$/.test(u.protocol) && /(^|\.)moegirl\.org\.cn$/i.test(u.hostname); } catch (e) { return false; } }
+function normalizeMoegirlUrl(value) { let raw = String(value || '').trim(); if (raw && !/^https?:\/\//i.test(raw)) raw = 'https://' + raw; try { const u = new URL(raw); return /^https?:$/.test(u.protocol) && /(^|\.)moegirl\.org\.cn$/i.test(u.hostname) ? u.href : ''; } catch (e) { return ''; } }
+function isMoegirlPageUrl(value) { return !!normalizeMoegirlUrl(value); }
 function tagAttr(tag, name) { const m = tag.match(new RegExp(name + "\\s*=\\s*(?:\\\"([^\\\"]+)\\\"|'([^']+)'|([^\\s>]+))", 'i')); return m ? (m[1] || m[2] || m[3] || '') : ''; }
-function decodeHtml(s) { return String(s || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+function decodeHtml(s) { return String(s || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2f;|&#47;/gi, '/').replace(/&#x5c;|&#92;/gi, '\\'); }
 function moegirlCover(html, baseUrl) {
   const metas = html.match(/<meta\b[^>]*>/gi) || [];
   let cover = '';
   metas.some(function(tag) { const key = (tagAttr(tag, 'property') || tagAttr(tag, 'name')).toLowerCase(); if (key === 'og:image' || key === 'twitter:image') { cover = tagAttr(tag, 'content'); return !!cover; } return false; });
   if (!cover) {
     const imgs = html.match(/<img\b[^>]*>/gi) || [];
-    const blockMatch = html.match(/<(?:table|aside)\b[^>]*\bclass\s*=\s*["'][^"']*\binfobox\b[^"']*["'][^>]*>[\s\S]*?<\/(?:table|aside)>/i);
+    const blockMatch = html.match(/<(?:table|aside|div)\b[^>]*\bclass\s*=\s*["'][^"']*(?:\binfobox\b|\bportable-infobox\b)[^"']*["'][^>]*>[\s\S]*?<\/(?:table|aside|div)>/i);
     const infoImgs = blockMatch ? (blockMatch[0].match(/<img\b[^>]*>/gi) || []) : [];
-    const sourceOf = function(tag) { return tagAttr(tag, 'src') || tagAttr(tag, 'data-src') || tagAttr(tag, 'data-original'); };
-    const info = infoImgs.find(sourceOf) || imgs.find(function(tag) { return /\binfobox\b/i.test(tagAttr(tag, 'class') || '') && sourceOf(tag); });
+    const sourceOf = function(tag) {
+      const direct = tagAttr(tag, 'src') || tagAttr(tag, 'data-src') || tagAttr(tag, 'data-original') || tagAttr(tag, 'data-lazy-src');
+      if (direct) return direct;
+      const srcset = tagAttr(tag, 'srcset') || tagAttr(tag, 'data-srcset');
+      return srcset ? srcset.split(',')[0].trim().split(/\s+/)[0] : '';
+    };
+    const info = infoImgs.find(sourceOf) || imgs.find(function(tag) { return /\b(?:infobox|portable-infobox)\b/i.test(tagAttr(tag, 'class') || '') && sourceOf(tag); });
     cover = info ? sourceOf(info) : '';
   }
   if (!cover) return '';
   try {
-    const u = new URL(decodeHtml(cover).replace(/\\\//g, '/'), baseUrl);
+    let raw = decodeHtml(cover).replace(/\\\//g, '/').replace(/\\u002f/gi, '/');
+    if (raw.indexOf('//') === 0) raw = 'https:' + raw;
+    const u = new URL(raw, baseUrl);
     if (!/^https?:$/.test(u.protocol)) return '';
     u.hash = '';
     u.pathname = u.pathname.replace(/\/thumb\/(.+?)\/(?:\d+px-)?([^/]+)$/, '/$1/$2');
@@ -309,7 +317,8 @@ const server = http.createServer(async (req, res) => {
       let pageUrl = '';
       if (requestedUrl) {
         if (!isMoegirlPageUrl(requestedUrl)) return json(res, 200, { ok: false, msg: '请输入萌娘百科页面地址' });
-        pageUrl = new URL(requestedUrl).href;
+        pageUrl = normalizeMoegirlUrl(requestedUrl);
+        if (!pageUrl) return json(res, 200, { ok: false, msg: '请输入萌娘百科页面地址' });
         const lastPart = decodeURIComponent(new URL(pageUrl).pathname.split('/').filter(Boolean).pop() || '').replace(/_/g, ' ').trim();
         if (!name) name = lastPart || '番剧';
       } else {
@@ -319,7 +328,7 @@ const server = http.createServer(async (req, res) => {
       const searchUrl = 'https://zh.moegirl.org.cn/index.php?search=' + encodeURIComponent(name);
       try {
         const html = await httpsGet(pageUrl, true);
-        const ptitle = (html.match(/<title>([^<]*)<\/title>/) || [])[1];
+        const ptitle = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1];
         const coverUrl = moegirlCover(html, pageUrl);
         let localCover = '';
         let coverError = '';
@@ -625,6 +634,42 @@ textarea{line-height:1.75}
 .anime-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.anime-admin-card{border:1px solid rgba(107,103,96,.24);border-radius:13px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}.anime-admin-card:hover{transform:translateY(-3px);border-color:rgba(212,162,78,.55);box-shadow:0 14px 28px rgba(0,0,0,.2)}.anime-admin-cover{position:relative;height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#11110f}.anime-admin-cover-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(13px);opacity:.55;transform:scale(1.12)}.anime-admin-cover img{position:relative;z-index:1;max-width:82%;max-height:88%;object-fit:contain;border-radius:7px;box-shadow:0 14px 24px rgba(0,0,0,.48)}.anime-admin-cover-empty{color:var(--accent);font-size:32px}.anime-admin-body{padding:15px}.anime-admin-title{color:var(--text-p);font-family:Georgia,serif;font-size:19px;line-height:1.3}.anime-admin-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;color:var(--accent-dim);font-size:12px}.anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.3);border-radius:5px}.anime-admin-note{margin-top:9px;color:var(--text-m);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.anime-admin-card-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(107,103,96,.2)}.anime-admin-card-actions .btn{min-height:34px;padding:6px 12px;font-size:12px}.watch-moegirl-pending{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px;padding:13px 15px;border:1px solid rgba(212,162,78,.32);border-radius:9px;background:rgba(212,162,78,.06)}.watch-moegirl-pending>div:first-child{display:flex;flex-direction:column;gap:3px;min-width:0}.watch-moegirl-pending strong{color:var(--text-p);font-size:13px}.watch-moegirl-pending span{color:var(--text-m);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.watch-moegirl-pending .watch-confirm-actions{flex-shrink:0}
 .admin-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(6,6,5,.82);backdrop-filter:blur(10px)}.admin-modal.show{display:flex}.admin-modal-inner{position:relative;width:min(760px,100%);max-height:90vh;overflow:auto;padding:30px 34px;background:linear-gradient(145deg,#171714,#0d0d0b);border:1px solid rgba(212,162,78,.28);border-radius:16px;box-shadow:0 28px 80px rgba(0,0,0,.58)}.post-modal-inner{width:min(860px,100%)}.dyn-modal-inner{width:min(700px,100%)}.album-modal-inner{width:min(960px,100%)}.watch-modal-inner{width:min(900px,100%)}.image-edit-modal-inner,.collection-modal-inner{width:min(520px,100%)}.modal-kicker{margin-bottom:9px;color:var(--accent-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.2em}.admin-modal .form-hd{margin-bottom:22px}.admin-modal .moment-x{position:absolute;right:18px;top:15px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}.dyn-time-note{display:flex;justify-content:space-between;gap:14px;margin-top:17px;padding:12px 14px;border:1px solid rgba(107,103,96,.24);border-radius:8px;background:rgba(255,255,255,.018);font-size:12px}.dyn-time-note span{color:var(--text-m)}.dyn-time-note b{font-weight:400;color:var(--accent-dim);font-family:var(--font-mono)}.dyn-edit-time{margin-top:8px}.compose-image-grid img{aspect-ratio:1}.album-editor-head{display:grid;grid-template-columns:190px minmax(0,1fr);gap:20px;align-items:stretch}.album-editor-head .album-edit-cover{min-height:150px}.album-image-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.album-image-edit-card{padding:8px;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,.18)}.album-image-edit-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px}.album-image-edit-card input{min-height:34px;margin-top:7px;padding:6px 8px;font-size:12px}.album-image-edit-card .btn{width:100%;min-height:30px;margin-top:7px;padding:5px;font-size:11px}.watch-editor{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px}.watch-editor-cover{height:260px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:#0b0b09;overflow:hidden;cursor:pointer}.watch-editor-cover img{max-width:100%;max-height:100%;object-fit:contain}.watch-editor-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.watch-editor-fields .wide{grid-column:1/-1}.image-edit-preview{height:180px;margin-bottom:18px;border:1px solid var(--border);border-radius:9px;background:#0a0a08;display:flex;align-items:center;justify-content:center;overflow:hidden}.image-edit-preview img{max-width:100%;max-height:100%;object-fit:contain}.image-edit-defaults{display:flex;align-items:center;gap:10px;margin-top:13px;color:var(--text-m);font-size:12px}
 @media(max-width:1100px){.overview-grid,.article-admin-grid{grid-template-columns:1fr}.overview-friends-card{grid-column:auto}.anime-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ===== 番剧管理与网站本体对齐：分组、固定卡片高度、纵向海报 ===== */
+.anime-admin-browser{padding-bottom:26px}
+.anime-admin-sections{display:flex;flex-direction:column;gap:52px}
+.anime-admin-section+.anime-admin-section{padding-top:2px}
+.anime-admin-section-head{display:flex;align-items:baseline;gap:14px;margin:0 0 18px;padding:0 2px 12px;border-bottom:1px solid rgba(107,103,96,.24)}
+.anime-admin-section-kicker{color:var(--accent);font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:lowercase}
+.anime-admin-section-head h2{color:var(--text-p);font-family:Georgia,serif;font-size:18px;font-weight:600}
+.anime-admin-count{margin-left:auto;color:var(--text-m);font-family:var(--font-mono);font-size:12px}
+.anime-admin-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.anime-admin-card{display:flex;height:520px;min-width:0;flex-direction:column;overflow:hidden;border:1px solid rgba(107,103,96,.24);border-radius:14px;background:var(--surface);cursor:default;transition:transform .2s,border-color .2s,box-shadow .2s}
+.anime-admin-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.anime-admin-cover{position:relative;display:flex;flex:0 0 320px;align-items:center;justify-content:center;box-sizing:border-box;min-width:0;overflow:hidden;padding:18px;background:#171715;line-height:0;text-decoration:none}
+.anime-admin-cover::after{content:"";position:absolute;inset:0;background:rgba(12,12,10,.12);pointer-events:none}
+.anime-admin-cover-backdrop{position:absolute;inset:-6px;background-position:center;background-size:cover;filter:blur(3px);opacity:.38;transform:scale(1.03);pointer-events:none}
+.anime-admin-cover img{position:relative;z-index:1;display:block;width:auto;height:auto;max-width:100%;max-height:100%;border-radius:8px;background:#171715;object-fit:contain;box-shadow:0 18px 30px -10px rgba(0,0,0,.82),0 5px 12px rgba(0,0,0,.38),0 0 0 1px rgba(240,236,228,.14);transition:transform .25s ease,box-shadow .25s ease}
+.anime-admin-cover:hover img{transform:translateY(-3px);box-shadow:0 23px 34px -10px rgba(0,0,0,.88),0 7px 15px rgba(0,0,0,.42),0 0 0 1px rgba(240,236,228,.2)}
+.anime-admin-cover-empty{position:relative;z-index:1;display:flex;width:min(72%,240px);aspect-ratio:4/3;align-items:center;justify-content:center;color:var(--accent);font-size:42px;line-height:1;box-shadow:0 18px 30px -10px rgba(0,0,0,.66),0 0 0 1px rgba(240,236,228,.1)}
+.anime-admin-body{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start;padding:17px 18px 16px;background:var(--surface);cursor:pointer}
+.anime-admin-title{max-width:100%;color:var(--text-p);font-family:Georgia,serif;font-size:21px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anime-admin-meta{display:flex;gap:8px 11px;flex-wrap:wrap;margin-top:10px;color:var(--accent-dim);font-family:var(--font-mono);font-size:12px;line-height:1.6}
+.anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.36);border-radius:5px;background:rgba(212,162,78,.05)}
+.anime-admin-note{display:-webkit-box;max-width:100%;margin-top:12px;color:var(--text-m);font-family:var(--font-sans);font-size:13px;line-height:1.6;overflow:hidden;text-overflow:ellipsis;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.anime-admin-card-actions{display:flex;width:100%;gap:8px;margin-top:auto;padding-top:13px;border-top:1px solid var(--border)}
+.anime-admin-card-actions .btn{min-height:34px;padding:6px 12px;font-size:12px}
+.anime-admin-empty{grid-column:1/-1;margin:0;padding:24px;border:1px dashed var(--border);color:var(--text-m);text-align:center}
+.watch-moegirl-pending{display:grid;grid-template-columns:84px minmax(0,1fr) auto;align-items:center;gap:16px;margin-top:20px;padding:14px 16px;border:1px solid rgba(212,162,78,.38);border-radius:10px;background:rgba(212,162,78,.06)}
+.watch-moegirl-preview{display:flex;width:84px;height:108px;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.12);border-radius:7px;background:#11110f;color:var(--accent);font-size:28px}
+.watch-moegirl-preview img{width:100%;height:100%;object-fit:contain}
+.watch-moegirl-result{display:flex;min-width:0;flex-direction:column;gap:4px}
+.watch-moegirl-label{color:var(--accent-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.watch-moegirl-result strong{color:var(--text-p);font-family:Georgia,serif;font-size:17px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.watch-moegirl-source{color:var(--text-m);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.watch-moegirl-result a{width:max-content;margin-top:3px;color:var(--accent);font-size:12px;text-decoration:none}
+.watch-moegirl-result a:hover{text-decoration:underline}
+.watch-moegirl-pending .watch-confirm-actions{display:flex;flex-shrink:0;gap:8px}
+@media(max-width:1100px){.anime-admin-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* ===== 弹窗最终收口：内容宽度由容器决定，避免表单网格被内容反向压窄 ===== */
 body.admin-modal-open{overflow:hidden}
 .admin-modal{overflow:hidden}
@@ -771,10 +816,10 @@ body.admin-modal-open{overflow:hidden}
 
  <section id="tab-watching" class="tabpage">
    <h1>番剧 <em>Watching</em></h1>
-   <p class="sub">番剧管理采用与网站本体相同的纵向大卡片预览，点击编辑打开完整表单。</p>
-   <div class="card content-browser-card">
-     <div class="list-hd"><span>番剧列表</span><button class="btn btn-pub" onclick="newWatch()">＋ 添加番剧</button></div>
-     <div id="watchlist" class="anime-admin-grid"></div>
+   <p class="sub">按网站本体的分组和卡片展示番剧；海报查看原页，信息区打开弹窗编辑。</p>
+   <div class="card content-browser-card anime-admin-browser">
+     <div class="list-hd"><span>番剧时间线 · <b id="watchCount">0</b> 部</span><button class="btn btn-pub" onclick="newWatch()">＋ 添加番剧</button></div>
+     <div id="watchlist" class="anime-admin-sections"></div>
      <div class="card-actions"><button class="btn btn-pub" onclick="saveWatch()">保存番剧</button><button class="btn btn-ghost" onclick="loadWatch()">重新读取</button><div class="status" id="watchStatus"></div></div>
    </div>
  </section>
