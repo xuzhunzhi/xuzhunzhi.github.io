@@ -705,9 +705,90 @@ body.admin-modal-open{overflow:hidden}
 .album-admin-cover-inner{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#121210}
 .album-admin-cover-inner>img{position:absolute;width:68%;height:72%;object-fit:cover;border:1px solid #0d0d0b;border-radius:3px;box-shadow:0 2px 7px rgba(0,0,0,.45);transform:rotate(calc((var(--i) - 1) * 6deg)) translateY(calc((var(--i) - 1) * 3px));opacity:.95}
 .album-admin-cover-inner>img:nth-child(1){left:5%;top:14%}.album-admin-cover-inner>img:nth-child(2){left:16%;top:9%}.album-admin-cover-inner>img:nth-child(3){left:27%;top:14%}.album-admin-cover-inner>img:nth-child(4){left:16%;top:19%}.album-admin-cover-inner>img:nth-child(5){left:27%;top:9%}
-.album-admin-cover-count{position:absolute;right:3px;bottom:2px;z-index:4;padding:0 3px;border-radius:3px;background:rgba(0,0,0,.62);color:var(--text-p);font:11px/1.35 var(--font-mono)}
-.album-admin-cover-placeholder{color:var(--accent);font-size:21px}
-.album-edit-cover .album-admin-cover-inner{position:absolute}
+ .album-admin-cover-count{position:absolute;right:3px;bottom:2px;z-index:4;padding:0 3px;border-radius:3px;background:rgba(0,0,0,.62);color:var(--text-p);font:11px/1.35 var(--font-mono)}
+ .album-admin-cover-placeholder{color:var(--accent);font-size:21px}
+ .album-edit-cover .album-admin-cover-inner{position:absolute}
+ .album-row-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+ .album-editor-empty{grid-column:1/-1;padding:22px;border:1px dashed var(--border);border-radius:9px;color:var(--text-m);text-align:center}
+ .album-image-edit-card label{margin:10px 0 5px;color:var(--text-m);font-size:10px;letter-spacing:.08em;text-transform:none}
+ /* ===== 管理台表单：统一自绘控件与分页工作流 ===== */
+ input,textarea{color-scheme:dark;caret-color:var(--accent)}
+ input::placeholder,textarea::placeholder{color:rgba(176,169,154,.48)}
+ input:hover,textarea:hover{border-color:rgba(212,162,78,.42)}
+ input[readonly]{color:var(--text-m);background:rgba(255,255,255,.025)}
+ input[type=file]{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important}
+ .file-picker{display:flex;align-items:center;gap:12px;min-height:52px;padding:7px 9px;border:1px dashed rgba(107,103,96,.4);border-radius:10px;background:rgba(255,255,255,.018);transition:border-color .2s,background .2s}
+ .file-picker:hover{border-color:rgba(212,162,78,.7);background:rgba(212,162,78,.045)}
+ .file-picker>span{min-width:0;overflow:hidden;color:var(--text-m);font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+ .file-picker .btn{flex:0 0 auto}
+ .field-help{margin-top:7px;color:var(--text-m);font-size:12px;line-height:1.55}
+ .field-intro{margin-bottom:19px;padding:12px 14px;border-left:2px solid var(--accent);background:rgba(212,162,78,.055);color:var(--text-b);font-size:13px;line-height:1.65}
+ .custom-select{position:relative;width:100%;min-width:0}
+ .custom-select-native{display:none!important;position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;opacity:0!important;pointer-events:none!important}
+ .custom-select-button{display:flex;width:100%;min-height:44px;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;border:1px solid rgba(107,103,96,.34);border-radius:9px;background:#0e0e0c;color:var(--text-p);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+ .custom-select-button:hover,.custom-select.is-open .custom-select-button{border-color:var(--accent);background:rgba(212,162,78,.055)}
+ .custom-select-chevron{color:var(--accent);font-size:17px;line-height:1;transition:transform .2s}
+ .custom-select.is-open .custom-select-chevron{transform:rotate(180deg)}
+ .custom-select-menu{position:absolute;z-index:80;top:calc(100% + 7px);left:0;right:0;display:none;max-height:230px;overflow:auto;padding:5px;border:1px solid rgba(212,162,78,.35);border-radius:10px;background:#171714;box-shadow:0 18px 38px rgba(0,0,0,.52)}
+ .custom-select.is-open .custom-select-menu{display:block;animation:select-in .16s ease-out}
+ .custom-option{display:block;width:100%;padding:10px 11px;border:0;border-radius:6px;background:transparent;color:var(--text-b);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+ .custom-option:hover,.custom-option.is-selected{background:rgba(212,162,78,.11);color:var(--accent)}
+ .custom-option:disabled{opacity:.45;cursor:not-allowed}
+ @keyframes select-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+ .wizard{min-width:0}
+ .wizard-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 24px;padding:0 0 15px;border-bottom:1px solid rgba(107,103,96,.25)}
+ .wizard-steps{display:flex;align-items:center;gap:8px;min-width:0}
+ .wizard-step{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid transparent;border-radius:8px;color:var(--text-m);font-size:12px;white-space:nowrap;transition:color .2s,background .2s,border-color .2s}
+ .wizard-step i{font:11px/1 var(--font-mono);color:var(--text-m);font-style:normal}
+ .wizard-step.is-active{border-color:rgba(212,162,78,.36);background:rgba(212,162,78,.1);color:var(--text-p)}
+ .wizard-step.is-active i,.wizard-step.is-done i{color:var(--accent)}
+ .wizard-step.is-done{color:var(--accent-dim)}
+ .wizard-count{flex:0 0 auto;color:var(--accent-dim);font:12px/1 var(--font-mono)}
+ .form-page{display:none;min-height:260px;animation:form-page-in .2s ease-out}
+ .form-page.is-active{display:block}
+ @keyframes form-page-in{from{opacity:.35;transform:translateX(8px)}to{opacity:1;transform:none}}
+ .wizard-nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:17px;border-top:1px solid rgba(107,103,96,.22)}
+ .wizard-nav .wizard-next{margin-left:auto;border-color:rgba(212,162,78,.36);color:var(--accent)}
+ .wizard-nav .wizard-next:hover{background:rgba(212,162,78,.1)}
+ .wizard-nav button:disabled{opacity:.35;cursor:not-allowed}
+ .watch-editor>.wizard{min-width:0}
+ .admin-date-input{font-family:var(--font-mono);letter-spacing:.02em}
+ .admin-date-picker{display:flex;align-items:stretch;gap:8px;min-width:0}
+ .admin-date-picker .admin-date-input{flex:1;min-width:0}
+ .admin-date-button{display:inline-flex;width:44px;min-height:44px;align-items:center;justify-content:center;padding:0;border:1px solid rgba(107,103,96,.34);border-radius:9px;background:rgba(255,255,255,.025);color:var(--accent);font-size:20px;line-height:1;cursor:pointer;transition:border-color .2s,background .2s,transform .2s}
+ .admin-date-button:hover{border-color:var(--accent);background:rgba(212,162,78,.1);transform:translateY(-1px)}
+ .admin-calendar{position:fixed;z-index:1200;box-sizing:border-box;padding:14px;border:1px solid rgba(212,162,78,.32);border-radius:14px;background:linear-gradient(145deg,#1b1b18,#10100e);box-shadow:0 22px 55px rgba(0,0,0,.56);color:var(--text-b);font-size:13px}
+ .admin-calendar-head{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;align-items:center;gap:8px;margin-bottom:12px}
+ .admin-calendar-nav,.admin-calendar-title,.admin-calendar-foot button,.admin-calendar-day,.admin-calendar-month,.admin-calendar-year{appearance:none;-webkit-appearance:none;border:0;font:inherit;cursor:pointer}
+ .admin-calendar-nav{display:inline-flex;width:36px;height:34px;align-items:center;justify-content:center;border:1px solid rgba(107,103,96,.34);border-radius:8px;background:rgba(255,255,255,.025);color:var(--accent);font-size:24px;line-height:1;transition:background .2s,border-color .2s}
+ .admin-calendar-nav:hover{border-color:var(--accent);background:rgba(212,162,78,.1)}
+ .admin-calendar-title{min-width:0;padding:7px 5px;border-radius:7px;background:transparent;color:var(--text-p);font-family:var(--font-sans);font-size:15px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+ .admin-calendar-title:hover{background:rgba(212,162,78,.1);color:var(--accent)}
+ .admin-calendar-weekdays,.admin-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+ .admin-calendar-weekdays{margin-bottom:5px;color:var(--accent-dim);font-family:var(--font-mono);font-size:10px;text-align:center}
+ .admin-calendar-weekdays span{padding:4px 0}
+ .admin-calendar-day{display:flex;min-height:32px;align-items:center;justify-content:center;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text-b);transition:background .15s,border-color .15s,color .15s}
+ .admin-calendar-day:hover{border-color:rgba(212,162,78,.5);background:rgba(212,162,78,.11);color:var(--accent)}
+ .admin-calendar-day.is-outside{color:rgba(146,139,125,.38)}
+ .admin-calendar-day.is-selected{border-color:var(--accent);background:var(--accent);color:#16130d;font-weight:700}
+ .admin-calendar-months,.admin-calendar-years{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ .admin-calendar-month,.admin-calendar-year{min-height:42px;border:1px solid rgba(107,103,96,.28);border-radius:8px;background:rgba(255,255,255,.025);color:var(--text-b);transition:background .15s,border-color .15s,color .15s}
+ .admin-calendar-month:hover,.admin-calendar-year:hover,.admin-calendar-month.is-current,.admin-calendar-year.is-current{border-color:rgba(212,162,78,.62);background:rgba(212,162,78,.12);color:var(--accent)}
+ .admin-calendar-foot{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid rgba(107,103,96,.2)}
+ .admin-calendar-foot button{padding:4px 7px;border-radius:6px;background:transparent;color:var(--accent-dim);font-size:11px}
+ .admin-calendar-foot button:hover{background:rgba(212,162,78,.1);color:var(--accent)}
+ .watch-editor{display:block;width:100%}
+ .watch-basic-layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
+ .watch-cover-column{display:flex;flex-direction:column;gap:10px;min-width:0}
+ .watch-cover-upload{width:100%;padding:7px 9px;font-size:12px}
+ .watch-note-editor{display:block;width:100%;min-height:280px;resize:vertical;box-sizing:border-box;line-height:1.85}
+ [data-watch-field]{min-width:0}
+ @media(max-width:720px){.watch-basic-layout{grid-template-columns:1fr}.watch-cover-column{max-width:220px}.admin-calendar{padding:11px}.admin-calendar-day{min-height:30px}}
+ .admin-modal-inner{scrollbar-color:rgba(212,162,78,.45) rgba(255,255,255,.04);scrollbar-width:thin}
+ .admin-modal-inner::-webkit-scrollbar,.custom-select-menu::-webkit-scrollbar{width:7px}
+ .admin-modal-inner::-webkit-scrollbar-thumb,.custom-select-menu::-webkit-scrollbar-thumb{border-radius:99px;background:rgba(212,162,78,.42)}
+ .admin-modal-inner::-webkit-scrollbar-track,.custom-select-menu::-webkit-scrollbar-track{background:rgba(255,255,255,.035)}
+ @media(max-width:1100px){.wizard-steps{gap:3px}.wizard-step{padding:7px 8px}.wizard-step i{display:none}}
 </style>
 </head><body>
  <nav class="topnav"><div class="navwrap">
@@ -829,13 +910,23 @@ body.admin-modal-open{overflow:hidden}
  <div class="admin-modal" id="postModal" onclick="if(event.target===this)closeAdminModal('postModal')">
    <div class="admin-modal-inner post-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('postModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">ARTICLE EDITOR</div><div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" onclick="cancelEdit()">取消编辑</button></div>
-     <label>选择文章文件（.md 及它引用的图片，可多选；编辑时再上传 = 替换内容）</label><input type="file" id="up_folder" multiple onchange="onFilesChanged()"><div class="status" id="upStatus"></div>
-     <label>标题</label><input id="f_title" placeholder="文章标题">
-     <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
-     <div class="row"><div><label>合集</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDD()"><span id="col_label">无合集</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="col_menu" style="display:none"></div></div><input type="hidden" id="f_collection"></div><div><label>发布日期（新文章自动使用现在）</label><input id="f_date" placeholder="自动" readonly></div></div>
-     <div id="f_newcol" style="display:none"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
-     <label>正文（上传 Markdown 后可继续修改）</label><textarea id="f_content" rows="12" placeholder="正文内容…"></textarea>
+      <div class="modal-kicker">ARTICLE EDITOR</div><div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" onclick="cancelEdit()">取消编辑</button></div>
+      <div class="wizard" data-wizard="postWizard">
+        <div class="wizard-head"><div class="wizard-steps"><span class="wizard-step is-active"><i>01</i>基础信息</span><span class="wizard-step"><i>02</i>正文内容</span></div><span class="wizard-count">1 / 2</span></div>
+        <section class="form-page is-active" data-page-title="基础信息">
+          <div class="field-intro">先填写文章的基本资料，正文可以在下一步继续编辑。</div>
+          <label>选择文章文件</label><div class="file-picker"><input type="file" id="up_folder" aria-hidden="true" webkitdirectory multiple onchange="onFilesChanged()"><button type="button" class="btn btn-ghost" onclick="document.getElementById('up_folder').click()">选择 Markdown 文件夹</button><span id="up_folder_name">尚未选择文件</span></div><div class="field-help">可选择包含 .md 文件及图片的文件夹；编辑时上传会替换正文。</div><div class="status" id="upStatus"></div>
+          <label>标题</label><input id="f_title" placeholder="文章标题">
+          <label>简介（可选）</label><input id="f_summary" placeholder="一句话简介">
+          <div class="row"><div><label>合集</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDD()"><span id="col_label">无合集</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="col_menu" style="display:none"></div></div><input type="hidden" id="f_collection"></div><div><label>发布日期</label><input id="f_date" placeholder="自动" readonly><div class="field-help">新文章自动使用现在；编辑文章时保留原发布日期。</div></div></div>
+          <div id="f_newcol" style="display:none"><label>新合集名</label><input id="f_newcolname" placeholder="输入新合集名"></div>
+        </section>
+        <section class="form-page" data-page-title="正文内容">
+          <div class="field-intro">支持 Markdown。上传文章文件后，图片引用会自动整理为本站路径。</div>
+          <label>正文</label><textarea id="f_content" rows="12" placeholder="正文内容…"></textarea>
+        </section>
+        <div class="wizard-nav"><button type="button" class="btn btn-ghost wizard-prev" onclick="wizardMove('postWizard',-1)">上一步</button><button type="button" class="btn btn-ghost wizard-next" onclick="wizardMove('postWizard',1)">下一步</button></div>
+      </div>
      <input type="hidden" id="f_file"><input type="hidden" id="f_catsave">
      <div class="modal-actions"><button class="btn btn-pub" id="pubBtn" onclick="publishPost()">发布</button><button class="btn btn-ghost" onclick="closeAdminModal('postModal')">取消</button></div><div class="status" id="status"></div>
    </div>
@@ -844,10 +935,13 @@ body.admin-modal-open{overflow:hidden}
  <div class="admin-modal" id="collectionModal" onclick="if(event.target===this)closeAdminModal('collectionModal')">
    <div class="admin-modal-inner collection-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('collectionModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">COLLECTION EDITOR</div><div class="form-hd"><span id="collection_mode">新建合集</span></div>
-     <label>合集名称</label><input id="collection_name" placeholder="合集名称">
-     <label>简介</label><textarea id="collection_desc" rows="4" placeholder="一句话简介"></textarea>
-     <label>封面地址</label><input id="collection_cover" placeholder="/images/…">
+      <div class="modal-kicker">COLLECTION EDITOR</div><div class="form-hd"><span id="collection_mode">新建合集</span></div>
+      <div class="wizard" data-wizard="collectionWizard">
+        <div class="wizard-head"><div class="wizard-steps"><span class="wizard-step is-active"><i>01</i>合集资料</span><span class="wizard-step"><i>02</i>封面与确认</span></div><span class="wizard-count">1 / 2</span></div>
+        <section class="form-page is-active"><div class="field-intro">合集名称会用于网址和文章归类，建议保持简洁。</div><label>合集名称</label><input id="collection_name" placeholder="合集名称"><label>简介</label><textarea id="collection_desc" rows="4" placeholder="一句话简介"></textarea></section>
+        <section class="form-page"><div class="field-intro">可以填写已有图片地址；不填时网站会根据合集图片生成默认封面。</div><label>封面地址</label><input id="collection_cover" placeholder="/images/…"><div class="field-help">支持 /images/... 或完整图片地址。</div></section>
+        <div class="wizard-nav"><button type="button" class="btn btn-ghost wizard-prev" onclick="wizardMove('collectionWizard',-1)">上一步</button><button type="button" class="btn btn-ghost wizard-next" onclick="wizardMove('collectionWizard',1)">下一步</button></div>
+      </div>
      <div class="modal-actions"><button class="btn btn-pub" onclick="saveCollectionEditor()">保存合集</button><button class="btn btn-ghost" onclick="closeAdminModal('collectionModal')">取消</button></div><div class="status" id="collectionStatus"></div>
    </div>
  </div>
@@ -855,22 +949,28 @@ body.admin-modal-open{overflow:hidden}
  <div class="admin-modal" id="dynModal" onclick="if(event.target===this)closeAdminModal('dynModal')">
    <div class="admin-modal-inner dyn-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('dynModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">MOMENT EDITOR</div><div class="form-hd"><span id="dyn_mode">发布新动态</span></div>
-     <textarea id="dyn_text" rows="7" placeholder="说点什么…"></textarea>
-     <div class="dyn-time-note"><span>首次发布</span><b id="dyn_publish_time">新动态将使用系统时间</b></div>
-     <div class="dyn-edit-time"><label>编辑时间</label><input id="dyn_edit_time" type="datetime-local"></div>
-     <label>图片（可一次选择多张）</label><input type="file" id="dyn_img_files" accept="image/*" multiple onchange="upDynCompose()"><input type="hidden" id="dyn_img"><div id="dyn_image_preview" class="compose-image-grid"></div>
-     <div class="modal-actions"><button class="btn btn-pub" id="dyn_pubbtn" onclick="publishDyn()">发布</button><button class="btn btn-ghost" onclick="resetDyn()">取消</button></div><div class="status" id="dynStatus"></div>
+      <div class="modal-kicker">MOMENT EDITOR</div><div class="form-hd"><span id="dyn_mode">发布新动态</span></div>
+      <div class="wizard" data-wizard="dynWizard">
+        <div class="wizard-head"><div class="wizard-steps"><span class="wizard-step is-active"><i>01</i>动态内容</span><span class="wizard-step"><i>02</i>时间与图片</span></div><span class="wizard-count">1 / 2</span></div>
+        <section class="form-page is-active"><div class="field-intro">动态会按首次发布时间排序，编辑时只更新编辑时间。</div><label>正文</label><textarea id="dyn_text" rows="7" placeholder="说点什么…"></textarea><div class="dyn-time-note"><span>首次发布</span><b id="dyn_publish_time">新动态将使用系统时间</b></div></section>
+        <section class="form-page"><label>编辑时间</label><input id="dyn_edit_time" type="text" class="admin-date-input" placeholder="YYYY-MM-DD HH:mm"><div class="field-help">留空时使用当前系统时间；这里不会出现浏览器原生日期控件。</div><label>图片</label><div class="file-picker"><input type="file" id="dyn_img_files" aria-hidden="true" accept="image/*" multiple onchange="upDynCompose()"><button type="button" class="btn btn-ghost" onclick="document.getElementById('dyn_img_files').click()">选择图片</button><span id="dyn_img_files_name">尚未选择图片</span></div><input type="hidden" id="dyn_img"><div id="dyn_image_preview" class="compose-image-grid"></div></section>
+        <div class="wizard-nav"><button type="button" class="btn btn-ghost wizard-prev" onclick="wizardMove('dynWizard',-1)">上一步</button><button type="button" class="btn btn-ghost wizard-next" onclick="wizardMove('dynWizard',1)">下一步</button></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-pub" id="dyn_pubbtn" onclick="publishDyn()">发布</button><button class="btn btn-ghost" onclick="cancelDyn()">取消</button></div><div class="status" id="dynStatus"></div>
    </div>
  </div>
 
- <div class="admin-modal" id="albumModal" onclick="if(event.target===this)closeAdminModal('albumModal')">
+  <div class="admin-modal" id="albumModal" onclick="if(event.target===this)cancelAlbumEditor()">
    <div class="admin-modal-inner album-modal-inner">
-     <button class="moment-x" onclick="closeAdminModal('albumModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">ALBUM EDITOR</div><div class="form-hd"><span id="album_mode">新建相册</span></div>
-     <div class="album-editor-head"><div class="album-edit-cover" id="album_editor_cover" onclick="upAlbumCover(editAlbumIdx)"></div><div class="album-edit-fields"><div class="field"><label>相册名</label><input id="album_name" placeholder="相册名称"></div><div class="field"><label>简介</label><input id="album_desc" placeholder="可选简介"></div></div></div>
-     <label>上传图片（可一次选择多张）</label><input type="file" id="album_img_files" accept="image/*" multiple onchange="uploadGalImg(editAlbumIdx)"><div id="album_image_editor" class="album-image-editor"></div>
-     <div class="modal-actions"><button class="btn btn-pub" onclick="saveAlbumEditor()">保存相册</button><button class="btn btn-ghost" onclick="closeAdminModal('albumModal')">取消</button></div><div class="status" id="albumStatus"></div>
+      <button class="moment-x" onclick="cancelAlbumEditor()" aria-label="关闭">×</button>
+      <div class="modal-kicker">ALBUM EDITOR</div><div class="form-hd"><span id="album_mode">新建相册</span></div>
+      <div class="wizard" data-wizard="albumWizard">
+        <div class="wizard-head"><div class="wizard-steps"><span class="wizard-step is-active"><i>01</i>相册资料</span><span class="wizard-step"><i>02</i>图片内容</span></div><span class="wizard-count">1 / 2</span></div>
+        <section class="form-page is-active"><div class="album-editor-head"><div class="album-edit-cover" id="album_editor_cover" onclick="upAlbumCover(editAlbumIdx)"></div><div class="album-edit-fields"><div class="field"><label>相册名</label><input id="album_name" placeholder="相册名称"></div><div class="field"><label>简介</label><input id="album_desc" placeholder="可选简介"></div></div></div></section>
+        <section class="form-page"><div class="field-intro">可以一次选择多张图片，上传后再逐张调整名称和日期。</div><label>上传图片</label><div class="file-picker"><input type="file" id="album_img_files" aria-hidden="true" accept="image/*" multiple onchange="uploadGalImg(editAlbumIdx)"><button type="button" class="btn btn-ghost" onclick="document.getElementById('album_img_files').click()">选择多张图片</button><span id="album_img_files_name">尚未选择图片</span></div><div id="album_image_editor" class="album-image-editor"></div></section>
+        <div class="wizard-nav"><button type="button" class="btn btn-ghost wizard-prev" onclick="wizardMove('albumWizard',-1)">上一步</button><button type="button" class="btn btn-ghost wizard-next" onclick="wizardMove('albumWizard',1)">下一步</button></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-pub" onclick="saveAlbumEditor()">保存相册</button><button class="btn btn-ghost" onclick="cancelAlbumEditor()">取消</button></div><div class="status" id="albumStatus"></div>
    </div>
  </div>
 
@@ -886,11 +986,13 @@ body.admin-modal-open{overflow:hidden}
  <div class="admin-modal" id="imageEditModal" onclick="if(event.target===this)closeAdminModal('imageEditModal')">
    <div class="admin-modal-inner image-edit-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('imageEditModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">IMAGE DETAILS</div><div class="form-hd"><span>编辑图片信息</span></div>
-     <div id="image_edit_preview" class="image-edit-preview"></div>
-     <label>图片名称</label><input id="image_edit_caption" placeholder="默认读取文件名 / EXIF">
-     <label>日期</label><input id="image_edit_date" type="date">
-     <div class="image-edit-defaults"><button class="btn btn-ghost" onclick="restoreImageDefaults()">恢复 EXIF 默认值</button><span>留空后恢复为图片默认信息</span></div>
+      <div class="modal-kicker">IMAGE DETAILS</div><div class="form-hd"><span>编辑图片信息</span></div>
+      <div class="wizard" data-wizard="imageWizard">
+        <div class="wizard-head"><div class="wizard-steps"><span class="wizard-step is-active"><i>01</i>预览图片</span><span class="wizard-step"><i>02</i>编辑信息</span></div><span class="wizard-count">1 / 2</span></div>
+        <section class="form-page is-active"><div id="image_edit_preview" class="image-edit-preview"></div></section>
+        <section class="form-page"><label>图片名称</label><input id="image_edit_caption" placeholder="默认读取文件名 / EXIF"><label>日期</label><input id="image_edit_date" type="text" class="admin-date-input" placeholder="YYYY-MM-DD"><div class="image-edit-defaults"><button class="btn btn-ghost" type="button" onclick="restoreImageDefaults()">恢复 EXIF 默认值</button><span>留空后恢复为图片默认信息</span></div></section>
+        <div class="wizard-nav"><button type="button" class="btn btn-ghost wizard-prev" onclick="wizardMove('imageWizard',-1)">上一步</button><button type="button" class="btn btn-ghost wizard-next" onclick="wizardMove('imageWizard',1)">下一步</button></div>
+      </div>
      <div class="modal-actions"><button class="btn btn-pub" onclick="saveImageEditor()">保存修改</button><button class="btn btn-ghost" onclick="closeAdminModal('imageEditModal')">取消</button></div>
    </div>
  </div>

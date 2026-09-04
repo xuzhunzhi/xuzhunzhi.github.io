@@ -1,11 +1,22 @@
 [
   {
     "title": "圣剑学院的魔剑使",
+    "format": "tv",
     "status": "watching",
-    "progress": 2,
+    "total": "12",
+    "progress": "2",
+    "rating": "",
     "note": "很有意思的泡面番",
+    "finishedAt": "",
     "cover": "/images/anime/圣剑学院的魔剑使.jpg",
-    "pageUrl": "https://zh.moegirl.org.cn/%E5%9C%A3%E5%89%91%E5%AD%A6%E9%99%A2%E7%9A%84%E9%AD%94%E5%89%91%E4%BD%BF"
+    "pageUrl": "https://zh.moegirl.org.cn/%E5%9C%A3%E5%89%91%E5%AD%A6%E9%99%A2%E7%9A%84%E9%AD%94%E5%89%91%E4%BD%BF",
+    "summary": "",
+    "tags": "",
+    "airDate": "",
+    "studio": "",
+    "original": "",
+    "director": "",
+    "cast": ""
   },
   {
     "title": "新世纪福音战士 TV版",
