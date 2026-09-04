@@ -509,6 +509,30 @@ body{font-size:15px}
   .article-list-card{grid-template-columns:96px minmax(0,1fr) auto}.article-list-cover{width:96px;height:96px}.article-list-info h2{font-size:21px}.article-list-info p{font-size:13px}
   .cat-hero{margin-top:34px}.cat-cover{height:230px}.cat-stats b{font-size:21px}.post-info-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* 番剧合集与标题：海报按原比例叠放，长标题只在悬停时横向播放 */
+.watching-title{display:block;max-width:100%;overflow:hidden;white-space:nowrap}
+.watching-title-text{display:inline-block;min-width:100%;white-space:nowrap;transform:translateX(0)}
+.watching-title.is-scrolling .watching-title-text{animation:anime-title-marquee var(--title-duration,8s) linear infinite alternate}
+@keyframes anime-title-marquee{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--title-overflow,0px)))}}
+.anime-collection-cover-link{position:relative}
+.anime-collection-cover-link::after{z-index:1}
+.anime-collection-stack{position:relative;z-index:2;display:block;width:72%;height:86%;max-width:240px}
+.anime-collection-stack-cover{position:absolute;top:4%;display:flex;width:64%;height:auto;aspect-ratio:2 / 3;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.18);border-radius:8px;background:#171715;box-shadow:0 16px 24px rgba(0,0,0,.55);transition:transform .22s ease}
+.anime-collection-stack-cover img{display:block;width:100%;height:100%;object-fit:cover}
+.anime-collection-stack-cover .watching-cover-empty{width:100%;height:100%;aspect-ratio:auto}
+.anime-collection-stack-cover.stack-0{left:0;transform:rotate(-8deg) translate(-4px,7px)}
+.anime-collection-stack-cover.stack-1{left:18%;z-index:2;transform:rotate(-1deg)}
+.anime-collection-stack-cover.stack-2{right:0;z-index:3;transform:rotate(7deg) translate(4px,7px)}
+.anime-collection-card:hover .stack-0{transform:rotate(-11deg) translate(-9px,4px)}
+.anime-collection-card:hover .stack-2{transform:rotate(10deg) translate(9px,4px)}
+.anime-collection-body.is-open{border-color:var(--accent)}
+.anime-series-items{display:grid;grid-column:1/-1;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:22px;max-height:3200px;padding:0;margin-top:-2px;overflow:hidden;animation:anime-series-rise .42s cubic-bezier(.2,.76,.28,1) both}
+.anime-series-items.is-open{padding:0}
+.anime-series-items.is-closing{animation:anime-series-sink .34s cubic-bezier(.52,.08,.72,.34) both}
+.anime-series-items .watching-card{min-width:0}
+@keyframes anime-series-rise{0%{max-height:0;opacity:0;filter:blur(4px);transform:translateY(-28px) scale(.97)}65%{opacity:1;filter:blur(0);transform:translateY(-4px) scale(.995)}100%{max-height:3200px;opacity:1;filter:none;transform:none}}
+@keyframes anime-series-sink{0%{max-height:3200px;opacity:1;filter:none;transform:none}100%{max-height:0;opacity:0;filter:blur(4px);transform:translateY(22px) scale(.97)}}
 @media(max-width:600px){
   .moment{padding:20px 18px 16px}.moment-foot{align-items:stretch;flex-direction:column-reverse;gap:8px}.moment-date{text-align:left}.moment-actions{width:100%;justify-content:flex-end}.moment-action{padding:6px 7px}.moment-image-grid{width:100%}
   .image-timeline-item{grid-template-columns:45px minmax(0,1fr);gap:12px}.image-timeline-item>time{font-size:25px}.image-timeline-media{min-height:90px}.image-timeline-media figcaption{font-size:14px;padding:7px 10px}.image-month-label{font-size:20px}

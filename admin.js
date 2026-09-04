@@ -10,7 +10,7 @@ const path = require('path');
 const zlib = require('zlib');
 const { exec } = require('child_process');
 function decodeHttpBody(buf, encoding) { const value = String(encoding || '').toLowerCase(); try { if (value.includes('br')) return zlib.brotliDecompressSync(buf); if (value.includes('gzip')) return zlib.gunzipSync(buf); if (value.includes('deflate')) return zlib.inflateSync(buf); } catch (e) {} return buf; }
-function httpsGet(url, isText, extraHeaders) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const headers = Object.assign({ 'User-Agent': 'Mozilla/5.0 (compatible; StrayCatAdmin/1.0)', 'Accept': isText ? 'text/html,application/xhtml+xml,application/json' : 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8', 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.7', 'Accept-Encoding': 'gzip, deflate, br' }, extraHeaders || {}); const req = lib.get(u, { headers, family: 4 }, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url), isText, headers).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = decodeHttpBody(Buffer.concat(chunks), res.headers['content-encoding']); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(20000, () => req.destroy(new Error('timeout'))); }); }
+function httpsGet(url, isText, extraHeaders) { return new Promise((resolve, reject) => { let u; try { u = new URL(url); } catch (e) { return reject(e); } const lib = u.protocol === 'https:' ? https : http; const headers = Object.assign({ 'User-Agent': 'Mozilla/5.0 (compatible; StrayCatAdmin/1.0)', 'Accept': isText ? 'text/html,application/xhtml+xml,application/json' : 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8', 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.7', 'Accept-Encoding': 'gzip, deflate, br' }, extraHeaders || {}); const req = lib.get(u, { headers }, res => { if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) { return httpsGet(new URL(res.headers.location, url), isText, headers).then(resolve, reject); } if (res.statusCode >= 400) { return reject(new Error('HTTP ' + res.statusCode)); } let chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => { const buf = decodeHttpBody(Buffer.concat(chunks), res.headers['content-encoding']); resolve(isText ? buf.toString('utf8') : buf); }); }); req.on('error', reject); req.setTimeout(20000, () => req.destroy(new Error('timeout'))); }); }
 function normalizeMoegirlUrl(value) { let raw = String(value || '').trim(); if (raw && !/^https?:\/\//i.test(raw)) raw = 'https://' + raw; try { const u = new URL(raw); return /^https?:$/.test(u.protocol) && /(^|\.)moegirl\.org\.cn$/i.test(u.hostname) ? u.href : ''; } catch (e) { return ''; } }
 function isMoegirlPageUrl(value) { return !!normalizeMoegirlUrl(value); }
 function tagAttr(tag, name) { const m = tag.match(new RegExp(name + "\\s*=\\s*(?:\\\"([^\\\"]+)\\\"|'([^']+)'|([^\\s>]+))", 'i')); return m ? (m[1] || m[2] || m[3] || '') : ''; }
@@ -435,7 +435,8 @@ const server = http.createServer(async (req, res) => {
         const msg = localCover ? '已抓取：' + (cleanTitle || name) : (coverUrl ? '找到了封面地址，但下载失败' + (coverErrors.length ? '：' + coverErrors.slice(0, 2).join('；') : '') : '页面存在，但没有识别到封面');
         return json(res, 200, { ok: true, title: manualName || cleanTitle || name, sourceTitle: cleanTitle || name, pageUrl, searchUrl, cover: localCover, found: !!localCover, total, msg });
       } catch (e) {
-        return json(res, 200, { ok: false, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + (e.message || e.code || String(e)) });
+        const networkHint = e && e.code === 'EACCES' ? '系统拒绝了 HTTPS 连接，请检查 Node 的网络权限或安全软件拦截' : (e && (e.code === 'ENETUNREACH' || e.code === 'ETIMEDOUT') ? '网络连接超时，请检查网络或代理设置' : '');
+        return json(res, 200, { ok: false, title: name, pageUrl, searchUrl, cover: '', found: false, msg: '抓取失败：' + (networkHint || e.message || e.code || String(e)) });
       }
     }
     if (p === '/api/img' && req.method === 'POST') {
@@ -475,6 +476,7 @@ if (require.main === module) {
 const UI = `<!DOCTYPE html>
 <html lang="zh-CN"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/images/avatar.jpg" type="image/jpeg"><link rel="apple-touch-icon" href="/images/avatar.jpg">
 <title>避难所管理台</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -903,7 +905,7 @@ body.admin-modal-open{overflow:hidden}
   .anime-admin-draft-card .anime-admin-cover{background:rgba(212,162,78,.05)}
   .anime-admin-draft-empty-note{color:var(--accent-dim)}
   .anime-admin-add-card,.anime-admin-fold-card{appearance:none;-webkit-appearance:none;width:100%;box-sizing:border-box;padding:0;border:1px solid rgba(107,103,96,.3);font:inherit;text-align:left}
-  .anime-admin-add-card{display:flex;align-items:center;justify-content:center;border-style:dashed;background:linear-gradient(145deg,rgba(212,162,78,.055),rgba(255,255,255,.012));color:var(--text-m);cursor:pointer;text-align:center;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
+  .anime-admin-add-card{position:relative;display:flex;align-items:center;justify-content:center;border-style:dashed;background:linear-gradient(145deg,rgba(212,162,78,.055),rgba(255,255,255,.012));color:var(--text-m);cursor:pointer;text-align:center;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
   .anime-admin-add-card::before{content:"";position:absolute;inset:16px;border:1px solid rgba(212,162,78,.12);border-radius:11px;pointer-events:none}
   .anime-admin-add-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px}
   .anime-admin-add-mark{display:grid;width:72px;height:72px;place-items:center;border:1px solid rgba(212,162,78,.52);border-radius:16px;background:linear-gradient(145deg,rgba(212,162,78,.16),rgba(212,162,78,.035));box-shadow:0 12px 24px rgba(0,0,0,.24),inset 0 0 0 5px rgba(212,162,78,.035);color:var(--accent);font:42px/1 var(--font-sans);transition:transform .2s,background .2s,box-shadow .2s}
