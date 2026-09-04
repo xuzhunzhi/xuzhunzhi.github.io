@@ -9,6 +9,8 @@
   var activeAnime=watching.filter(function(w){return w.status!=='finished'&&w.status!=='preparing'&&w.status!=='want';});
   var preparingAnime=watching.filter(function(w){return w.status==='preparing'||w.status==='want';});
   var finishedAnime=watching.filter(function(w){return w.status==='finished';});
+  var finishedGroups=[],finishedBySeries={};
+  finishedAnime.forEach(function(w){var series=String(w.series||w.seriesName||'').trim();if(!series){finishedGroups.push({name:'',items:[w]});return;}if(!finishedBySeries[series]){finishedBySeries[series]={name:series,items:[]};finishedGroups.push(finishedBySeries[series]);}finishedBySeries[series].items.push(w);});
   function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';var title=String(w.title||'');return /剧场版|电影版|电影|movie|film/i.test(title)||Number(w.total)===1?'movie':'tv';}
   function animeFormatLabel(w){return animeFormat(w)==='movie'?'剧场版':'TV版';}
   function animeCard(w,i,archived){
@@ -18,7 +20,7 @@
       <% if(w.cover){ %><span class="watching-cover-backdrop" aria-hidden="true" style="background-image:url('<%= w.cover %>')"></span><img class="watching-cover" src="<%= w.cover %>" alt="<%= w.title %>" loading="lazy"><% } else { %><div class="watching-cover watching-cover-empty"><span>♪</span></div><% } %>
     </a>
     <button class="watching-body" onclick="openAnime(<%= i %>)">
-      <span class="watching-title"><%= w.title %></span>
+      <span class="watching-title"><span class="watching-title-text"><%= w.title %></span></span>
       <span class="watching-meta"><span class="watching-format"><%= animeFormatLabel(w) %></span><% if(animeFormat(w)!=='movie' && w.status==='watching' && w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total){ %>/<%= w.total %><% } %> 集</span><% } else if(animeFormat(w)!=='movie' && w.total){ %><span class="watching-progress">共 <%= w.total %> 集</span><% } %><% if(archived){ %><span class="watching-progress">看完于 <%= w.finishedAt||w.completedAt||'时间未记录' %></span><% } %><% if(w.status==='finished' && w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
       <span class="watching-open">查看资料</span>
     </button>
@@ -37,7 +39,20 @@
 
 <div class="anime-archive-head"><div class="sec-hd"><span class="sec-num">archive</span><span class="sec-title">归档</span><span class="sec-line"></span></div><span class="anime-archive-count"><%= finishedAnime.length %> 部</span></div>
 <div class="watching-grid watching-archive">
-  <% if(finishedAnime.length){ finishedAnime.forEach(function(w){ animeCard(w,watching.indexOf(w),true); }); } else { %><p class="empty anime-empty-archive">还没有看完的番，归档会在这里慢慢长出来。</p><% } %>
+  <% if(finishedAnime.length){ finishedGroups.forEach(function(group,gi){ if(group.name){ var first=group.items[0]; var seriesId='anime-series-'+gi; %>
+    <article class="watching-card anime-collection-card">
+      <a class="watching-cover-link anime-collection-cover-link" href="<%= first.pageUrl||'#' %>" target="_blank" rel="noopener" aria-label="在萌娘百科查看合集中的作品">
+        <% if(first.cover){ %><span class="watching-cover-backdrop" aria-hidden="true" style="background-image:url('<%= first.cover %>')"></span><% } %>
+        <span class="anime-collection-stack"><% group.items.slice(0,3).forEach(function(entry,si){ %><span class="anime-collection-stack-cover stack-<%= si %>"><% if(entry.cover){ %><img src="<%= entry.cover %>" alt="" loading="lazy"><% } else { %><span class="watching-cover-empty"><span>♪</span></span><% } %></span><% }); %></span>
+      </a>
+      <button class="watching-body anime-collection-body" onclick="toggleAnimeSeries('<%= seriesId %>',this)">
+        <span class="watching-title"><span class="watching-title-text"><%= group.name %></span></span>
+        <span class="watching-meta"><span class="watching-format">合集</span><span><%= group.items.length %> 部作品</span></span>
+        <span class="watching-open"><span data-series-label>点击展开系列作品</span></span>
+      </button>
+    </article>
+    <div class="anime-series-items" id="<%= seriesId %>" hidden><% group.items.forEach(function(w){ animeCard(w,watching.indexOf(w),true); }); %></div>
+  <% } else { animeCard(group.items[0],watching.indexOf(group.items[0]),true); } }); } else { %><p class="empty anime-empty-archive">还没有看完的番，归档会在这里慢慢长出来。</p><% } %>
 </div>
 
 <div class="anime-modal" id="animeModal" onclick="if(event.target===this)closeAnime()">

@@ -732,14 +732,16 @@ textarea{line-height:1.75}
 .anime-admin-card{display:flex;height:520px;min-width:0;flex-direction:column;overflow:hidden;border:1px solid rgba(107,103,96,.24);border-radius:14px;background:var(--surface);cursor:default;transition:transform .2s,border-color .2s,box-shadow .2s}
 .anime-admin-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 30px rgba(0,0,0,.28)}
 .anime-admin-cover{position:relative;display:flex;flex:0 0 320px;align-items:center;justify-content:center;box-sizing:border-box;min-width:0;overflow:hidden;padding:18px;background:#171715;line-height:0;text-decoration:none}
-.anime-admin-cover::after{content:"";position:absolute;inset:0;background:rgba(12,12,10,.12);pointer-events:none}
-.anime-admin-cover-backdrop{position:absolute;inset:-6px;background-position:center;background-size:cover;filter:blur(3px);opacity:.38;transform:scale(1.03);pointer-events:none}
+.anime-admin-cover::after{content:"";position:absolute;inset:0;z-index:1;background:rgba(12,12,10,.12);pointer-events:none}
+.anime-admin-cover-backdrop{position:absolute;inset:-6px;z-index:0;background-position:center;background-size:cover;filter:blur(3px);opacity:.38;transform:scale(1.03);pointer-events:none}
 .anime-admin-cover img{position:relative;z-index:1;display:block;width:auto;height:auto;max-width:100%;max-height:100%;border-radius:8px;background:#171715;object-fit:contain;box-shadow:0 18px 30px -10px rgba(0,0,0,.82),0 5px 12px rgba(0,0,0,.38),0 0 0 1px rgba(240,236,228,.14);transition:transform .25s ease,box-shadow .25s ease}
 .anime-admin-cover:hover img{transform:translateY(-3px);box-shadow:0 23px 34px -10px rgba(0,0,0,.88),0 7px 15px rgba(0,0,0,.42),0 0 0 1px rgba(240,236,228,.2)}
 .anime-admin-cover-empty{position:relative;z-index:1;display:flex;width:min(72%,240px);aspect-ratio:4/3;align-items:center;justify-content:center;color:var(--accent);font-size:42px;line-height:1;box-shadow:0 18px 30px -10px rgba(0,0,0,.66),0 0 0 1px rgba(240,236,228,.1)}
 .anime-admin-body{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start;padding:17px 18px 16px;background:var(--surface);cursor:pointer}
 .anime-admin-title{max-width:100%;color:var(--text-p);font-family:Georgia,serif;font-size:21px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.anime-admin-meta{display:flex;gap:8px 11px;flex-wrap:wrap;margin-top:10px;color:var(--accent-dim);font-family:var(--font-mono);font-size:12px;line-height:1.6}
+.anime-admin-meta{display:flex;align-items:flex-start;gap:5px 11px;flex-wrap:wrap;margin-top:10px;color:var(--accent-dim);font-family:var(--font-mono);font-size:12px;line-height:1.6}
+.anime-admin-meta-detail{display:flex;gap:8px 11px;flex-wrap:wrap;max-width:100%}
+.anime-admin-rating{color:var(--accent)}
 .anime-admin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.36);border-radius:5px;background:rgba(212,162,78,.05)}
 .anime-admin-note{display:-webkit-box;max-width:100%;margin-top:12px;color:var(--text-m);font-family:var(--font-sans);font-size:13px;line-height:1.6;overflow:hidden;text-overflow:ellipsis;-webkit-box-orient:vertical;-webkit-line-clamp:3}
 .anime-admin-card-actions{display:flex;width:100%;gap:8px;margin-top:auto;padding-top:13px;border-top:1px solid var(--border)}
@@ -897,9 +899,72 @@ body.admin-modal-open{overflow:hidden}
  .anime-admin-section.drafts .anime-admin-section-head{margin-bottom:15px}
  .anime-admin-section.drafts .anime-admin-section-kicker{color:var(--accent)}
  .anime-admin-draft-card{border-style:dashed;border-color:rgba(212,162,78,.34);background:linear-gradient(145deg,rgba(212,162,78,.06),rgba(255,255,255,.012))}
- .anime-admin-draft-card:hover{border-color:rgba(212,162,78,.78)}
- .anime-admin-draft-card .anime-admin-cover{background:rgba(212,162,78,.05)}
- .anime-admin-draft-empty-note{color:var(--accent-dim)}
+  .anime-admin-draft-card:hover{border-color:rgba(212,162,78,.78)}
+  .anime-admin-draft-card .anime-admin-cover{background:rgba(212,162,78,.05)}
+  .anime-admin-draft-empty-note{color:var(--accent-dim)}
+  .anime-admin-add-card,.anime-admin-fold-card{appearance:none;-webkit-appearance:none;width:100%;box-sizing:border-box;padding:0;border:1px solid rgba(107,103,96,.3);font:inherit;text-align:left}
+  .anime-admin-add-card{display:flex;align-items:center;justify-content:center;border-style:dashed;background:linear-gradient(145deg,rgba(212,162,78,.055),rgba(255,255,255,.012));color:var(--text-m);cursor:pointer;text-align:center;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
+  .anime-admin-add-card::before{content:"";position:absolute;inset:16px;border:1px solid rgba(212,162,78,.12);border-radius:11px;pointer-events:none}
+  .anime-admin-add-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px}
+  .anime-admin-add-mark{display:grid;width:72px;height:72px;place-items:center;border:1px solid rgba(212,162,78,.52);border-radius:16px;background:linear-gradient(145deg,rgba(212,162,78,.16),rgba(212,162,78,.035));box-shadow:0 12px 24px rgba(0,0,0,.24),inset 0 0 0 5px rgba(212,162,78,.035);color:var(--accent);font:42px/1 var(--font-sans);transition:transform .2s,background .2s,box-shadow .2s}
+  .anime-admin-add-inner strong{color:var(--text-p);font:600 19px/1.2 Georgia,serif}
+  .anime-admin-add-inner small{color:var(--accent-dim);font:12px/1.4 var(--font-mono)}
+  .anime-admin-add-card:hover,.anime-admin-add-card:focus-visible{border-color:var(--accent);background:rgba(212,162,78,.1);box-shadow:0 14px 30px rgba(0,0,0,.24);outline:none;transform:translateY(-4px)}
+  .anime-admin-add-plus{color:var(--accent);font:54px/1 var(--font-sans)}
+  .anime-admin-fold-card{cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .anime-admin-fold-card:hover,.anime-admin-fold-card:focus-visible,.anime-admin-fold-card.is-open{border-color:var(--accent);box-shadow:0 14px 30px rgba(0,0,0,.24);outline:none;transform:translateY(-4px)}
+  .anime-admin-fold-card .anime-admin-body{cursor:pointer}
+  .anime-admin-fold-icon{display:flex;flex:0 0 320px;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(212,162,78,.13),rgba(255,255,255,.025));color:var(--accent);font:54px/1 var(--font-sans)}
+  .anime-admin-stack-covers{position:relative;z-index:2;display:block;width:72%;height:86%;max-width:230px}
+  .anime-admin-stack-cover{position:absolute;top:4%;display:flex;width:64%;height:auto;aspect-ratio:var(--cover-ratio,2 / 3);align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.18);border-radius:8px;background:#171715;box-shadow:0 16px 24px rgba(0,0,0,.55);transition:transform .22s ease}
+  .anime-admin-stack-cover img{display:block;width:100%;height:100%;object-fit:cover}
+  .anime-admin-stack-cover .anime-admin-cover-empty{font-size:28px}
+  .anime-admin-stack-cover.stack-0{left:0;transform:rotate(-8deg) translate(-4px,7px)}
+  .anime-admin-stack-cover.stack-1{left:18%;z-index:2;transform:rotate(-1deg)}
+  .anime-admin-stack-cover.stack-2{right:0;z-index:3;transform:rotate(7deg) translate(4px,7px)}
+  .anime-admin-collection-card:hover .stack-0{transform:rotate(-11deg) translate(-9px,4px)}
+  .anime-admin-collection-card:hover .stack-2{transform:rotate(10deg) translate(9px,4px)}
+  .anime-admin-fold-content{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-top:22px;padding:22px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);animation:watch-fold-in .22s ease-out}
+  .anime-admin-fold-content .anime-admin-card{min-width:0}
+  @keyframes watch-fold-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+  @media(max-width:1100px){.anime-admin-fold-content{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .watch-detail-modal-inner{width:min(820px,calc(100vw - 56px));padding:0;overflow:hidden;background:linear-gradient(145deg,#151512,#0c0c0a)}
+  .watch-detail-top{display:grid;grid-template-columns:190px minmax(0,1fr);gap:28px;padding:30px 34px 28px;background:linear-gradient(135deg,rgba(212,162,78,.09),rgba(255,255,255,.015));border-bottom:1px solid rgba(107,103,96,.28)}
+  .watch-detail-poster{position:relative;display:flex;min-height:250px;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.16);border-radius:10px;background:#171715;box-shadow:0 18px 30px -10px rgba(0,0,0,.65)}
+  .watch-detail-poster-backdrop{position:absolute;inset:-10px;background-position:center;background-size:cover;filter:blur(8px);opacity:.42;transform:scale(1.08)}
+  .watch-detail-poster::after{content:"";position:absolute;inset:0;z-index:1;background:rgba(12,12,10,.16);pointer-events:none}
+  .watch-detail-poster img{position:relative;z-index:2;max-width:86%;max-height:88%;object-fit:contain;border-radius:7px;box-shadow:0 14px 26px rgba(0,0,0,.55)}
+  .watch-detail-poster-empty{position:relative;z-index:2;display:flex;width:72%;aspect-ratio:3/4;align-items:center;justify-content:center;border:1px solid rgba(240,236,228,.1);border-radius:7px;color:var(--accent);font-size:38px;background:linear-gradient(135deg,#263b2c,#111a22)}
+  .watch-detail-heading{align-self:center;padding:8px 20px 8px 0}
+  .watch-detail-heading h2{max-width:520px;margin:0 0 17px;color:var(--text-p);font:600 38px/1.18 Georgia,serif;word-break:break-word}
+  .watch-detail-kicker{margin-bottom:12px;color:var(--accent-dim);font:10px/1 var(--font-mono);letter-spacing:.18em;text-transform:uppercase}
+  .watch-detail-meta{display:flex;align-items:center;flex-wrap:wrap;gap:9px 13px;color:var(--text-m);font:13px/1.6 var(--font-mono)}
+  .watch-detail-status,.watch-detail-rating{color:var(--accent)!important}
+  .watch-detail-status{padding:3px 9px;border:1px solid rgba(212,162,78,.4);border-radius:5px;background:rgba(212,162,78,.08)}
+  .watch-detail-format{font-size:11px}
+  .watch-detail-link{display:inline-flex;margin-top:24px;padding:9px 12px;border:1px solid rgba(212,162,78,.35);border-radius:7px;color:var(--accent);font-size:12px;text-decoration:none}
+  .watch-detail-link:hover{border-color:var(--accent);background:rgba(212,162,78,.08)}
+  .watch-detail-note-block,.watch-detail-data-block{padding:22px 34px 0}
+  .watch-detail-data-block{padding-bottom:30px}
+  .watch-detail-section-label{margin-bottom:10px;color:var(--accent-dim);font:10px/1 var(--font-mono);letter-spacing:.18em;text-transform:uppercase}
+  .watch-detail-note{margin:0;color:var(--text-b);font-size:15px;line-height:1.85;white-space:pre-wrap}
+  .watch-detail-details{border-top:1px solid rgba(107,103,96,.28)}
+  .watch-detail-row{display:grid;grid-template-columns:86px minmax(0,1fr);gap:18px;padding:12px 0;border-bottom:1px solid rgba(107,103,96,.2);font-size:14px;line-height:1.65}
+  .watch-detail-row span{color:var(--text-m)}
+  .watch-detail-row b{color:var(--text-b);font-weight:400;white-space:pre-wrap;word-break:break-word}
+  .watch-detail-empty{padding-top:13px;color:var(--text-m);font-size:13px}
+  .watch-collection-modal-inner{width:min(680px,calc(100vw - 56px))}
+  .watch-collection-list-label{display:block;margin-top:22px}
+  .watch-collection-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px;max-height:390px;overflow:auto;padding-right:3px}
+  .watch-collection-choice{display:flex;align-items:center;gap:10px;margin:0;padding:9px;border:1px solid rgba(107,103,96,.25);border-radius:8px;background:rgba(255,255,255,.018);cursor:pointer}
+  .watch-collection-choice:hover{border-color:rgba(212,162,78,.58);background:rgba(212,162,78,.06)}
+  .watch-collection-choice input{width:16px;min-height:16px;margin:0;accent-color:var(--accent)}
+  .watch-collection-choice-cover{display:flex;width:42px;height:55px;align-items:center;justify-content:center;flex:0 0 42px;overflow:hidden;border-radius:5px;background:#171715;color:var(--accent);font-size:18px}
+  .watch-collection-choice-cover img{width:100%;height:100%;object-fit:cover}
+  .watch-collection-choice-main{display:flex;min-width:0;flex-direction:column;gap:4px}
+  .watch-collection-choice-main strong{overflow:hidden;color:var(--text-p);font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+  .watch-collection-choice-main small{color:var(--text-m);font:11px/1.4 var(--font-mono)}
+  @media(max-width:720px){.watch-detail-top{grid-template-columns:112px minmax(0,1fr);gap:17px;padding:23px 20px 21px}.watch-detail-poster{min-height:158px}.watch-detail-heading{padding:3px 12px 3px 0}.watch-detail-heading h2{font-size:25px;margin-bottom:13px}.watch-detail-meta{gap:7px 9px;font-size:11px}.watch-detail-note-block,.watch-detail-data-block{padding-left:20px;padding-right:20px}.watch-detail-row{grid-template-columns:70px minmax(0,1fr);gap:12px;font-size:13px}.watch-collection-items{grid-template-columns:1fr}}
  @media(max-width:1100px){.wizard-steps{gap:3px}.wizard-step{padding:7px 8px}.wizard-step i{display:none}}
 </style>
 </head><body>
@@ -1011,9 +1076,9 @@ body.admin-modal-open{overflow:hidden}
    <h1>番剧 <em>Watching</em></h1>
    <p class="sub">按网站本体的分组和卡片展示番剧；海报查看原页，信息区打开弹窗编辑。</p>
    <div class="card content-browser-card anime-admin-browser">
-     <div class="list-hd"><span>番剧时间线 · <b id="watchCount">0</b> 部</span><button class="btn btn-pub" onclick="newWatch()">＋ 添加番剧</button></div>
+      <div class="list-hd"><span>番剧时间线 · <b id="watchCount">0</b> 部</span><span class="panel-note">在各个状态栏目中选择添加</span></div>
      <div id="watchlist" class="anime-admin-sections"></div>
-     <div class="card-actions"><button class="btn btn-pub" onclick="saveWatch()">保存番剧</button><button class="btn btn-ghost" onclick="loadWatch()">重新读取</button><div class="status" id="watchStatus"></div></div>
+      <div class="card-actions"><button class="btn btn-ghost" onclick="loadWatch()">重新读取</button><div class="status" id="watchStatus"></div></div>
    </div>
  </section>
 
@@ -1092,6 +1157,26 @@ body.admin-modal-open{overflow:hidden}
      <div class="modal-kicker">ANIME EDITOR</div><div class="form-hd"><span id="watch_mode">添加番剧</span></div>
      <div id="watch_editor"></div>
      <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchEditor()">保存番剧</button><button class="btn btn-ghost" id="watchDraftBtn" onclick="saveWatchDraft()">保存草稿</button><button class="btn btn-ghost" onclick="closeAdminModal('watchModal')">取消</button></div><div class="status" id="watchModalStatus"></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="watchDetailModal" onclick="if(event.target===this)closeWatchDetail()">
+   <div class="admin-modal-inner watch-detail-modal-inner">
+     <button class="moment-x" onclick="closeWatchDetail()" aria-label="关闭">×</button>
+     <div class="watch-detail-top"><div class="watch-detail-poster" id="watchDetailPoster"></div><div class="watch-detail-heading"><div class="watch-detail-kicker">anime / detail</div><h2 id="watchDetailTitle"></h2><div class="watch-detail-meta" id="watchDetailMeta"></div><a class="watch-detail-link" id="watchDetailLink" href="#" target="_blank" rel="noopener">打开萌娘百科 ↗</a></div></div>
+     <div class="watch-detail-note-block" id="watchDetailNoteBlock"><div class="watch-detail-section-label">我的记录</div><p class="watch-detail-note" id="watchDetailNote"></p></div>
+     <div class="watch-detail-data-block"><div class="watch-detail-section-label">作品资料</div><div class="watch-detail-details" id="watchDetailDetails"></div></div>
+   </div>
+ </div>
+
+ <div class="admin-modal" id="watchCollectionModal" onclick="if(event.target===this)closeAdminModal('watchCollectionModal')">
+   <div class="admin-modal-inner watch-collection-modal-inner">
+     <button class="moment-x" onclick="closeAdminModal('watchCollectionModal')" aria-label="关闭">×</button>
+     <div class="modal-kicker">ANIME COLLECTION</div><div class="form-hd"><span>新建番剧合集</span></div>
+     <p class="field-intro">只从“追完的番”中选择作品；保存后网站本体会以合集卡片展示。</p>
+     <label>合集名称</label><input id="watch_collection_name" placeholder="例如：新世纪福音战士">
+     <label class="watch-collection-list-label">选择作品</label><div id="watch_collection_items" class="watch-collection-items"></div>
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchCollection()">保存合集</button><button class="btn btn-ghost" onclick="closeAdminModal('watchCollectionModal')">取消</button></div><div class="status" id="watchCollectionStatus"></div>
    </div>
  </div>
 
