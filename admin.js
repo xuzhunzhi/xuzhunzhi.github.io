@@ -85,6 +85,7 @@ function moegirlCoverCandidates(html, baseUrl) {
 function imageBufferLooksValid(buf) { return !!(buf && buf.length > 12 && ((buf[0] === 0xff && buf[1] === 0xd8) || (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) || buf.toString('ascii', 0, 6) === 'GIF87a' || buf.toString('ascii', 0, 6) === 'GIF89a' || buf.toString('ascii', 0, 4) === 'RIFF' || /avif|avis/i.test(buf.toString('ascii', 4, 16)) || /^\s*<svg[\s>]/i.test(buf.toString('utf8', 0, 300)))); }
 function imageExtension(url, buf) { const ext = path.extname(new URL(url).pathname).replace('.', '').toLowerCase(); if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'avif', 'bmp'].includes(ext)) return ext === 'jpeg' ? 'jpg' : ext; if (buf && buf[0] === 0x89) return 'png'; if (buf && buf.toString('ascii', 0, 4) === 'RIFF') return 'webp'; if (buf && /^\s*<svg[\s>]/i.test(buf.toString('utf8', 0, 300))) return 'svg'; return 'jpg'; }
 function moegirlTitlePath(title) { return encodeURIComponent(String(title || '').trim()).replace(/%20/g, '_'); }
+function moegirlSearchUrl(query) { const u = new URL('https://zh.moegirl.org.cn/index.php'); u.searchParams.set('search', String(query || '').trim()); u.searchParams.set('title', 'Special:搜索'); return u.href; }
 function moegirlTitleKey(title) { return String(title || '').normalize('NFKC').toLowerCase().replace(/[\s_\-—–:：·・,，.。!！?？()（）\[\]【】「」『』]/g, ''); }
 function moegirlTitleFromUrl(value) { try { const u = new URL(value); let title = u.searchParams.get('title') || ''; if (!title) { const parts = u.pathname.split('/').filter(Boolean); title = parts.length ? parts[parts.length - 1] : ''; if (/^wiki$/i.test(title)) title = ''; } return decodeURIComponent(title).replace(/_/g, ' ').trim(); } catch (e) { return ''; } }
 async function moegirlLookupTitle(title, allowSearch) {
@@ -400,13 +401,13 @@ const server = http.createServer(async (req, res) => {
         const urlTitle = moegirlTitleFromUrl(pageUrl);
         if (!urlTitle) return json(res, 200, { ok: false, msg: '这个地址不是具体的萌娘百科条目页，请填写作品条目地址' });
         resultPage = await moegirlLookupTitle(urlTitle, false);
-        if (!resultPage) return json(res, 200, { ok: false, title: name || urlTitle, pageUrl, cover: '', found: false, msg: '这个萌娘百科条目不存在，请检查网址' });
+        if (!resultPage) return json(res, 200, { ok: false, notFound: true, title: name || urlTitle, pageUrl, searchUrl: moegirlSearchUrl(name || urlTitle), cover: '', found: false, msg: '这个萌娘百科条目不存在，请检查网址' });
         pageUrl = resultPage.pageUrl;
         name = name || resultPage.title;
       } else {
         if (!name) return json(res, 200, { ok: false, msg: '请输入番名或萌娘百科网址' });
         resultPage = await moegirlLookupTitle(name, true);
-        if (!resultPage) return json(res, 200, { ok: false, title: name, pageUrl: '', searchUrl: '', cover: '', found: false, msg: '没有找到对应的萌娘百科条目，请检查番名或直接填写条目网址' });
+        if (!resultPage) return json(res, 200, { ok: false, notFound: true, title: name, pageUrl: '', searchUrl: moegirlSearchUrl(name), cover: '', found: false, msg: '没有找到完全匹配的萌娘百科条目，可以打开搜索结果继续确认' });
         pageUrl = resultPage.pageUrl;
         name = resultPage.title;
       }
@@ -481,6 +482,11 @@ const UI = `<!DOCTYPE html>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0a08;--surface:#141412;--surface2:#1c1c18;--accent:#d4a24e;--text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;--border:rgba(107,103,96,.15);--rose:#c47a8b}
+html{overflow-y:scroll;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(212,162,78,.62) rgba(255,255,255,.045)}
+html::-webkit-scrollbar{width:10px;height:10px}
+html::-webkit-scrollbar-track{background:rgba(255,255,255,.035)}
+html::-webkit-scrollbar-thumb{border:3px solid var(--bg);border-radius:99px;background:linear-gradient(180deg,rgba(212,162,78,.8),rgba(161,112,43,.72));box-shadow:inset 0 0 0 1px rgba(240,236,228,.12)}
+html::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#e2b466,#bd8537)}
 body{background:var(--bg);color:var(--text-b);font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}
 a{color:inherit;text-decoration:none}
 
@@ -578,6 +584,8 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-b)}.btn-ghost:hover{border-color:var(--accent);color:var(--text-p)}
 .btn-del{background:transparent;border:1px solid var(--rose);color:var(--rose)}.btn-del:hover{background:var(--rose);color:var(--bg)}
 .status{margin-top:12px;color:var(--text-m);font-size:13px;min-height:20px}
+.watch-moegirl-search-help{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:4px;padding:12px 14px;border:1px solid rgba(212,162,78,.3);border-radius:9px;background:rgba(212,162,78,.06);color:var(--text-m);font-size:12px;line-height:1.55}.watch-moegirl-search-help[hidden]{display:none}.watch-moegirl-search-help span{min-width:0}.watch-moegirl-search-help a{flex:0 0 auto;color:var(--accent);text-decoration:none;white-space:nowrap}.watch-moegirl-search-help a:hover{text-decoration:underline}
+.watch-collection-search-input{display:block;width:100%;box-sizing:border-box;margin:8px 0 7px}.watch-collection-search-meta{margin:0 0 10px;color:var(--text-m);font-size:12px}
 .small{font-size:12px;color:var(--text-m)}
 
 /* 文章列表 */
@@ -917,26 +925,60 @@ body.admin-modal-open{overflow:hidden}
   .anime-admin-fold-card:hover,.anime-admin-fold-card:focus-visible,.anime-admin-fold-card.is-open{border-color:var(--accent);box-shadow:0 14px 30px rgba(0,0,0,.24);outline:none;transform:translateY(-4px)}
   .anime-admin-fold-card .anime-admin-body{cursor:pointer}
   .anime-admin-fold-icon{display:flex;flex:0 0 320px;align-items:center;justify-content:center;background:linear-gradient(145deg,rgba(212,162,78,.13),rgba(255,255,255,.025));color:var(--accent);font:54px/1 var(--font-sans)}
+  .anime-admin-fold-cover{position:relative;overflow:hidden;box-sizing:border-box;padding:18px;background:#171715}
   .anime-admin-stack-covers{position:relative;z-index:2;display:block;width:72%;height:86%;max-width:230px}
-  .anime-admin-stack-cover{position:absolute;top:4%;display:flex;width:64%;height:auto;aspect-ratio:var(--cover-ratio,2 / 3);align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.18);border-radius:8px;background:#171715;box-shadow:0 16px 24px rgba(0,0,0,.55);transition:transform .22s ease}
+  .anime-admin-stack-cover{position:absolute;top:50%;display:flex;width:64%;height:auto;aspect-ratio:var(--cover-ratio,2 / 3);align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.18);border-radius:8px;background:#171715;box-shadow:0 16px 24px rgba(0,0,0,.55);transition:transform .28s cubic-bezier(.22,.8,.28,1),left .28s cubic-bezier(.22,.8,.28,1),right .28s cubic-bezier(.22,.8,.28,1),width .28s cubic-bezier(.22,.8,.28,1)}
   .anime-admin-stack-cover img{display:block;width:100%;height:100%;object-fit:cover}
   .anime-admin-stack-cover .anime-admin-cover-empty{font-size:28px}
-  .anime-admin-stack-cover.stack-0{left:0;transform:rotate(-8deg) translate(-4px,7px)}
-  .anime-admin-stack-cover.stack-1{left:18%;z-index:2;transform:rotate(-1deg)}
-  .anime-admin-stack-cover.stack-2{right:0;z-index:3;transform:rotate(7deg) translate(4px,7px)}
-  .anime-admin-collection-card:hover .stack-0{transform:rotate(-11deg) translate(-9px,4px)}
-  .anime-admin-collection-card:hover .stack-2{transform:rotate(10deg) translate(9px,4px)}
-  .anime-admin-fold-content{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-top:22px;padding:22px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);animation:watch-fold-in .22s ease-out}
+  .anime-admin-stack-cover.stack-0{left:0;z-index:1;transform:translateY(-50%) rotate(-8deg) translate(-4px,7px)}
+  .anime-admin-stack-cover.stack-1{left:18%;z-index:2;transform:translateY(-50%) rotate(-1deg)}
+  .anime-admin-stack-cover.stack-2{right:0;z-index:3;transform:translateY(-50%) rotate(7deg) translate(4px,7px)}
+  .anime-admin-stack-covers.stack-count-1 .stack-0{left:18%;z-index:3;transform:translateY(-50%) rotate(0)}
+  .anime-admin-stack-covers.stack-count-2 .anime-admin-stack-cover{width:58%}
+  .anime-admin-stack-covers.stack-count-2 .stack-0{left:6%;z-index:1;transform:translateY(-50%) rotate(-7deg) translate(-3px,6px)}
+  .anime-admin-stack-covers.stack-count-2 .stack-1{left:auto;right:6%;z-index:2;transform:translateY(-50%) rotate(7deg) translate(3px,6px)}
+  .anime-admin-stack-covers.stack-count-3 .stack-0{left:0;z-index:1;transform:translateY(-50%) rotate(-8deg) translate(-4px,7px)}
+  .anime-admin-stack-covers.stack-count-3 .stack-1{left:18%;z-index:2;transform:translateY(-50%) rotate(-1deg)}
+  .anime-admin-stack-covers.stack-count-3 .stack-2{right:0;z-index:3;transform:translateY(-50%) rotate(7deg) translate(4px,7px)}
+  .anime-admin-stack-covers.stack-count-4 .anime-admin-stack-cover{width:50%}
+  .anime-admin-stack-covers.stack-count-4 .stack-0{left:0;z-index:1;transform:translateY(-50%) rotate(-9deg) translate(-3px,6px)}
+  .anime-admin-stack-covers.stack-count-4 .stack-1{left:16%;z-index:2;transform:translateY(-50%) rotate(-3deg) translate(-1px,2px)}
+  .anime-admin-stack-covers.stack-count-4 .stack-2{left:32%;right:auto;z-index:3;transform:translateY(-50%) rotate(3deg) translate(1px,2px)}
+  .anime-admin-stack-covers.stack-count-4 .stack-3{left:auto;right:0;z-index:4;transform:translateY(-50%) rotate(9deg) translate(3px,6px)}
+  .anime-admin-stack-covers.stack-count-5 .anime-admin-stack-cover{width:43%}
+  .anime-admin-stack-covers.stack-count-5 .stack-0{left:8%;z-index:1;transform:translateY(-50%) rotate(-6deg) translate(-1px,4px)}
+  .anime-admin-stack-covers.stack-count-5 .stack-1{left:18%;z-index:2;transform:translateY(-50%) rotate(-3deg) translate(0,2px)}
+  .anime-admin-stack-covers.stack-count-5 .stack-2{left:28%;right:auto;z-index:3;transform:translateY(-50%) rotate(0)}
+  .anime-admin-stack-covers.stack-count-5 .stack-3{left:38%;right:auto;z-index:4;transform:translateY(-50%) rotate(3deg) translate(0,2px)}
+  .anime-admin-stack-covers.stack-count-5 .stack-4{left:48%;right:auto;z-index:5;transform:translateY(-50%) rotate(6deg) translate(1px,4px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-1 .stack-0{transform:translateY(-50%) rotate(-3deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-2 .stack-0{left:0;transform:translateY(-50%) rotate(-11deg) translate(-3px,2px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-2 .stack-1{right:0;transform:translateY(-50%) rotate(11deg) translate(3px,2px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-3 .stack-0{left:-3%;transform:translateY(-50%) rotate(-12deg) translate(-4px,1px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-3 .stack-1{left:18%;transform:translateY(-50%) rotate(0)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-3 .stack-2{right:-3%;transform:translateY(-50%) rotate(12deg) translate(4px,1px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-4 .stack-0{left:-2%;transform:translateY(-50%) rotate(-14deg) translate(-5px,1px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-4 .stack-1{left:16%;transform:translateY(-50%) rotate(-5deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-4 .stack-2{left:34%;transform:translateY(-50%) rotate(5deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-4 .stack-3{right:-2%;transform:translateY(-50%) rotate(14deg) translate(5px,1px)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-5 .stack-0{left:0;transform:translate3d(-5px,calc(-50% - 5px),0) rotate(-9deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-5 .stack-1{left:14%;transform:translate3d(-2px,calc(-50% - 2px),0) rotate(-5deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-5 .stack-2{left:28%;transform:translate3d(0,calc(-50% - 1px),0) rotate(0)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-5 .stack-3{left:42%;transform:translate3d(2px,calc(-50% + 2px),0) rotate(5deg)}
+  .anime-admin-collection-card:hover .anime-admin-stack-covers.stack-count-5 .stack-4{left:56%;transform:translate3d(5px,calc(-50% + 5px),0) rotate(9deg)}
+  .anime-admin-fold-content{display:block;height:0;margin-top:0;padding:0 22px;border:1px solid transparent;border-radius:14px;background:rgba(212,162,78,.035);overflow:hidden;box-sizing:border-box;will-change:height,margin-top,padding-top,padding-bottom,border-color;transition:height .42s cubic-bezier(.65,0,.35,1),margin-top .42s cubic-bezier(.65,0,.35,1),padding-top .42s cubic-bezier(.65,0,.35,1),padding-bottom .42s cubic-bezier(.65,0,.35,1),border-color .42s cubic-bezier(.65,0,.35,1);contain:paint}
+  .anime-admin-fold-inner{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;opacity:0;transform:translate3d(0,-18px,0);filter:blur(1px);will-change:transform,opacity;transition:opacity .42s cubic-bezier(.65,0,.35,1),transform .42s cubic-bezier(.65,0,.35,1)}
   .anime-admin-fold-content .anime-admin-card{min-width:0}
   .anime-admin-overflow-tools{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;padding:11px 4px 0;color:var(--text-m);font:12px/1.4 var(--font-mono)}
   .anime-admin-overflow-button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 13px;border:1px solid rgba(212,162,78,.42);border-radius:7px;background:rgba(212,162,78,.07);color:var(--accent);font:12px/1 var(--font-sans);cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
   .anime-admin-overflow-button:hover,.anime-admin-overflow-button:focus-visible{border-color:var(--accent);background:rgba(212,162,78,.14);outline:none;transform:translateY(-1px)}
-  .anime-admin-overflow-panel{margin-top:14px;padding:18px 20px 20px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);animation:watch-overflow-in .24s ease-out}
+  .anime-admin-overflow-panel{margin-top:14px;padding:18px 20px 20px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);overflow:hidden;animation:watch-overflow-in .38s cubic-bezier(.65,0,.35,1) both}
   .anime-admin-overflow-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(107,103,96,.24);color:var(--accent-dim);font:11px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
   .anime-admin-overflow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
-  @keyframes watch-overflow-in{from{opacity:0;transform:translateY(-12px) scale(.985);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
-  @keyframes watch-fold-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-  @media(max-width:1100px){.anime-admin-fold-content,.anime-admin-overflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @keyframes watch-overflow-in{from{max-height:0;margin-top:0;padding-top:0;padding-bottom:0;opacity:0;transform:translate3d(0,-18px,0)}to{max-height:3200px;margin-top:14px;padding-top:18px;padding-bottom:20px;opacity:1;transform:none}}
+  .anime-admin-fold-content.is-closing{border-color:transparent}
+  .anime-admin-fold-content.is-closing .anime-admin-fold-inner{opacity:0;transform:translate3d(0,24px,0);filter:blur(1px)}
+  @media(max-width:1100px){.anime-admin-fold-inner,.anime-admin-overflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .watch-detail-modal-inner{width:min(820px,calc(100vw - 56px));padding:0;overflow:hidden;background:linear-gradient(145deg,#151512,#0c0c0a)}
   .watch-detail-top{display:grid;grid-template-columns:190px minmax(0,1fr);gap:28px;padding:30px 34px 28px;background:linear-gradient(135deg,rgba(212,162,78,.09),rgba(255,255,255,.015));border-bottom:1px solid rgba(107,103,96,.28)}
   .watch-detail-poster{position:relative;display:flex;min-height:250px;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.16);border-radius:10px;background:#171715;box-shadow:0 18px 30px -10px rgba(0,0,0,.65)}
@@ -1165,7 +1207,7 @@ body.admin-modal-open{overflow:hidden}
      <button class="moment-x" onclick="closeAdminModal('watchModal')" aria-label="关闭">×</button>
      <div class="modal-kicker">ANIME EDITOR</div><div class="form-hd"><span id="watch_mode">添加番剧</span></div>
      <div id="watch_editor"></div>
-     <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchEditor()">保存番剧</button><button class="btn btn-ghost" id="watchDraftBtn" onclick="saveWatchDraft()">保存草稿</button><button class="btn btn-ghost" onclick="closeAdminModal('watchModal')">取消</button></div><div class="status" id="watchModalStatus"></div>
+     <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchEditor()">保存番剧</button><button class="btn btn-ghost" id="watchDraftBtn" onclick="saveWatchDraft()">保存草稿</button><button class="btn btn-ghost" onclick="closeAdminModal('watchModal')">取消</button></div><div class="status" id="watchModalStatus"></div><div class="watch-moegirl-search-help" id="watchMoegirlSearchHelp" hidden></div>
    </div>
  </div>
 
@@ -1183,8 +1225,8 @@ body.admin-modal-open{overflow:hidden}
      <button class="moment-x" onclick="closeAdminModal('watchCollectionModal')" aria-label="关闭">×</button>
      <div class="modal-kicker">ANIME COLLECTION</div><div class="form-hd"><span>新建番剧合集</span></div>
      <p class="field-intro">只从“追完的番”中选择作品；保存后网站本体会以合集卡片展示。</p>
-     <label>合集名称</label><input id="watch_collection_name" placeholder="例如：新世纪福音战士">
-     <label class="watch-collection-list-label">选择作品</label><div id="watch_collection_items" class="watch-collection-items"></div>
+      <label>合集名称</label><input id="watch_collection_name" placeholder="例如：新世纪福音战士">
+      <label class="watch-collection-list-label" for="watch_collection_search">选择作品</label><input id="watch_collection_search" class="watch-collection-search-input" type="text" placeholder="搜索番名"><div class="watch-collection-search-meta" id="watch_collection_search_meta"></div><div id="watch_collection_items" class="watch-collection-items"></div>
      <div class="modal-actions"><button class="btn btn-pub" onclick="saveWatchCollection()">保存合集</button><button class="btn btn-ghost" onclick="closeAdminModal('watchCollectionModal')">取消</button></div><div class="status" id="watchCollectionStatus"></div>
    </div>
  </div>
