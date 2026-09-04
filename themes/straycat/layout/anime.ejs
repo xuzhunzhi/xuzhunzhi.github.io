@@ -19,7 +19,7 @@
     </a>
     <button class="watching-body" onclick="openAnime(<%= i %>)">
       <span class="watching-title"><%= w.title %></span>
-      <span class="watching-meta"><span class="watching-tag"><%= WSTATUS[w.status]||w.status||'在看' %></span><span class="watching-format"><%= animeFormatLabel(w) %></span><% if(archived){ %><span class="watching-progress"><%= w.finishedAt||w.completedAt||'已看完' %></span><% } else if(w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total && animeFormat(w)!=='movie'){ %>/<%= w.total %><% } %> 集</span><% } %><% if(w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
+      <span class="watching-meta"><span class="watching-format"><%= animeFormatLabel(w) %></span><% if(animeFormat(w)!=='movie' && w.status==='watching' && w.progress){ %><span class="watching-progress"><%= w.progress %><% if(w.total){ %>/<%= w.total %><% } %> 集</span><% } else if(animeFormat(w)!=='movie' && w.total){ %><span class="watching-progress">共 <%= w.total %> 集</span><% } %><% if(archived){ %><span class="watching-progress">看完于 <%= w.finishedAt||w.completedAt||'时间未记录' %></span><% } %><% if(w.status==='finished' && w.rating){ %><span class="watching-rating">★ <%= w.rating %></span><% } %></span>
       <span class="watching-open">查看资料</span>
     </button>
   </article>
@@ -77,8 +77,8 @@ function openAnime(i){
   var poster=document.getElementById('animeModalPoster');
   poster.innerHTML=w.cover?'<span class="anime-modal-poster-backdrop" style="background-image:url(\''+escHtml(w.cover)+'\')"></span><img src="'+escHtml(w.cover)+'" alt="'+escHtml(w.title||'')+'">':'<div class="anime-modal-poster-empty">♪</div>';
   document.getElementById('animeModalTitle').textContent=w.title||'';
-  document.getElementById('animeModalMeta').innerHTML='<span class="anime-modal-status">'+escHtml(animeStatus(w))+'</span><span class="anime-modal-format">'+escHtml(animeFormatLabel(w))+'</span><span>'+escHtml(animeProgress(w))+'</span>'+(w.rating?'<span class="anime-modal-rating">★ '+escHtml(w.rating)+'</span>':'');
-  var noteBlock=document.getElementById('animeModalNoteBlock');noteBlock.style.display=w.note?'block':'none';document.getElementById('animeModalNote').textContent=w.note||'';
+  document.getElementById('animeModalMeta').innerHTML='<span class="anime-modal-status">'+escHtml(animeStatus(w))+'</span><span class="anime-modal-format">'+escHtml(animeFormatLabel(w))+'</span><span>'+escHtml(animeProgress(w))+'</span>'+(w.status==='finished'&&w.rating?'<span class="anime-modal-rating">★ '+escHtml(w.rating)+'</span>':'');
+  var noteBlock=document.getElementById('animeModalNoteBlock');noteBlock.style.display=w.note&&w.status!=='preparing'?'block':'none';document.getElementById('animeModalNote').textContent=w.note||'';
   var fields=[['简介',['summary','synopsis','description']],['类型 / 标签',['tags','genres','genre']],['播出时间',['airDate','broadcast','releaseDate','startDate']]];if(animeFormat(w)!=='movie')fields.push(['集数',['total','episodes']]);fields.push(['制作公司',['studio','company','production']],['原作',['original','originalWork']],['导演',['director']],['角色 / 声优',['cast','voiceCast']]);
   var rows=[];fields.forEach(function(field){var value=animeValue(w,field[1]);if(value)rows.push('<div class="anime-modal-detail-row"><span>'+field[0]+'</span><b>'+escHtml(value)+'</b></div>')});
   document.getElementById('animeModalDetails').innerHTML=rows.length?rows.join(''):'<div class="anime-no-details">暂时没有更多作品资料。后续从萌娘百科补充后，会在这里按项目显示。</div>';
