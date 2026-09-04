@@ -928,8 +928,15 @@ body.admin-modal-open{overflow:hidden}
   .anime-admin-collection-card:hover .stack-2{transform:rotate(10deg) translate(9px,4px)}
   .anime-admin-fold-content{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-top:22px;padding:22px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);animation:watch-fold-in .22s ease-out}
   .anime-admin-fold-content .anime-admin-card{min-width:0}
+  .anime-admin-overflow-tools{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;padding:11px 4px 0;color:var(--text-m);font:12px/1.4 var(--font-mono)}
+  .anime-admin-overflow-button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 13px;border:1px solid rgba(212,162,78,.42);border-radius:7px;background:rgba(212,162,78,.07);color:var(--accent);font:12px/1 var(--font-sans);cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+  .anime-admin-overflow-button:hover,.anime-admin-overflow-button:focus-visible{border-color:var(--accent);background:rgba(212,162,78,.14);outline:none;transform:translateY(-1px)}
+  .anime-admin-overflow-panel{margin-top:14px;padding:18px 20px 20px;border:1px solid rgba(212,162,78,.2);border-radius:14px;background:rgba(212,162,78,.035);animation:watch-overflow-in .24s ease-out}
+  .anime-admin-overflow-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(107,103,96,.24);color:var(--accent-dim);font:11px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase}
+  .anime-admin-overflow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+  @keyframes watch-overflow-in{from{opacity:0;transform:translateY(-12px) scale(.985);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
   @keyframes watch-fold-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-  @media(max-width:1100px){.anime-admin-fold-content{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:1100px){.anime-admin-fold-content,.anime-admin-overflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .watch-detail-modal-inner{width:min(820px,calc(100vw - 56px));padding:0;overflow:hidden;background:linear-gradient(145deg,#151512,#0c0c0a)}
   .watch-detail-top{display:grid;grid-template-columns:190px minmax(0,1fr);gap:28px;padding:30px 34px 28px;background:linear-gradient(135deg,rgba(212,162,78,.09),rgba(255,255,255,.015));border-bottom:1px solid rgba(107,103,96,.28)}
   .watch-detail-poster{position:relative;display:flex;min-height:250px;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(240,236,228,.16);border-radius:10px;background:#171715;box-shadow:0 18px 30px -10px rgba(0,0,0,.65)}
