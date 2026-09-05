@@ -728,3 +728,6 @@ body{font-size:15px}
 .image-timeline-index-label{margin:0 0 13px}
 .post-toc-button{display:none;width:100%;justify-content:flex-start;margin:0 0 27px}
 @media(max-width:900px){.archive-timeline-index-label,.image-timeline-index-label{min-height:42px;padding:0 14px}.post-toc-button{display:flex}}
+
+/* 动态图片统一使用 4:3 展示区域，避免单图和多图比例不一致。 */
+.moment-image-grid img,.moment-image-grid.layout-1 img,.moment-modal-gallery img{aspect-ratio:4/3}

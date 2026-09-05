@@ -37,8 +37,8 @@
 
   <aside class="home-side">
     <div class="author-card">
-      <img class="author-avatar" src="/images/avatar.jpg" alt="流浪猫不是LLM">
-      <div class="author-name">流浪猫不是LLM</div>
+      <img class="author-avatar" src="/images/avatar.jpg" alt="<%= siteMeta.authorName || '流浪猫不是LLM' %>">
+      <div class="author-name"><%= siteMeta.authorName || '流浪猫不是LLM' %></div>
       <div class="author-bio">我习于冷，志于成冰</div>
       <% var articleCount = site.posts.length; var dynCount = (site.data.dynamics || []).length; %>
       <% var photoCount = 0; (site.data.gallery && site.data.gallery.albums || []).forEach(function(a){ (a.images||[]).forEach(function(im){ photoCount++; }); }); %>

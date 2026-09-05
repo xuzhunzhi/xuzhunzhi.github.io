@@ -112,6 +112,7 @@ const ROOT = process.env.ADMIN_ROOT || __dirname;         // 仓库根目录（E
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
 const HISTORY_DIR = path.join(ROOT, 'source', '_data', 'post-history');
 const PORT = process.env.PORT || 4001;
+const SITE_URL = process.env.SITE_URL || 'http://localhost:4000';
 
 // ---------- 工具 ----------
 function ensure() { if (!fs.existsSync(POSTS_DIR)) fs.mkdirSync(POSTS_DIR, { recursive: true }); }
@@ -141,8 +142,8 @@ function listPosts() {
     const db = parseFM(fs.readFileSync(path.join(POSTS_DIR, b), 'utf8')).fm.date || '';
     return b.localeCompare(a);
   }).map(f => {
-    const { fm } = parseFM(fs.readFileSync(path.join(POSTS_DIR, f), 'utf8'));
-    return { file: f, title: fm.title || f.replace(/\.md$/, ''), date: fm.date || '', categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, '') };
+    const { fm, body } = parseFM(fs.readFileSync(path.join(POSTS_DIR, f), 'utf8'));
+    return { file: f, title: fm.title || f.replace(/\.md$/, ''), date: fm.date || '', updated: fm.updated || '', description: fm.description || '', words: String(body || '').replace(/\s/g, '').length, categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, '') };
   });
 }
 function readPost(file) {
@@ -308,6 +309,16 @@ const server = http.createServer(async (req, res) => {
       fs.mkdirSync(path.dirname(SITE_PATH), { recursive: true });
       fs.writeFileSync(SITE_PATH, JSON.stringify(body.site || {}, null, 2), 'utf8');
       return json(res, 200, { ok: true });
+    }
+    if (p === '/api/avatar' && req.method === 'POST') {
+      const body = await readBody(req);
+      const raw = String(body.data || '').replace(/^data:image\/[\w.+-]+;base64,/, '');
+      const avatar = Buffer.from(raw, 'base64');
+      if (!imageBufferLooksValid(avatar)) return json(res, 400, { ok: false, msg: '头像图片无效' });
+      const avatarPath = path.join(ROOT, 'source', 'images', 'avatar.jpg');
+      fs.mkdirSync(path.dirname(avatarPath), { recursive: true });
+      fs.writeFileSync(avatarPath, avatar);
+      return json(res, 200, { ok: true, url: '/images/avatar.jpg?v=' + Date.now() });
     }
     if (p === '/api/friends' && req.method === 'GET') {
       const data = readJson(FRIENDS_PATH, []);
@@ -480,8 +491,15 @@ const UI = `<!DOCTYPE html>
 <link rel="icon" href="/images/avatar.jpg" type="image/jpeg"><link rel="apple-touch-icon" href="/images/avatar.jpg">
 <title>避难所管理台</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a0a08;--surface:#141412;--surface2:#1c1c18;--accent:#d4a24e;--text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;--border:rgba(107,103,96,.15);--rose:#c47a8b}
+ @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:400;src:url('/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2')}
+ @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;src:url('/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2')}
+ @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;src:url('/fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2')}
+ @font-face{font-family:'Syne';font-style:normal;font-weight:600;src:url('/fonts/syne-latin-600-normal.woff2') format('woff2')}
+ @font-face{font-family:'Syne';font-style:normal;font-weight:700;src:url('/fonts/syne-latin-700-normal.woff2') format('woff2')}
+ @font-face{font-family:'DM Mono';font-style:normal;font-weight:300;src:url('/fonts/dm-mono-latin-300-normal.woff2') format('woff2')}
+ @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;src:url('/fonts/dm-mono-latin-400-normal.woff2') format('woff2')}
+ *{box-sizing:border-box;margin:0;padding:0}
+ :root{--bg:#0a0a08;--surface:#141412;--surface2:#1c1c18;--accent:#d4a24e;--text-p:#f0ece4;--text-m:#6b6760;--text-b:#b0a99a;--border:rgba(107,103,96,.15);--rose:#c47a8b;--font-sans:-apple-system,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;--font-serif:'Cormorant Garamond',Georgia,'Songti SC','STSong',serif;--font-syne:'Syne',-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;--font-mono:'DM Mono','SF Mono',Consolas,'Courier New',monospace}
 html{overflow-y:scroll;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(212,162,78,.62) rgba(255,255,255,.045)}
 html::-webkit-scrollbar{width:10px;height:10px}
 html::-webkit-scrollbar-track{background:rgba(255,255,255,.035)}
@@ -1016,24 +1034,207 @@ body.admin-modal-open{overflow:hidden}
   .watch-collection-choice-main strong{overflow:hidden;color:var(--text-p);font-size:13px;text-overflow:ellipsis;white-space:nowrap}
   .watch-collection-choice-main small{color:var(--text-m);font:11px/1.4 var(--font-mono)}
   @media(max-width:720px){.watch-detail-top{grid-template-columns:112px minmax(0,1fr);gap:17px;padding:23px 20px 21px}.watch-detail-poster{min-height:158px}.watch-detail-heading{padding:3px 12px 3px 0}.watch-detail-heading h2{font-size:25px;margin-bottom:13px}.watch-detail-meta{gap:7px 9px;font-size:11px}.watch-detail-note-block,.watch-detail-data-block{padding-left:20px;padding-right:20px}.watch-detail-row{grid-template-columns:70px minmax(0,1fr);gap:12px;font-size:13px}.watch-collection-items{grid-template-columns:1fr}}
- @media(max-width:1100px){.wizard-steps{gap:3px}.wizard-step{padding:7px 8px}.wizard-step i{display:none}}
+  @media(max-width:1100px){.wizard-steps{gap:3px}.wizard-step{padding:7px 8px}.wizard-step i{display:none}}
+  /* ===== 网站本体预览：首页与关于页独立展示 ===== */
+  .site-preview-card{padding:0;overflow:hidden;background:var(--surface);border-color:rgba(212,162,78,.25)}
+  .site-preview-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;border-bottom:1px solid rgba(107,103,96,.24);background:rgba(255,255,255,.018)}
+  .site-preview-head-main{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .site-preview-head-main strong{color:var(--text-p);font-size:16px;font-weight:600}
+  .site-preview-head-main span{color:var(--accent-dim);font:10px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase}
+  .site-preview-head-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
+  .site-preview-head-actions .btn{min-height:32px;padding:6px 11px;font-size:12px}
+  .site-preview-note{padding:11px 22px;color:var(--text-m);font-size:12px;border-top:1px solid rgba(107,103,96,.18)}
+  .site-native-preview{position:relative;isolation:isolate;width:min(1000px,100%);margin:0 auto;padding:12px 32px 42px;background:#0a0a08;color:var(--text-b);font-family:var(--font-mono);font-weight:300;font-size:15px;line-height:1.75}
+  .site-native-preview::before{content:'';position:absolute;inset:0;z-index:20;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='adminNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23adminNoise)'/%3E%3C/svg%3E");opacity:.03}
+  .site-native-preview a{color:inherit;text-decoration:none}
+  .site-native-preview .preview-home-top{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+  .site-native-preview .preview-home-left{min-width:0;width:100%;padding-bottom:16px;box-sizing:border-box}
+  .site-native-preview .preview-hero{margin:40px 0 44px}
+  .site-native-preview .preview-hero-title{font:300 clamp(32px,5vw,56px)/1.1 var(--font-serif);color:var(--text-p);margin-bottom:12px}
+  .site-native-preview .preview-hero-sub{max-width:520px;color:var(--text-m);font-size:13px;line-height:1.75;white-space:pre-line}
+  .site-native-preview .preview-sec-head{display:flex;align-items:baseline;gap:16px;margin:32px 0 20px}
+  .site-native-preview .preview-sec-num{font-family:var(--font-serif);font-size:13px;font-weight:600;color:var(--accent)}
+  .site-native-preview .preview-sec-title{color:var(--text-m);font-family:var(--font-syne);font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+  .site-native-preview .preview-sec-line{height:1px;flex:1;background:linear-gradient(90deg,rgba(107,103,96,.3),transparent)}
+  .site-native-preview .preview-pinned-panel{margin:0;border:1px solid var(--border);border-radius:14px;padding:18px 20px 20px;background:var(--surface)}
+  .site-native-preview .preview-pinned-panel>.preview-sec-head{margin:0 0 14px}
+  .site-native-preview .preview-pinned-wrap{position:relative;margin:0}
+  .site-native-preview .preview-pin-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 8px;margin-top:-6px;scrollbar-width:thin}
+  .site-native-preview .preview-pin-track::-webkit-scrollbar{height:6px}
+  .site-native-preview .preview-pin-track::-webkit-scrollbar-thumb{background:rgba(107,103,96,.3);border-radius:3px}
+  .site-native-preview .preview-pin-card{display:flex;flex:0 0 280px;width:280px;height:196px;min-width:0;flex-direction:column;scroll-snap-align:start;overflow:hidden;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--text-b);text-align:left;font:inherit}
+  .site-native-preview .preview-pin-manage{align-items:flex-start;justify-content:center;border-color:rgba(212,162,78,.18);cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s,background .2s}
+  .site-native-preview .preview-pin-manage:hover{border-color:var(--accent);background:rgba(212,162,78,.06);transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.2)}
+  .site-native-preview .preview-pin-manage strong{color:var(--text-p);font:600 20px/1.25 var(--font-serif)}
+  .site-native-preview .preview-pin-manage span{margin-top:10px;color:var(--text-m);font-size:13px;line-height:1.5}
+  .site-native-preview .preview-pin-nav{position:absolute;top:50%;z-index:2;width:34px;height:34px;transform:translateY(-50%);border:1px solid var(--border);border-radius:50%;background:rgba(20,20,18,.88);backdrop-filter:blur(6px);color:var(--text-b);font-size:20px;line-height:1;cursor:pointer}
+  .site-native-preview .preview-pin-nav:hover{border-color:var(--accent);color:var(--accent)}
+  .site-native-preview .preview-pin-prev{left:-14px}.site-native-preview .preview-pin-next{right:-14px}
+  .site-native-preview .preview-pin-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .site-native-preview .preview-pin-title{overflow:hidden;color:var(--text-p);font:600 20px/1.2 var(--font-serif);text-overflow:ellipsis;white-space:nowrap}
+  .site-native-preview .preview-pin-kind{flex-shrink:0;color:var(--accent);font:11px/1 var(--font-mono)}
+  .site-native-preview .preview-pin-body{display:-webkit-box;margin-top:12px;overflow:hidden;color:var(--text-m);font-size:13px;line-height:1.7;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+  .site-native-preview .preview-pin-meta{margin-top:14px;color:var(--text-m);font:11px/1.2 var(--font-mono)}
+  .site-native-preview .preview-pin-image{display:block;width:100%;margin-top:12px;border-radius:7px;aspect-ratio:4/3;object-fit:cover}
+  .site-native-preview .preview-home-side{align-self:end;margin-bottom:0;padding-bottom:16px;box-sizing:border-box}
+  .site-native-preview .preview-author-card{margin-top:-32px;padding:53px 24px;border:1px solid var(--border);border-radius:14px;background:var(--surface);text-align:center}
+  .site-native-preview .preview-author-avatar{display:block;width:84px;height:84px;margin:0 auto 14px;border:1px solid var(--border);border-radius:50%;object-fit:cover}
+  .site-native-preview .preview-editable-avatar,.site-native-preview .preview-editable-name,.site-native-preview .preview-editable-motto{cursor:pointer}
+  .site-native-preview .preview-editable-avatar{transition:filter .2s,box-shadow .2s}
+  .site-native-preview .preview-editable-avatar:hover{filter:brightness(1.12);box-shadow:0 0 0 4px rgba(212,162,78,.12)}
+  .site-native-preview .preview-editable-name{display:inline-block;border-radius:5px;transition:color .2s,background .2s}
+  .site-native-preview .preview-editable-name:hover{color:var(--accent);background:rgba(212,162,78,.07)}
+  .site-native-preview .preview-editable-motto{display:block;border-radius:6px;transition:color .2s,background .2s}
+  .site-native-preview .preview-editable-motto:hover{color:var(--text-b);background:rgba(212,162,78,.055)}
+  .site-native-preview .preview-author-bio{margin:6px 0 20px;color:var(--text-m);font-size:13px}
+  .site-native-preview .preview-author-stats{display:flex;justify-content:center;gap:28px;margin-bottom:22px;padding:16px 0 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .site-native-preview .preview-author-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .site-native-preview .preview-author-stat b{color:var(--text-p);font-family:var(--font-serif);font-size:24px}
+  .site-native-preview .preview-author-stat span{color:var(--text-m);font-size:11px;letter-spacing:.1em}
+  .site-native-preview .preview-author-follow{display:inline-flex;align-items:center;gap:8px;padding:10px 26px;border:1px solid var(--accent);color:var(--accent);font-size:12px;letter-spacing:.08em}
+  .site-native-preview .preview-author-follow svg{display:block}
+  .site-native-preview .preview-stats{margin:8px 0 68px;padding:22px 24px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+  .site-native-preview .preview-stats .preview-sec-head{gap:14px;margin:0 0 18px}
+  .site-native-preview .preview-stats-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+  .site-native-preview .preview-stat{display:flex;flex-direction:column;gap:7px;padding:6px 24px 4px;border-left:1px solid var(--border)}
+  .site-native-preview .preview-stat:first-child{padding-left:0;border-left:0}
+  .site-native-preview .preview-stat:last-child{padding-right:0}
+  .site-native-preview .preview-stat-value{overflow:hidden;color:var(--text-p);font:30px/1 var(--font-serif);text-overflow:ellipsis;white-space:nowrap}
+  .site-native-preview .preview-stat-label{color:var(--text-m);font-size:11px;letter-spacing:.12em}
+  .site-native-preview .preview-feed{border-top:1px solid var(--border)}
+  .site-native-preview .preview-feed-item{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:24px;align-items:center;padding:24px 0;border-bottom:1px solid var(--border)}
+  .site-native-preview .preview-feed-date{color:var(--text-m);font-family:var(--font-mono);font-size:12px}
+  .site-native-preview .preview-feed-title{overflow:hidden;color:var(--text-p);font-family:var(--font-serif);font-size:20px;font-weight:600;text-overflow:ellipsis;white-space:nowrap}
+  .site-native-preview .preview-feed-arrow{color:var(--text-m);font-size:18px}
+  .site-native-preview .preview-feed-empty{padding:20px 0;color:var(--text-m);font-size:13px}
+  .site-native-preview .preview-about-hero{padding:40px 0 32px;text-align:center}
+  .site-native-preview .preview-about-name{margin-bottom:16px;color:var(--text-p);font:300 clamp(48px,8vw,110px)/.95 Georgia,serif}
+  .site-native-preview .preview-about-name em{color:var(--accent);font-style:italic}
+  .site-native-preview .preview-about-aka{margin-bottom:40px;color:var(--text-m);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .site-native-preview .preview-about-poem{max-width:480px;margin:0 auto;padding:32px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);color:var(--text-b);font:italic 20px/1.8 Georgia,serif;white-space:pre-line}
+  .site-native-preview .preview-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:56px 0;align-items:start}
+  .site-native-preview .preview-about-bio h3{margin-bottom:20px;color:var(--accent);font:700 12px/1.2 var(--font-mono);letter-spacing:.2em;text-transform:uppercase}
+  .site-native-preview .preview-about-bio p{margin-bottom:18px;font-size:14px;line-height:1.9}
+  .site-native-preview .preview-about-bio .preview-quote{margin-top:32px;color:var(--text-m);font-style:italic}
+  .site-native-preview .preview-about-stat{display:flex;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border)}
+  .site-native-preview .preview-about-stat b{color:var(--text-p);font:300 36px/1 Georgia,serif}
+  .site-native-preview .preview-about-stat span{align-self:center;color:var(--text-m);font-size:11px;letter-spacing:.15em;text-align:right;text-transform:uppercase}
+  .site-native-preview .preview-contact{display:flex;align-items:baseline;gap:14px;margin:0 0 20px}
+  .site-native-preview .preview-contact-value{color:var(--text-m);font-size:13px}
+  /* ===== 独立的页头 / 页脚编辑页 ===== */
+  .site-shell-preview{min-height:660px;padding:0;background:#0a0a08;border:1px solid rgba(212,162,78,.22);border-radius:14px;overflow:hidden;box-shadow:0 18px 42px rgba(0,0,0,.18)}
+  .site-shell-header,.site-shell-footer{position:relative;cursor:pointer;transition:background .2s,box-shadow .2s}
+  .site-shell-header:hover,.site-shell-footer:hover{background:rgba(212,162,78,.035);box-shadow:inset 0 0 0 1px rgba(212,162,78,.22)}
+  .site-shell-header{border-bottom:1px solid var(--border)}
+  .site-shell-header-inner,.site-shell-footer-inner{max-width:1000px;margin:0 auto;padding-left:38px;padding-right:38px}
+  .site-shell-header-inner{display:flex;align-items:center;justify-content:space-between;gap:32px;padding-top:25px;padding-bottom:25px}
+  .site-shell-brand{color:var(--text-p);font:600 23px/1.1 Georgia,serif;letter-spacing:.02em}
+  .site-shell-nav{display:flex;align-items:center;gap:25px;color:var(--text-m);font:11px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+  .site-shell-nav span{padding-bottom:3px;border-bottom:1px solid transparent}
+  .site-shell-nav span:first-child{color:var(--accent);border-color:var(--accent)}
+  .site-shell-gap{display:flex;min-height:340px;align-items:center;justify-content:center;color:rgba(176,169,154,.32);font:10px/1 var(--font-mono);letter-spacing:.2em;text-transform:uppercase}
+  .site-shell-footer{border-top:1px solid var(--border);padding-top:48px;padding-bottom:32px}
+  .site-shell-footer-inner{color:var(--text-b)}
+  .site-shell-friends{margin-bottom:40px}
+  .site-shell-friends-label{display:block;margin-bottom:15px;color:var(--text-m);font:10px/1 var(--font-mono);letter-spacing:.18em;text-transform:uppercase}
+  .site-shell-friends-list{display:flex;flex-wrap:wrap;gap:9px 22px}
+  .site-shell-friend{color:var(--accent);font:14px/1.4 Georgia,serif;border-bottom:1px solid rgba(212,162,78,.35)}
+  .site-shell-empty{color:var(--text-m);font-size:12px}
+  .site-shell-footer-bottom{display:flex;justify-content:space-between;gap:20px;padding-top:24px;border-top:1px solid var(--border);color:var(--text-m);font:11px/1.5 var(--font-mono);letter-spacing:.05em}
+  .site-shell-credit{margin-top:18px;color:var(--text-m);font-size:12px;line-height:1.8}
+  .site-shell-hint{position:absolute;top:13px;right:38px;opacity:0;color:var(--accent);font:10px/1 var(--font-mono);letter-spacing:.12em;pointer-events:none;transition:opacity .2s}
+  .site-shell-header:hover .site-shell-hint,.site-shell-footer:hover .site-shell-hint{opacity:1}
+  .site-shell-modal-inner{width:min(580px,100%)}
+  .avatar-modal-inner{width:min(560px,calc(100vw - 56px))}
+  .avatar-crop-stage{display:flex;flex-direction:column;align-items:center;gap:17px;margin:20px 0 4px}
+  .avatar-crop-viewport{position:relative;width:min(360px,100%);aspect-ratio:1;overflow:hidden;border:1px solid rgba(212,162,78,.42);border-radius:8px;background:#090907;touch-action:none;cursor:grab;box-shadow:0 16px 36px rgba(0,0,0,.28)}
+  .avatar-crop-viewport:active{cursor:grabbing}
+  .avatar-crop-image{position:absolute;max-width:none;transform-origin:top left;user-select:none;pointer-events:none}
+  .avatar-crop-circle{position:absolute;inset:0;border:1px solid rgba(240,236,228,.82);border-radius:50%;box-shadow:0 0 0 999px rgba(5,5,4,.48),inset 0 0 0 1px rgba(212,162,78,.32);pointer-events:none}
+  .avatar-crop-tools{width:min(360px,100%)}
+  .avatar-crop-tools label{display:flex;align-items:center;gap:13px;color:var(--text-m);font-size:12px}
+  .avatar-crop-tools input[type=range]{flex:1;accent-color:var(--accent)}
+  .avatar-crop-tip{margin-top:9px;color:var(--text-m);font-size:11px;line-height:1.6}
+  .avatar-file-name{display:block;min-height:1.5em;margin-top:8px;color:var(--text-m);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nickname-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:18px 0 6px}
+  .nickname-option{min-height:48px;padding:11px 13px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.018);color:var(--text-b);font:inherit;text-align:left;cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s}
+  .nickname-option:hover{border-color:rgba(212,162,78,.6);color:var(--text-p);transform:translateY(-1px)}
+  .nickname-option.is-selected{border-color:var(--accent);background:rgba(212,162,78,.1);color:var(--accent)}
+  .motto-editor{min-height:130px;resize:vertical;line-height:1.8}
+  .site-shell-friends-editor{margin-top:24px;padding-top:22px;border-top:1px solid var(--border)}
+  .site-shell-friends-editor .list-hd{margin-bottom:4px}
+  .site-shell-friends-editor .friendrow:first-child{margin-top:8px}
+  @media(max-width:760px){.site-shell-header-inner,.site-shell-footer-inner{padding-left:20px;padding-right:20px}.site-shell-header-inner{align-items:flex-start;flex-direction:column;gap:20px}.site-shell-nav{flex-wrap:wrap;gap:12px 17px}.site-shell-gap{min-height:250px}.site-shell-footer-bottom{align-items:flex-start;flex-direction:column;gap:10px}.site-shell-hint{right:20px}}
+  .admin-moment-gallery img,.compose-image-grid img{aspect-ratio:4/3!important}
+  .pin-modal-inner{width:min(760px,calc(100vw - 56px))}
+  .pin-modal-list{margin-top:4px}
+  @media(max-width:1100px){.site-native-preview{padding:28px 24px 34px}.site-native-preview .preview-home-top{grid-template-columns:1fr}.site-native-preview .preview-home-side{display:flex;justify-content:center}.site-native-preview .preview-author-card{width:min(300px,100%)}.site-native-preview .preview-about-grid{gap:32px}}
 </style>
 </head><body>
  <nav class="topnav"><div class="navwrap">
    <span class="brand">避难所<em>管理台</em></span>
    <div class="navlinks">
-     <a class="nav-link active" data-tab="overview" onclick="t('overview')">综合</a>
+      <a class="nav-link active" data-tab="home" onclick="t('home')">首页</a>
+      <a class="nav-link" data-tab="about" onclick="t('about')">关于</a>
+      <a class="nav-link" data-tab="siteparts" onclick="t('siteparts')">页头页脚</a>
+      <a class="nav-link" data-tab="overview" onclick="t('overview')">综合</a>
      <a class="nav-link" data-tab="posts" onclick="t('posts')">文章</a>
      <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
      <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
      <a class="nav-link" data-tab="watching" onclick="t('watching')">番剧</a>
    </div>
- </div></nav>
- <div class="wrap">
+  </div></nav>
+  <div class="wrap">
 
- <section id="tab-overview" class="tabpage active">
+ <section id="tab-home" class="tabpage active">
+   <div class="site-native-preview site-native-page" id="siteHomePreview">
+       <div class="preview-home-top">
+         <div class="preview-home-left">
+            <section class="preview-hero"><h2 class="preview-hero-title" id="previewHomeTitle">流浪猫的避难所</h2><p class="preview-hero-sub preview-editable-motto" id="previewHomeSubtitle" onclick="openHomeMottoEditor()" title="点击编辑格言">一只被抛弃在尘世之中的猫。
+感谢尘世还有那些值得猫眷恋的。
+希望这里成为流浪猫的坟茔。</p></section>
+           <section class="preview-pinned" id="previewHomePinned"></section>
+         </div>
+         <aside class="preview-home-side"><div class="preview-author-card"><img class="preview-author-avatar preview-editable-avatar" id="previewAuthorAvatar" src="/images/avatar.jpg" alt="流浪猫不是LLM" onclick="openAvatarEditor()" title="点击编辑头像"><div class="preview-author-name preview-editable-name" id="previewAuthorName" onclick="openNicknameEditor()" title="点击切换昵称">流浪猫不是LLM</div><div class="preview-author-bio">我习于冷，志于成冰</div><div class="preview-author-stats"><div class="preview-author-stat"><b id="previewArticleCount">0</b><span>文章</span></div><div class="preview-author-stat"><b id="previewDynCount">0</b><span>动态</span></div><div class="preview-author-stat"><b id="previewPhotoCount">0</b><span>照片</span></div></div><a class="preview-author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38-.01-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a></div></aside>
+       </div>
+       <section class="preview-stats"><div class="preview-sec-head"><span class="preview-sec-num">shelter log</span><span class="preview-sec-title">站点记录</span><span class="preview-sec-line"></span></div><div class="preview-stats-grid"><div class="preview-stat"><span class="preview-stat-value" id="previewUv">—</span><span class="preview-stat-label">访问人数</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewLastUpdate">—</span><span class="preview-stat-label">最后更新</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewWords">—</span><span class="preview-stat-label">本站总字数</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewPv">—</span><span class="preview-stat-label">总浏览量</span></div></div></section>
+       <section><div class="preview-sec-head"><span class="preview-sec-num">feed</span><span class="preview-sec-title">Latest</span><span class="preview-sec-line"></span></div><div class="preview-feed" id="previewHomeFeed"></div></section>
+   </div>
+ </section>
+
+  <section id="tab-about" class="tabpage">
+   <div class="site-native-preview site-native-page" id="siteAboutPreview">
+       <div class="preview-about-hero"><div class="preview-about-name" id="previewAboutName">许纯<em>之</em></div><div class="preview-about-aka" id="previewAboutAka">Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超</div><div class="preview-about-poem" id="previewAboutPoem">一只被抛弃在尘世之中的猫。
+感谢尘世还有那些值得猫眷恋的。
+希望这里成为流浪猫的坟茔。</div></div>
+       <div class="preview-about-grid"><div class="preview-about-bio"><h3>About Me</h3><div id="previewAboutBio"></div><p class="preview-quote">"流浪猫不需要和家猫走一样的路。"</p></div><div class="preview-about-side" id="previewAboutStats"></div></div>
+       <div class="preview-contact"><span class="preview-sec-num">contact</span><span class="preview-sec-title">联系</span><span class="preview-sec-line"></span></div><p class="preview-contact-value" id="previewAboutContact">xuzhunzhi@foxmail.com</p>
+   </div>
+  </section>
+
+  <section id="tab-siteparts" class="tabpage">
+    <h1>页头页脚 <em>Shell</em></h1>
+    <p class="sub">这里只管理网站本体的页头与页脚；点击对应区域即可打开编辑窗口。</p>
+    <div class="site-shell-preview" id="siteShellPreview">
+      <header class="site-shell-header" onclick="openShellHeaderEditor()" title="点击编辑页头">
+        <span class="site-shell-hint">点击进入编辑</span>
+        <div class="site-shell-header-inner"><span class="site-shell-brand" id="previewShellHeader">Shelter</span><nav class="site-shell-nav" aria-label="网站导航"><span>首页</span><span>文章</span><span>图片</span><span>动态</span><span>番剧</span><span>关于</span></nav></div>
+      </header>
+      <div class="site-shell-gap" aria-hidden="true">website content</div>
+      <footer class="site-shell-footer" onclick="openShellFooterEditor()" title="点击编辑页脚">
+        <span class="site-shell-hint">点击进入编辑</span>
+        <div class="site-shell-footer-inner">
+          <div class="site-shell-friends"><span class="site-shell-friends-label">友链 / Friends</span><div class="site-shell-friends-list" id="previewShellFriends"><span class="site-shell-empty">暂无友链</span></div></div>
+          <div class="site-shell-footer-bottom"><span>© <span id="previewShellYear"></span> 流浪猫的避难所 · <span id="previewShellByline">by 流浪猫不是LLM</span></span><span id="previewShellMotto">流浪猫不需要和家猫走一样的路</span></div>
+          <p class="site-shell-credit" id="previewShellCredit">本站由 Hexo 驱动，托管于 GitHub Pages。字体来自 Fontsource。</p>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <section id="tab-overview" class="tabpage">
    <h1>综合 <em>Overview</em></h1>
-    <p class="sub">首页、页头、页脚、关于页内容和友链等站点杂项集中在这里。</p>
+    <p class="sub">置顶、首页与关于页内容等全站杂项集中在这里；页头页脚与友链请从上方的独立页面编辑。</p>
    <div class="overview-grid">
      <div class="card overview-pin-card">
        <div class="list-hd"><span>首页置顶 · <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
@@ -1045,14 +1246,12 @@ body.admin-modal-open{overflow:hidden}
        </div>
        <div class="status" id="pinStatus"></div>
      </div>
-     <div class="card overview-settings-card">
-       <div class="list-hd"><span>站点与关于页</span><button class="btn btn-pub" onclick="saveSiteSettings()">保存设置</button></div>
+      <div class="card overview-settings-card">
+        <div class="list-hd"><span>站点基础设置</span><button class="btn btn-pub" onclick="saveSiteSettings()">保存设置</button></div>
        <div class="settings-grid">
-         <div><label>页头英文名</label><input id="site_header" placeholder="Shelter"></div>
-         <div><label>首页大标题</label><input id="site_home_title" placeholder="流浪猫的避难所"></div>
-         <div class="settings-wide"><label>首页副标题（每行一句）</label><textarea id="site_home_subtitle" rows="3"></textarea></div>
-         <div><label>页脚署名</label><input id="site_footer_byline" placeholder="by 流浪猫不是LLM"></div>
-         <div><label>关于页姓名</label><input id="site_about_name" placeholder="许纯之"></div>
+          <div><label>首页大标题</label><input id="site_home_title" placeholder="流浪猫的避难所"></div>
+          <div class="settings-wide"><label>首页副标题（每行一句）</label><textarea id="site_home_subtitle" rows="3"></textarea></div>
+          <div><label>关于页姓名</label><input id="site_about_name" placeholder="许纯之"></div>
          <div class="settings-wide"><label>关于页别名</label><input id="site_about_aka" placeholder="Xu Zhunzhi / 流浪猫不是LLM / 幼儿班的小超超"></div>
          <div class="settings-wide settings-divider"><span>关于页内容</span></div>
          <div class="settings-wide"><label>关于页诗句（每行一句）</label><textarea id="site_about_poem" rows="3"></textarea></div>
@@ -1063,15 +1262,10 @@ body.admin-modal-open{overflow:hidden}
          <div><label>窗外的月亮</label><input id="site_about_moon" placeholder="01"></div>
          <div class="settings-wide"><label>联系邮箱</label><input id="site_about_contact" placeholder="xuzhunzhi@foxmail.com"></div>
        </div>
-       <div class="quick-links"><a class="btn btn-ghost" href="/" target="_blank">打开首页 ↗</a><a class="btn btn-ghost" href="/about/" target="_blank">打开关于页 ↗</a></div>
+        <div class="quick-links"><a class="btn btn-ghost" href="${SITE_URL}/" target="_blank" rel="noopener">打开首页 ↗</a><a class="btn btn-ghost" href="${SITE_URL}/about/" target="_blank" rel="noopener">打开关于页 ↗</a></div>
        <div class="status" id="siteStatus"></div>
      </div>
-     <div class="card overview-friends-card">
-       <div class="list-hd"><span>友链 / Friends</span><button class="btn btn-ghost" onclick="addFriend()">＋ 添加友链</button></div>
-       <div id="friendlist"></div>
-       <div class="card-actions"><button class="btn btn-pub" onclick="saveFriends()">保存友链</button><div class="status" id="friendStatus"></div></div>
-     </div>
-   </div>
+    </div>
  </section>
 
  <section id="tab-posts" class="tabpage">
@@ -1133,9 +1327,70 @@ body.admin-modal-open{overflow:hidden}
    </div>
  </section>
 
- </div>
+  </div>
 
- <div class="admin-modal" id="postModal" onclick="if(event.target===this)closeAdminModal('postModal')">
+  <div class="admin-modal" id="avatarModal" onclick="if(event.target===this)closeAdminModal('avatarModal')">
+    <div class="admin-modal-inner avatar-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('avatarModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">AUTHOR AVATAR</div><div class="form-hd"><span>编辑头像</span></div>
+      <div class="field-intro">上传图片后，在正方形范围内拖动和缩放；内切圆内的区域会作为网站实际显示的头像。</div>
+      <div class="file-picker"><input type="file" id="avatar_file" accept="image/*" onchange="onAvatarFileChanged()"><button type="button" class="btn btn-ghost" onclick="document.getElementById('avatar_file').click()">选择头像图片</button><span id="avatar_file_name">尚未选择图片</span></div>
+      <div class="avatar-crop-stage" id="avatarCropStage" hidden>
+        <div class="avatar-crop-viewport" id="avatarCropViewport"><img class="avatar-crop-image" id="avatarCropImage" alt="头像裁切预览"><div class="avatar-crop-circle" aria-hidden="true"></div></div>
+        <div class="avatar-crop-tools"><label>缩放 <input type="range" id="avatarCropZoom" min="1" max="3" step="0.01" value="1" oninput="updateAvatarCrop()"></label><div class="avatar-crop-tip">拖动图片调整取景位置；正方形四角会被圆形头像区域裁掉。</div></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-pub" id="avatarSaveBtn" onclick="saveAvatar()" disabled>保存头像</button><button class="btn btn-ghost" onclick="closeAdminModal('avatarModal')">取消</button></div><div class="status" id="avatarStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="nicknameModal" onclick="if(event.target===this)closeAdminModal('nicknameModal')">
+    <div class="admin-modal-inner site-shell-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('nicknameModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">AUTHOR NAME</div><div class="form-hd"><span>切换昵称</span></div>
+      <div class="field-intro">选择一个昵称后保存，网站首页作者卡片会同步显示。</div>
+      <div class="nickname-options" id="nicknameOptions"></div>
+      <div class="modal-actions"><button class="btn btn-pub" onclick="saveNickname()">保存昵称</button><button class="btn btn-ghost" onclick="closeAdminModal('nicknameModal')">取消</button></div><div class="status" id="nicknameStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="homeMottoModal" onclick="if(event.target===this)closeAdminModal('homeMottoModal')">
+    <div class="admin-modal-inner site-shell-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('homeMottoModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">HOME MOTTO</div><div class="form-hd"><span>编辑首页格言</span></div>
+      <div class="field-intro">这里的文字显示在首页大标题下方，每一行会作为格言的一行。</div>
+      <label>首页格言</label><textarea id="home_motto_input" class="motto-editor" rows="4" placeholder="一只被抛弃在尘世之中的猫。&#10;感谢尘世还有那些值得猫眷恋的。&#10;希望这里成为流浪猫的坟茔。"></textarea>
+      <div class="modal-actions"><button class="btn btn-pub" onclick="saveHomeMotto()">保存格言</button><button class="btn btn-ghost" onclick="closeAdminModal('homeMottoModal')">取消</button></div><div class="status" id="homeMottoStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="shellHeaderModal" onclick="if(event.target===this)closeAdminModal('shellHeaderModal')">
+    <div class="admin-modal-inner site-shell-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('shellHeaderModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">SITE HEADER</div><div class="form-hd"><span>编辑页头</span></div>
+      <div class="field-intro">这里的名称会显示在网站本体左上角；右侧导航沿用网站现有栏目。</div>
+      <label>页头英文名</label><input id="shell_header_title" placeholder="Shelter">
+      <div class="modal-actions"><button class="btn btn-pub" onclick="saveShellHeader()">保存页头</button><button class="btn btn-ghost" onclick="closeAdminModal('shellHeaderModal')">取消</button></div><div class="status" id="shellHeaderStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="shellFooterModal" onclick="if(event.target===this)closeAdminModal('shellFooterModal')">
+    <div class="admin-modal-inner site-shell-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('shellFooterModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">SITE FOOTER</div><div class="form-hd"><span>编辑页脚</span></div>
+       <div class="field-intro">这里编辑页脚文字，并维护网站底部显示的友链。</div>
+       <label>页脚署名</label><input id="shell_footer_byline" placeholder="by 流浪猫不是LLM">
+       <label>页脚格言</label><input id="shell_footer_motto" placeholder="流浪猫不需要和家猫走一样的路">
+       <label>技术说明</label><textarea id="shell_footer_credit" rows="3" placeholder="本站由 Hexo 驱动，托管于 GitHub Pages。字体来自 Fontsource。"></textarea>
+       <div class="site-shell-friends-editor">
+         <div class="list-hd"><span>友链 / Friends</span><button class="btn btn-ghost" onclick="addFriend()">＋ 添加友链</button></div>
+         <div id="friendlist"></div>
+         <div class="card-actions"><button class="btn btn-pub" onclick="saveFriends()">保存友链</button><div class="status" id="friendStatus"></div></div>
+       </div>
+       <div class="modal-actions"><button class="btn btn-pub" onclick="saveShellFooter()">保存页脚</button><button class="btn btn-ghost" onclick="closeAdminModal('shellFooterModal')">取消</button></div><div class="status" id="shellFooterStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="postModal" onclick="if(event.target===this)closeAdminModal('postModal')">
    <div class="admin-modal-inner post-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('postModal')" aria-label="关闭">×</button>
       <div class="modal-kicker">ARTICLE EDITOR</div><div class="form-hd"><span id="form_hd">发布新文章</span><button class="btn btn-ghost" id="cancelEdit" onclick="cancelEdit()">取消编辑</button></div>
@@ -1223,7 +1478,7 @@ body.admin-modal-open{overflow:hidden}
  <div class="admin-modal" id="watchCollectionModal" onclick="if(event.target===this)closeAdminModal('watchCollectionModal')">
    <div class="admin-modal-inner watch-collection-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('watchCollectionModal')" aria-label="关闭">×</button>
-     <div class="modal-kicker">ANIME COLLECTION</div><div class="form-hd"><span>新建番剧合集</span></div>
+     <div class="modal-kicker">ANIME COLLECTION</div><div class="form-hd"><span id="watch_collection_mode">新建番剧合集</span></div>
      <p class="field-intro">只从“追完的番”中选择作品；保存后网站本体会以合集卡片展示。</p>
       <label>合集名称</label><input id="watch_collection_name" placeholder="例如：新世纪福音战士">
       <label class="watch-collection-list-label" for="watch_collection_search">选择作品</label><input id="watch_collection_search" class="watch-collection-search-input" type="text" placeholder="搜索番名"><div class="watch-collection-search-meta" id="watch_collection_search_meta"></div><div id="watch_collection_items" class="watch-collection-items"></div>
