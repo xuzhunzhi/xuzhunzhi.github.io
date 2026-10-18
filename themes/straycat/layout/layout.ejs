@@ -12,7 +12,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/syne-latin-600-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-mono-latin-400-normal.woff2" crossorigin>
-  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=50">
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=51">
 </head>
 <body>
   <% var siteMeta = site.data.site || {}; %>
@@ -50,7 +50,6 @@
       <div class="footer-bottom">
         <span>© <%= new Date().getFullYear() %> <%= config.title %> · <%= siteMeta.footerByline || 'by 流浪猫不是LLM' %></span>
         <span><%= siteMeta.footerMotto || '流浪猫不需要和家猫走一样的路' %></span>
-        <% if (theme.music) { %><button type="button" class="footer-music" onclick="togglePlayer()" title="背景音乐" aria-label="背景音乐">♪ 背景音乐</button><% } %>
       </div>
       <% if (siteMeta.footerCredit) { %>
         <p class="footer-credit"><%= siteMeta.footerCredit %></p>
@@ -275,6 +274,26 @@
     }
     function wrapCanvas(ctx,text,x,y,maxWidth,lineHeight,out){ out.length=0; String(text||'').split(/\r?\n/).forEach(function(row){ var cur=''; for(var i=0;i<row.length;i++){ var next=cur+row[i]; if(ctx.measureText(next).width>maxWidth&&cur){out.push(cur);cur=row[i];}else cur=next;} out.push(cur||' '); }); out.slice(0,7).forEach(function(row,i){ctx.fillText(row,x,y+i*lineHeight);}); }
     window.addEventListener('scroll',function(){ var b=document.getElementById('backTop'); if(b) b.classList.toggle('show',window.scrollY>520); },{passive:true});
+    /* 窄屏音乐悬浮按钮：滚动时出现，停止滚动 1 秒后收起，避免静止阅读时盖住正文。
+       只在窄屏生效，宽屏一直显示。播放器展开时按钮会收起，但卡片本身有 × 和点外部关闭。 */
+    (function(){
+      var btn=document.getElementById('musicBtn');
+      if(!btn) return;
+      var timer=0, IDLE=1000;
+      function narrow(){ return window.matchMedia('(max-width: 600px)').matches; }
+      function show(){ btn.classList.remove('is-hidden'); }
+      function scheduleHide(){
+        clearTimeout(timer);
+        timer=setTimeout(function(){ btn.classList.add('is-hidden'); }, IDLE);
+      }
+      window.addEventListener('scroll',function(){
+        if(!narrow()){ clearTimeout(timer); show(); return; }
+        show();
+        scheduleHide();
+      },{passive:true});
+      window.addEventListener('resize',function(){ if(!narrow()){ clearTimeout(timer); show(); } else scheduleHide(); },{passive:true});
+      if(narrow()) scheduleHide();
+    })();
     document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeLightbox(); var mm=document.getElementById('momentModal'); if(mm&&mm.classList.contains('show')) closeMoment(); var am=document.getElementById('albumModal'); if(am&&am.classList.contains('show')) closeAlbum(); var sm=document.getElementById('shareModal'); if(sm&&sm.classList.contains('show')) closeShare(); var an=document.getElementById('animeModal'); if(an&&an.classList.contains('show')) closeAnime(); } });
   </script>
 </body>
