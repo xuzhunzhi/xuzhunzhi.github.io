@@ -751,3 +751,16 @@ body{font-size:15px}
   .home-top>.home-side{order:2}
   .home-top>.home-left>.pinned-panel{order:3}
 }
+
+/* ===== 窄屏音乐入口 =====
+   44px 的悬浮圆钮固定在左下角，窄屏上会盖住正文左侧和页脚内容；
+   导航栏在 390px 已经没有余量（再加一项会被裁掉），所以窄屏把入口放到页脚，
+   悬浮按钮只在 >600px 显示。 */
+.footer-music{display:none;align-items:center;gap:6px;padding:7px 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface2);color:var(--text-b);font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;line-height:1;cursor:pointer}
+.footer-music:hover,.footer-music:focus-visible{color:var(--accent);border-color:var(--accent)}
+@media(max-width:600px){
+  .music-btn{display:none}
+  .footer-music{display:inline-flex}
+  .footer-bottom{flex-wrap:wrap;gap:12px}
+  .music-card{max-height:60vh;overflow:auto}
+}

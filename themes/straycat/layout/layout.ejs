@@ -12,7 +12,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/syne-latin-600-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/dm-mono-latin-400-normal.woff2" crossorigin>
-  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=48">
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>?v=50">
 </head>
 <body>
   <% var siteMeta = site.data.site || {}; %>
@@ -50,6 +50,7 @@
       <div class="footer-bottom">
         <span>© <%= new Date().getFullYear() %> <%= config.title %> · <%= siteMeta.footerByline || 'by 流浪猫不是LLM' %></span>
         <span><%= siteMeta.footerMotto || '流浪猫不需要和家猫走一样的路' %></span>
+        <% if (theme.music) { %><button type="button" class="footer-music" onclick="togglePlayer()" title="背景音乐" aria-label="背景音乐">♪ 背景音乐</button><% } %>
       </div>
       <% if (siteMeta.footerCredit) { %>
         <p class="footer-credit"><%= siteMeta.footerCredit %></p>
