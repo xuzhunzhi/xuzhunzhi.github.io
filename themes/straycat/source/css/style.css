@@ -734,3 +734,20 @@ body{font-size:15px}
 
 /* 动态图片统一使用 4:3 展示区域，避免单图和多图比例不一致。 */
 .moment-image-grid img,.moment-image-grid.layout-1 img,.moment-modal-gallery img{aspect-ratio:4/3}
+
+/* ===== 窄屏首页顺序：hero → 作者卡 → 置顶 =====
+   ≤699px 时 .home-top 是单列，DOM 顺序为 hero、置顶、作者卡，
+   作者卡会掉到置顶下面。这里让 .home-left 不再生成盒子，
+   它的子元素直接参与 .home-top 的网格布局，用 order 把作者卡提到置顶之前。
+   注意：子元素变成网格项后，1fr 轨道的自动最小尺寸会按内容撑开（实测 390px 视口撑到 622px），
+   所以轨道必须写成 minmax(0,1fr)，并给子项 min-width:0。 */
+@media(max-width:699px){
+  .home-top{grid-template-columns:minmax(0,1fr)}
+  .home-top>.home-left{display:contents}
+  .home-top>.home-left>.hero,
+  .home-top>.home-side,
+  .home-top>.home-left>.pinned-panel{min-width:0}
+  .home-top>.home-left>.hero{order:1}
+  .home-top>.home-side{order:2}
+  .home-top>.home-left>.pinned-panel{order:3}
+}
