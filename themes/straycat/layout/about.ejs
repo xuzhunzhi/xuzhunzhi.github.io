@@ -8,6 +8,8 @@
   var aboutCoffee = siteMeta.aboutCoffee || '42';
   var aboutMoon = siteMeta.aboutMoon || '01';
   var aboutContact = siteMeta.aboutContact || 'xuzhunzhi@foxmail.com';
+  var coffeeLogs = Array.isArray(siteMeta.coffeeLogs) ? siteMeta.coffeeLogs : [];
+  var computerLogs = Array.isArray(siteMeta.computerLogs) ? siteMeta.computerLogs : [];
   var watchedAnime = (site.data.watching || []).filter(function(w){ return w.status === 'finished'; }).length;
 %>
 <div class="about-hero">
@@ -31,6 +33,21 @@
     <div class="about-stat"><span class="about-stat-num"><%= aboutCoffee %></span><span class="about-stat-label">喝掉的咖啡</span></div>
     <div class="about-stat"><span class="about-stat-num"><%= aboutMoon %></span><span class="about-stat-label">窗外的月亮</span></div>
   </div>
+</div>
+
+<div class="about-logs">
+  <section class="about-log-section">
+    <div class="about-log-heading">Coffee / 奶茶</div>
+    <% if (coffeeLogs.length) { coffeeLogs.slice().sort(function(a, b){ return String(b.date || '').localeCompare(String(a.date || '')); }).forEach(function(log){ %>
+      <article class="about-log"><div class="about-log-head"><span><%= log.type === 'milk-tea' ? '奶茶' : 'Coffee' %> · <%= log.name || '未命名记录' %></span><time><%= log.date || '未记录日期' %></time></div><% if(log.note){ %><p><%= log.note %></p><% } %></article>
+    <% }); } else { %><p class="about-log-empty">暂时没有 Coffee / 奶茶记录。</p><% } %>
+  </section>
+  <section class="about-log-section">
+    <div class="about-log-heading">电脑拆机日志</div>
+    <% if (computerLogs.length) { computerLogs.slice().sort(function(a, b){ return String(b.date || '').localeCompare(String(a.date || '')); }).forEach(function(log){ %>
+      <article class="about-log"><div class="about-log-head"><span><%= log.title || '未命名日志' %></span><time><%= log.date || '未记录日期' %></time></div><% if(log.note){ %><p><%= log.note %></p><% } %></article>
+    <% }); } else { %><p class="about-log-empty">暂时没有电脑拆机日志。</p><% } %>
+  </section>
 </div>
 
 <div class="sec-hd"><span class="sec-num">contact</span><span class="sec-title">联系</span><span class="sec-line"></span></div>

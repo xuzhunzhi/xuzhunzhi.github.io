@@ -11,7 +11,7 @@
   var finishedAnime=watching.filter(function(w){return w.status==='finished';});
   var finishedGroups=[],finishedBySeries={};
   finishedAnime.forEach(function(w){var series=String(w.series||w.seriesName||'').trim();if(!series){finishedGroups.push({name:'',items:[w]});return;}if(!finishedBySeries[series]){finishedBySeries[series]={name:series,items:[]};finishedGroups.push(finishedBySeries[series]);}finishedBySeries[series].items.push(w);});
-  function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';var title=String(w.title||'');return /剧场版|电影版|电影|movie|film/i.test(title)||Number(w.total)===1?'movie':'tv';}
+  function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';return 'tv';}
   function animeFormatLabel(w){return animeFormat(w)==='movie'?'剧场版':'TV版';}
   function animeCard(w,i,archived){
 %>
@@ -84,7 +84,7 @@ var animeModal=document.getElementById('animeModal');
 if(animeModal&&animeModal.parentNode!==document.body)document.body.appendChild(animeModal);
 function animeValue(w,keys){for(var i=0;i<keys.length;i++){var v=w[keys[i]];if(v!==undefined&&v!==null&&String(v).trim()!=='')return Array.isArray(v)?v.join('、'):String(v);}return '';}
 function animeStatus(w){return {watching:'在看',finished:'已看完',preparing:'Preparing',want:'Preparing',dropped:'弃番'}[w.status]||w.status||'在看';}
-function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';var title=String(w.title||'');return /剧场版|电影版|电影|movie|film/i.test(title)||Number(w.total)===1?'movie':'tv';}
+function animeFormat(w){var format=String(w.format||w.kind||w.type||'').toLowerCase();if(format==='movie'||format==='film'||format==='剧场版')return 'movie';if(format==='tv'||format==='series'||format==='tv版')return 'tv';return 'tv';}
 function animeFormatLabel(w){return animeFormat(w)==='movie'?'剧场版':'TV版';}
 function animeProgress(w){if(w.status==='finished')return '看完于 '+(w.finishedAt||w.completedAt||'时间未记录');if(w.status==='preparing'||w.status==='want')return '准备追';if(w.status==='dropped')return '已停止观看';if(animeFormat(w)==='movie')return '观看中';if(w.progress)return '看到 '+w.progress+(w.total?'/'+w.total:'')+' 集';return '进度未记录';}
 function openAnime(i){

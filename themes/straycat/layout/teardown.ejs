@@ -1,0 +1,23 @@
+<%
+  var siteMeta = site.data.site || {};
+  var logs = Array.isArray(siteMeta.computerLogs) ? siteMeta.computerLogs.slice() : [];
+  logs.sort(function(a, b){ return String(b.date || '').localeCompare(String(a.date || '')); });
+%>
+<section class="journal-hero">
+  <span class="journal-kicker">hardware notes</span>
+  <h1 class="hero-title">电脑拆机 <em>日志</em></h1>
+  <p class="hero-sub">记录拆机、清灰、换硅脂，以及那些差点装不回去的瞬间。</p>
+</section>
+
+<div class="sec-hd"><span class="sec-num">teardown log</span><span class="sec-title">拆机记录</span><span class="sec-line"></span></div>
+<div class="journal-list">
+  <% if (logs.length) { logs.forEach(function(log){ %>
+    <article class="journal-card">
+      <div class="journal-card-head"><span class="journal-type">拆机日志</span><time><%= log.date || '未记录日期' %></time></div>
+      <h2><%= log.title || '未命名日志' %></h2>
+      <% if (log.note) { %><p><%= log.note %></p><% } %>
+    </article>
+  <% }); } else { %>
+    <p class="empty journal-empty">还没有电脑拆机日志。</p>
+  <% } %>
+</div>

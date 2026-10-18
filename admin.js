@@ -111,11 +111,23 @@ async function moegirlLookupTitle(title, allowSearch) {
 const ROOT = process.env.ADMIN_ROOT || __dirname;         // 仓库根目录（Electron 可指定外部工作区）
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');    // 文章目录
 const HISTORY_DIR = path.join(ROOT, 'source', '_data', 'post-history');
-const PORT = process.env.PORT || 4001;
+const PORT = Number(process.env.PORT || 4001);
 const SITE_URL = process.env.SITE_URL || 'http://localhost:4000';
 
 // ---------- 工具 ----------
 function ensure() { if (!fs.existsSync(POSTS_DIR)) fs.mkdirSync(POSTS_DIR, { recursive: true }); }
+function safeChildPath(base, value) {
+  const root = path.resolve(base);
+  const raw = String(value || '');
+  if (!raw || raw.includes('\0')) return null;
+  const target = path.resolve(root, raw);
+  return target === root || target.startsWith(root + path.sep) ? target : null;
+}
+function safePostPath(file) {
+  const name = String(file || '');
+  if (!name || name !== path.basename(name) || !/\.md$/i.test(name)) return null;
+  return safeChildPath(POSTS_DIR, name);
+}
 function slug(t) {
   const s = (t || '').trim().toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
   return s || 'post-' + Date.now().toString(36);
@@ -147,7 +159,9 @@ function listPosts() {
   });
 }
 function readPost(file) {
-  const raw = fs.readFileSync(path.join(POSTS_DIR, file), 'utf8');
+  const target = safePostPath(file);
+  if (!target) throw new Error('文章文件名无效');
+  const raw = fs.readFileSync(target, 'utf8');
   const { fm, body } = parseFM(raw);
   return { file, title: fm.title || '', date: fm.date || '', updated: fm.updated || '', edits: Number(fm.edits || 0), categories: (fm.categories || '').replace(/^\[|\]$/g, ''), tags: (fm.tags || '').replace(/^\[|\]$/g, ''), description: fm.description || '', content: body.trim() };
 }
@@ -167,18 +181,24 @@ const server = http.createServer(async (req, res) => {
     if (p === '/' || p === '/index.html') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(UI); return; }
     if (p.startsWith('/images/')) {
       let rel = decodeURIComponent(p.slice('/images/'.length));
-      const fp = path.join(ROOT, 'source', 'images', rel);
+      const fp = safeChildPath(path.join(ROOT, 'source', 'images'), rel);
+      if (!fp) { res.writeHead(400); res.end('invalid path'); return; }
       const mime = ({ '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png', '.gif':'image/gif', '.webp':'image/webp', '.avif':'image/avif', '.svg':'image/svg+xml', '.bmp':'image/bmp' })[path.extname(fp).toLowerCase()] || 'application/octet-stream';
       try { const data = fs.readFileSync(fp); res.writeHead(200, { 'Content-Type': mime }); res.end(data); return; } catch (e) { res.writeHead(404); res.end('not found'); return; }
     }
     if (p === '/api/posts' && req.method === 'GET') { return json(res, 200, { posts: listPosts() }); }
-    if (p === '/api/post' && req.method === 'GET') { return json(res, 200, readPost(u.searchParams.get('file') || '')); }
+    if (p === '/api/post' && req.method === 'GET') {
+      const file = u.searchParams.get('file') || '';
+      if (!safePostPath(file)) return json(res, 400, { ok: false, msg: '文章文件名无效' });
+      return json(res, 200, readPost(file));
+    }
     if (p === '/api/save' && req.method === 'POST') {
       const body = await readBody(req);
       ensure();
       let file = body.file || (slug(body.title) + '.md');
       if (!file.endsWith('.md')) file += '.md';
-      const target = path.join(POSTS_DIR, file);
+      const target = safePostPath(file);
+      if (!target) return json(res, 400, { ok: false, msg: '文章文件名无效' });
       const exists = fs.existsSync(target);
       let old = null;
       if (exists) {
@@ -204,22 +224,26 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/history' && req.method === 'GET') {
       const file = u.searchParams.get('file') || '';
-      const hp = path.join(HISTORY_DIR, slug(file) + '.json');
+      if (!safePostPath(file)) return json(res, 400, { ok: false, msg: '文章文件名无效' });
+      const hp = safeChildPath(HISTORY_DIR, slug(file) + '.json');
       let versions = readJson(hp, []);
       return json(res, 200, { file, versions });
     }
     if (p === '/api/history/restore' && req.method === 'POST') {
       const body = await readBody(req);
       const file = body.file || ''; const index = Number(body.index);
-      const hp = path.join(HISTORY_DIR, slug(file) + '.json');
+      if (!safePostPath(file)) return json(res, 400, { ok: false, msg: '文章文件名无效' });
+      const hp = safeChildPath(HISTORY_DIR, slug(file) + '.json');
       let versions = readJson(hp, []);
       const v = versions[index]; if (!v) return json(res, 404, { ok: false, msg: '版本不存在' });
-      fs.writeFileSync(path.join(POSTS_DIR, file), ['---', `title: ${v.title || ''}`, `date: ${v.date || ''}`, `updated: ${new Date().toISOString().replace('T', ' ').slice(0, 19)}`, `edits: ${Number(v.edits || 0) + 1}`, v.description ? `description: ${v.description}` : '', v.categories ? `categories: ${arr(v.categories)}` : '', '---', '', v.content || ''].filter(Boolean).join('\n'), 'utf8');
+      fs.writeFileSync(safePostPath(file), ['---', `title: ${v.title || ''}`, `date: ${v.date || ''}`, `updated: ${new Date().toISOString().replace('T', ' ').slice(0, 19)}`, `edits: ${Number(v.edits || 0) + 1}`, v.description ? `description: ${v.description}` : '', v.categories ? `categories: ${arr(v.categories)}` : '', '---', '', v.content || ''].filter(Boolean).join('\n'), 'utf8');
       return json(res, 200, { ok: true });
     }
     if (p === '/api/delete' && req.method === 'POST') {
       const body = await readBody(req);
-      if (body.file) fs.unlinkSync(path.join(POSTS_DIR, body.file));
+      const target = safePostPath(body.file);
+      if (!target) return json(res, 400, { ok: false, msg: '文章文件名无效' });
+      if (fs.existsSync(target)) fs.unlinkSync(target);
       return json(res, 200, { ok: true });
     }
     if (p === '/api/upload' && req.method === 'POST') {
@@ -289,7 +313,10 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, title, content: content.trim(), saved, msg: '已读入文章，识别标题「' + title + '」。' });
     }
     if (p === '/api/publish' && req.method === 'POST') {
-      exec('git add . && git commit -m "admin publish" && git push', { cwd: ROOT }, (err, stdout, stderr) => {
+      if (publishInFlight) return json(res, 409, { ok: false, msg: '已经有一个推送任务在进行，请稍候再试' });
+      publishInFlight = true;
+      exec('git add . && git commit -m "admin publish" && git push', { cwd: ROOT, timeout: 120000, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+        publishInFlight = false;
         if (err) return json(res, 500, { ok: false, msg: (stderr || err.message).slice(0, 800) });
         return json(res, 200, { ok: true, msg: '已提交并推送，等待 GitHub Actions 自动构建…' });
       });
@@ -307,7 +334,8 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/site' && req.method === 'POST') {
       const body = await readBody(req);
       fs.mkdirSync(path.dirname(SITE_PATH), { recursive: true });
-      fs.writeFileSync(SITE_PATH, JSON.stringify(body.site || {}, null, 2), 'utf8');
+      const previous = readJson(SITE_PATH, {});
+      fs.writeFileSync(SITE_PATH, JSON.stringify(Object.assign({}, previous, body.site || {}), null, 2), 'utf8');
       return json(res, 200, { ok: true });
     }
     if (p === '/api/avatar' && req.method === 'POST') {
@@ -453,11 +481,15 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/img' && req.method === 'POST') {
       const body = await readBody(req);
-      const albumDir = path.join(ROOT, 'source', 'images', (body.album || 'misc').replace(/[\\/:*?"<>|]/g, '_'));
+      const album = String(body.album || 'misc').replace(/[\\/:*?"<>|]/g, '_') || 'misc';
+      const albumDir = safeChildPath(path.join(ROOT, 'source', 'images'), album);
+      if (!albumDir) return json(res, 400, { ok: false, msg: '图片目录无效' });
       fs.mkdirSync(albumDir, { recursive: true });
       const fname = (body.file || 'img.png').replace(/[\\/:*?"<>|]/g, '_');
-      fs.writeFileSync(path.join(albumDir, fname), Buffer.from(String(body.data).replace(/^data:.*?;base64,/, ''), 'base64'));
-      return json(res, 200, { ok: true, src: '/images/' + (body.album || 'misc') + '/' + fname });
+      const imagePath = safeChildPath(albumDir, fname);
+      if (!imagePath) return json(res, 400, { ok: false, msg: '图片文件名无效' });
+      fs.writeFileSync(imagePath, Buffer.from(String(body.data).replace(/^data:.*?;base64,/, ''), 'base64'));
+      return json(res, 200, { ok: true, src: '/images/' + encodeURIComponent(album).replace(/%2F/g, '/') + '/' + encodeURIComponent(fname) });
     }
     if (p === '/app.js' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
@@ -470,12 +502,26 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+let publishInFlight = false;
 function startAdmin(port, onReady) {
-  server.listen(port, () => {
-    const actualPort = server.address().port;
-    console.log('\n▶ 流浪猫管理面板已启动：http://localhost:' + actualPort + '\n   文章目录：' + POSTS_DIR + '\n   按 Ctrl+C 停止\n');
-    if (onReady) onReady(actualPort);
-  });
+  const firstPort = Number(port) || 4001;
+  const listen = candidate => {
+    const onError = err => {
+      server.removeListener('listening', onListening);
+      if (err.code === 'EADDRINUSE') return listen(candidate + 1);
+      throw err;
+    };
+    const onListening = () => {
+      server.removeListener('error', onError);
+      const actualPort = server.address().port;
+      console.log('\n▶ 流浪猫管理面板已启动：http://localhost:' + actualPort + '\n   文章目录：' + POSTS_DIR + '\n   按 Ctrl+C 停止\n');
+      if (onReady) onReady(actualPort);
+    };
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(candidate, '127.0.0.1');
+  };
+  listen(firstPort);
   return server;
 }
 if (require.main === module) {
@@ -602,6 +648,8 @@ textarea{min-height:260px;resize:vertical;line-height:1.8}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-b)}.btn-ghost:hover{border-color:var(--accent);color:var(--text-p)}
 .btn-del{background:transparent;border:1px solid var(--rose);color:var(--rose)}.btn-del:hover{background:var(--rose);color:var(--bg)}
 .status{margin-top:12px;color:var(--text-m);font-size:13px;min-height:20px}
+.publish-toast{position:fixed;right:28px;bottom:26px;z-index:100000;max-width:460px;padding:13px 16px;border:1px solid rgba(212,162,78,.35);border-radius:9px;background:rgba(20,20,18,.96);box-shadow:0 14px 36px rgba(0,0,0,.35);color:var(--text-b);font-size:13px;opacity:0;pointer-events:none;transform:translateY(8px);transition:.2s}.publish-toast.is-ok,.publish-toast.is-error{opacity:1;transform:none}.publish-toast.is-error{border-color:rgba(196,122,139,.55);color:#e1a7b2}
+.site-log-editor{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}.site-log-panel{padding:16px;border:1px solid rgba(107,103,96,.2);border-radius:10px;background:rgba(10,10,8,.45)}.site-log-panel .list-hd{margin-bottom:12px}.site-log-row{display:grid;grid-template-columns:minmax(0,1fr) 142px auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid rgba(107,103,96,.16)}.site-log-row:first-child{border-top:0}.site-log-row input{min-width:0;padding:8px 10px}.site-log-row textarea{grid-column:1/-1;min-height:54px;padding:8px 10px}.site-log-empty{padding:10px 0;color:var(--text-m);font-size:12px}.site-log-meta{display:flex;gap:8px;align-items:center}.site-log-type{font-size:11px;color:var(--accent-dim);white-space:nowrap}
 .watch-moegirl-search-help{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:4px;padding:12px 14px;border:1px solid rgba(212,162,78,.3);border-radius:9px;background:rgba(212,162,78,.06);color:var(--text-m);font-size:12px;line-height:1.55}.watch-moegirl-search-help[hidden]{display:none}.watch-moegirl-search-help span{min-width:0}.watch-moegirl-search-help a{flex:0 0 auto;color:var(--accent);text-decoration:none;white-space:nowrap}.watch-moegirl-search-help a:hover{text-decoration:underline}
 .watch-collection-search-input{display:block;width:100%;box-sizing:border-box;margin:8px 0 7px}.watch-collection-search-meta{margin:0 0 10px;color:var(--text-m);font-size:12px}
 .small{font-size:12px;color:var(--text-m)}
@@ -895,6 +943,23 @@ body.admin-modal-open{overflow:hidden}
  .admin-calendar-foot{display:flex;justify-content:flex-end;margin-top:10px;padding-top:9px;border-top:1px solid rgba(107,103,96,.2)}
  .admin-calendar-foot button{padding:4px 7px;border-radius:6px;background:transparent;color:var(--accent-dim);font-size:11px}
  .admin-calendar-foot button:hover{background:rgba(212,162,78,.1);color:var(--accent)}
+ @keyframes admin-modal-in{from{opacity:0}to{opacity:1}}
+ @keyframes admin-modal-out{from{opacity:1}to{opacity:0}}
+ @keyframes admin-dialog-in{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+ @keyframes admin-dialog-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(8px) scale(.99)}}
+ @keyframes admin-popover-in{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+ @keyframes admin-popover-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-3px) scale(.985)}}
+ .admin-modal.show{animation:admin-modal-in .22s ease-out both}
+ .admin-modal.show .admin-modal-inner{animation:admin-dialog-in .26s cubic-bezier(.22,.75,.24,1) both;will-change:opacity,transform}
+ .admin-modal.is-closing{animation:admin-modal-out .18s ease-in both;pointer-events:none}
+ .admin-modal.is-closing .admin-modal-inner{animation:admin-dialog-out .18s ease-in both}
+ .admin-calendar{animation:admin-popover-in .16s ease-out both;transform-origin:top center;will-change:opacity,transform}
+ .admin-calendar.is-closing{animation:admin-popover-out .16s ease-in both;pointer-events:none}
+ .imgdetail.show{animation:admin-modal-in .22s ease-out both}
+ .imgdetail.show .imgdetail-inner{animation:admin-dialog-in .26s cubic-bezier(.22,.75,.24,1) both;will-change:opacity,transform}
+ .imgdetail.is-closing{animation:admin-modal-out .18s ease-in both;pointer-events:none}
+ .imgdetail.is-closing .imgdetail-inner{animation:admin-dialog-out .18s ease-in both}
+ @media(prefers-reduced-motion:reduce){.admin-modal.show,.admin-modal.show .admin-modal-inner,.admin-modal.is-closing,.admin-modal.is-closing .admin-modal-inner,.admin-calendar,.admin-calendar.is-closing,.imgdetail.show,.imgdetail.show .imgdetail-inner,.imgdetail.is-closing,.imgdetail.is-closing .imgdetail-inner{animation:none!important;transform:none!important}}
  .watch-editor{display:block;width:100%}
  .watch-basic-layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
  .watch-cover-column{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -1119,6 +1184,7 @@ body.admin-modal-open{overflow:hidden}
   .site-native-preview .preview-about-stat{display:flex;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border)}
   .site-native-preview .preview-about-stat b{color:var(--text-p);font:300 36px/1 Georgia,serif}
   .site-native-preview .preview-about-stat span{align-self:center;color:var(--text-m);font-size:11px;letter-spacing:.15em;text-align:right;text-transform:uppercase}
+  .site-native-preview .preview-about-logs{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:0 0 42px}.site-native-preview .preview-about-log-title{margin-bottom:12px;color:var(--accent);font:700 11px/1.2 var(--font-mono);letter-spacing:.18em;text-transform:uppercase}.site-native-preview .preview-about-log{padding:12px 0;border-bottom:1px solid var(--border)}.site-native-preview .preview-about-log-head{display:flex;justify-content:space-between;gap:12px;color:var(--text-p);font-size:14px}.site-native-preview .preview-about-log-date{color:var(--text-m);font:11px/1.4 var(--font-mono)}.site-native-preview .preview-about-log-note{margin-top:6px;color:var(--text-m);font-size:12px;line-height:1.6}.site-native-preview .preview-about-log-empty{color:var(--text-m);font-size:12px}
   .site-native-preview .preview-contact{display:flex;align-items:baseline;gap:14px;margin:0 0 20px}
   .site-native-preview .preview-contact-value{color:var(--text-m);font-size:13px}
   /* ===== 独立的页头 / 页脚编辑页 ===== */
@@ -1166,8 +1232,28 @@ body.admin-modal-open{overflow:hidden}
   .site-shell-friends-editor .friendrow:first-child{margin-top:8px}
   @media(max-width:760px){.site-shell-header-inner,.site-shell-footer-inner{padding-left:20px;padding-right:20px}.site-shell-header-inner{align-items:flex-start;flex-direction:column;gap:20px}.site-shell-nav{flex-wrap:wrap;gap:12px 17px}.site-shell-gap{min-height:250px}.site-shell-footer-bottom{align-items:flex-start;flex-direction:column;gap:10px}.site-shell-hint{right:20px}}
   .admin-moment-gallery img,.compose-image-grid img{aspect-ratio:4/3!important}
-  .pin-modal-inner{width:min(760px,calc(100vw - 56px))}
+  .pin-modal-inner,.pin-add-modal-inner{width:min(860px,calc(100vw - 56px))}
   .pin-modal-list{margin-top:4px}
+  .pin-editor-summary{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 12px;padding:0 2px;color:var(--text-m);font-size:12px}
+  .pin-editor-summary b{color:var(--accent);font:12px/1 var(--font-mono)}
+  .pin-modal-list,.pin-add-list{scrollbar-width:thin;scrollbar-color:rgba(212,162,78,.42) transparent}
+  .pin-modal-list::-webkit-scrollbar,.pin-add-list::-webkit-scrollbar{width:6px}
+  .pin-modal-list::-webkit-scrollbar-thumb,.pin-add-list::-webkit-scrollbar-thumb{background:rgba(212,162,78,.42);border-radius:99px}
+  .pinrow2{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:14px;margin-top:9px;padding:13px 14px;border:1px solid rgba(107,103,96,.24);border-radius:11px;background:rgba(14,14,12,.82);transition:border-color .2s,background .2s,transform .2s}
+  .pinrow2:first-child{margin-top:0}.pinrow2:hover{border-color:rgba(212,162,78,.48);background:rgba(212,162,78,.045);transform:translateX(2px)}
+  .pin-idx{width:34px;color:var(--accent-dim);font:12px/1 var(--font-mono);text-align:center}
+  .pin-item-main{min-width:0}.pin-item-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}.pin-tag{padding:3px 7px;border:1px solid rgba(212,162,78,.34);border-radius:5px;color:var(--accent);font:10px/1 var(--font-mono);letter-spacing:.08em}.pin-kind{color:var(--text-m);font:10px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
+  .pin-label{display:block;min-width:0;overflow:hidden;color:var(--text-p);font-size:14px;line-height:1.45;text-overflow:ellipsis;white-space:nowrap}
+  .pin-acts{display:flex;align-items:center;gap:6px;flex-shrink:0}.pin-acts .btn{min-width:35px;min-height:34px;padding:6px 9px;font-family:var(--font-mono)}.pin-acts .btn-del{min-width:52px;font-family:var(--font-sans)}
+  .pin-add-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:0}
+  .pin-add-panel{min-width:0;padding:16px;border:1px solid rgba(107,103,96,.25);border-radius:12px;background:rgba(10,10,8,.5)}
+  .pin-add-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px}.pin-add-panel-title{color:var(--text-p);font:600 17px/1.3 Georgia,serif}.pin-add-panel-count{color:var(--text-m);font:11px/1 var(--font-mono)}
+  .pin-add-panel .admin-segmented{display:flex;width:100%;box-sizing:border-box;margin-bottom:12px}.pin-add-panel .admin-segmented .btn{flex:1;min-width:0}
+  .pin-add-list{max-height:360px;overflow-y:auto;padding-right:3px}.pin-add-choice-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:8px;padding:11px 12px;border:1px solid rgba(107,103,96,.22);border-radius:9px;background:rgba(255,255,255,.018);transition:border-color .2s,background .2s}.pin-add-choice-row:first-child{margin-top:0}.pin-add-choice-row:hover{border-color:rgba(212,162,78,.4);background:rgba(212,162,78,.045)}.pin-add-choice-main{min-width:0}.pin-add-choice-main strong{display:block;overflow:hidden;color:var(--text-b);font-size:13px;font-weight:500;line-height:1.45;text-overflow:ellipsis;white-space:nowrap}.pin-add-choice-main small{display:block;margin-top:4px;color:var(--accent-dim);font:10px/1.2 var(--font-mono)}.pin-add-choice-row .btn{min-height:32px;padding:6px 11px;font-size:11px}.pin-add-disabled{opacity:.58;cursor:not-allowed!important}.pin-add-group+.pin-add-group{margin-top:16px;padding-top:14px;border-top:1px solid rgba(107,103,96,.2)}.pin-add-group-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px;color:var(--text-p);font-size:13px}.pin-add-group-title small{color:var(--text-m);font:10px/1 var(--font-mono)}
+  .pin-add-calendar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}.pin-calendar-date{min-width:0;padding:9px 5px;border:1px solid rgba(107,103,96,.24);border-radius:8px;background:rgba(255,255,255,.018);color:var(--text-b);font:11px/1.2 var(--font-mono);cursor:pointer}.pin-calendar-date small{display:block;margin-top:4px;color:var(--text-m);font-size:9px}.pin-calendar-date:hover,.pin-calendar-date.is-active{border-color:rgba(212,162,78,.6);background:rgba(212,162,78,.1);color:var(--accent)}.pin-add-calendar-list{min-width:0}.pin-add-panel .small{padding:13px 2px;color:var(--text-m)}
+   .pin-add-more{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;width:100%;margin-top:12px;padding:11px 12px;border:1px solid rgba(212,162,78,.3);border-radius:9px;background:linear-gradient(135deg,rgba(212,162,78,.09),rgba(255,255,255,.018));color:var(--text-p);text-align:left;cursor:pointer;transition:border-color .2s,background .2s,transform .2s}.pin-add-more:hover{border-color:rgba(212,162,78,.68);background:rgba(212,162,78,.14);transform:translateY(-1px)}.pin-add-more span{font-size:12px;font-weight:600}.pin-add-more small{grid-column:1;color:var(--text-m);font:10px/1.3 var(--font-mono)}.pin-add-more b{grid-column:2;grid-row:1/3;color:var(--accent);font:18px/1 var(--font-mono)}
+   .pin-full-modal{z-index:1010}.pin-full-modal-inner{width:min(1120px,calc(100vw - 56px));max-height:calc(100vh - 56px);padding:30px 34px}.pin-full-view[hidden]{display:none}.pin-full-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px;padding-bottom:17px;border-bottom:1px solid rgba(107,103,96,.24)}.pin-full-head>div:first-child{display:flex;align-items:baseline;gap:12px}.pin-full-title{color:var(--text-p);font-size:19px;font-weight:600}.pin-full-count{color:var(--text-m);font-size:12px}.pin-full-controls{display:flex;align-items:center;gap:12px}.pin-full-controls .admin-segmented{margin:0}.pin-full-list{max-height:calc(100vh - 270px);overflow-y:auto;padding:2px 8px 6px 2px;scrollbar-width:thin;scrollbar-color:rgba(212,162,78,.42) transparent}.pin-full-list::-webkit-scrollbar{width:6px}.pin-full-list::-webkit-scrollbar-thumb{background:rgba(212,162,78,.42);border-radius:99px}.pin-full-post-choice{min-height:82px}.pin-full-dyn-feed{display:flex;flex-direction:column;gap:14px}.pin-full-dyn-choice{cursor:default}.pin-full-dyn-choice:hover{transform:translateY(-2px)}.pin-full-dyn-choice .admin-moment-foot{align-items:center}.pin-full-dyn-choice .admin-moment-edited{margin:0}.pin-full-calendar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding-bottom:16px;border-bottom:1px solid rgba(107,103,96,.22)}.pin-full-date-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid rgba(107,103,96,.28);border-radius:8px;background:rgba(255,255,255,.018);color:var(--text-b);font:11px/1 var(--font-mono);cursor:pointer;transition:.2s}.pin-full-date-btn small{color:var(--text-m);font-size:9px}.pin-full-date-btn:hover,.pin-full-date-btn.is-active{border-color:rgba(212,162,78,.62);background:rgba(212,162,78,.1);color:var(--accent)}.pin-full-empty{padding:28px 4px;text-align:center}
+   @media(max-width:760px){.pin-add-layout{grid-template-columns:1fr}.pin-add-list{max-height:260px}.pin-full-head{align-items:flex-start;flex-direction:column}.pin-full-controls{width:100%;justify-content:space-between}.pin-full-controls .admin-segmented{flex:1}.pin-full-controls .admin-segmented .btn{flex:1}.pin-full-modal-inner{padding:26px 20px}}
   @media(max-width:1100px){.site-native-preview{padding:28px 24px 34px}.site-native-preview .preview-home-top{grid-template-columns:1fr}.site-native-preview .preview-home-side{display:flex;justify-content:center}.site-native-preview .preview-author-card{width:min(300px,100%)}.site-native-preview .preview-about-grid{gap:32px}}
 </style>
 </head><body>
@@ -1176,8 +1262,10 @@ body.admin-modal-open{overflow:hidden}
    <div class="navlinks">
       <a class="nav-link active" data-tab="home" onclick="t('home')">首页</a>
       <a class="nav-link" data-tab="about" onclick="t('about')">关于</a>
-      <a class="nav-link" data-tab="siteparts" onclick="t('siteparts')">页头页脚</a>
+     <a class="nav-link" data-tab="siteparts" onclick="t('siteparts')">页头页脚</a>
       <a class="nav-link" data-tab="overview" onclick="t('overview')">综合</a>
+     <a class="nav-link" data-tab="coffee" onclick="t('coffee')">奶茶</a>
+     <a class="nav-link" data-tab="teardown" onclick="t('teardown')">修电脑</a>
      <a class="nav-link" data-tab="posts" onclick="t('posts')">文章</a>
      <a class="nav-link" data-tab="dynamics" onclick="t('dynamics')">动态</a>
      <a class="nav-link" data-tab="gallery" onclick="t('gallery')">图片</a>
@@ -1195,7 +1283,7 @@ body.admin-modal-open{overflow:hidden}
 希望这里成为流浪猫的坟茔。</p></section>
            <section class="preview-pinned" id="previewHomePinned"></section>
          </div>
-         <aside class="preview-home-side"><div class="preview-author-card"><img class="preview-author-avatar preview-editable-avatar" id="previewAuthorAvatar" src="/images/avatar.jpg" alt="流浪猫不是LLM" onclick="openAvatarEditor()" title="点击编辑头像"><div class="preview-author-name preview-editable-name" id="previewAuthorName" onclick="openNicknameEditor()" title="点击切换昵称">流浪猫不是LLM</div><div class="preview-author-bio">我习于冷，志于成冰</div><div class="preview-author-stats"><div class="preview-author-stat"><b id="previewArticleCount">0</b><span>文章</span></div><div class="preview-author-stat"><b id="previewDynCount">0</b><span>动态</span></div><div class="preview-author-stat"><b id="previewPhotoCount">0</b><span>照片</span></div></div><a class="preview-author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38-.01-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a></div></aside>
+         <aside class="preview-home-side"><div class="preview-author-card"><img class="preview-author-avatar preview-editable-avatar" id="previewAuthorAvatar" src="/images/avatar.jpg" alt="流浪猫不是LLM" onclick="openAvatarEditor()" title="点击编辑头像"><div class="preview-author-name preview-editable-name" id="previewAuthorName" onclick="openNicknameEditor()" title="点击切换昵称">流浪猫不是LLM</div><div class="preview-author-bio">我习于冷，志于成冰</div><div class="preview-author-stats"><div class="preview-author-stat"><b id="previewArticleCount">0</b><span>文章</span></div><div class="preview-author-stat"><b id="previewDynCount">0</b><span>动态</span></div><div class="preview-author-stat"><b id="previewPhotoCount">0</b><span>照片</span></div></div><a class="preview-author-follow" href="https://github.com/xuzhunzhi" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span>Follow Me</span></a></div></aside>
        </div>
        <section class="preview-stats"><div class="preview-sec-head"><span class="preview-sec-num">shelter log</span><span class="preview-sec-title">站点记录</span><span class="preview-sec-line"></span></div><div class="preview-stats-grid"><div class="preview-stat"><span class="preview-stat-value" id="previewUv">—</span><span class="preview-stat-label">访问人数</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewLastUpdate">—</span><span class="preview-stat-label">最后更新</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewWords">—</span><span class="preview-stat-label">本站总字数</span></div><div class="preview-stat"><span class="preview-stat-value" id="previewPv">—</span><span class="preview-stat-label">总浏览量</span></div></div></section>
        <section><div class="preview-sec-head"><span class="preview-sec-num">feed</span><span class="preview-sec-title">Latest</span><span class="preview-sec-line"></span></div><div class="preview-feed" id="previewHomeFeed"></div></section>
@@ -1208,6 +1296,7 @@ body.admin-modal-open{overflow:hidden}
 感谢尘世还有那些值得猫眷恋的。
 希望这里成为流浪猫的坟茔。</div></div>
        <div class="preview-about-grid"><div class="preview-about-bio"><h3>About Me</h3><div id="previewAboutBio"></div><p class="preview-quote">"流浪猫不需要和家猫走一样的路。"</p></div><div class="preview-about-side" id="previewAboutStats"></div></div>
+       <div class="preview-about-logs"><section><div class="preview-about-log-title">Coffee / 奶茶</div><div id="previewAboutCoffeeLogs"></div></section><section><div class="preview-about-log-title">电脑拆机日志</div><div id="previewAboutComputerLogs"></div></section></div>
        <div class="preview-contact"><span class="preview-sec-num">contact</span><span class="preview-sec-title">联系</span><span class="preview-sec-line"></span></div><p class="preview-contact-value" id="previewAboutContact">xuzhunzhi@foxmail.com</p>
    </div>
   </section>
@@ -1218,7 +1307,7 @@ body.admin-modal-open{overflow:hidden}
     <div class="site-shell-preview" id="siteShellPreview">
       <header class="site-shell-header" onclick="openShellHeaderEditor()" title="点击编辑页头">
         <span class="site-shell-hint">点击进入编辑</span>
-        <div class="site-shell-header-inner"><span class="site-shell-brand" id="previewShellHeader">Shelter</span><nav class="site-shell-nav" aria-label="网站导航"><span>首页</span><span>文章</span><span>图片</span><span>动态</span><span>番剧</span><span>关于</span></nav></div>
+        <div class="site-shell-header-inner"><span class="site-shell-brand" id="previewShellHeader">Shelter</span><nav class="site-shell-nav" aria-label="网站导航"><span>首页</span><span>文章</span><span>图片</span><span>动态</span><span>番剧</span><span>Coffee / 奶茶</span><span>拆机日志</span><span>关于</span></nav></div>
       </header>
       <div class="site-shell-gap" aria-hidden="true">website content</div>
       <footer class="site-shell-footer" onclick="openShellFooterEditor()" title="点击编辑页脚">
@@ -1232,6 +1321,26 @@ body.admin-modal-open{overflow:hidden}
     </div>
   </section>
 
+  <section id="tab-coffee" class="tabpage">
+   <h1>Coffee <em>/ 奶茶</em></h1>
+   <p class="sub">管理网站 Coffee / 奶茶页面的记录。保存后会同步更新网站本体的独立页面和关于页摘要。</p>
+   <div class="card site-log-page-card">
+     <div class="list-hd"><span>饮品记录</span><button type="button" class="btn btn-ghost" onclick="addCoffeeLog()">＋ 新增记录</button></div>
+     <div id="coffeeLogEditor"></div>
+     <div class="card-actions"><button type="button" class="btn btn-pub" onclick="saveSiteSettings('coffeeStatus')">保存 Coffee / 奶茶</button><div class="status" id="coffeeStatus"></div></div>
+   </div>
+  </section>
+
+  <section id="tab-teardown" class="tabpage">
+   <h1>修电脑 <em>Teardown</em></h1>
+   <p class="sub">管理网站电脑拆机日志页面。记录标题、日期和拆机内容，保存后立即写入站点数据。</p>
+   <div class="card site-log-page-card">
+     <div class="list-hd"><span>电脑拆机日志</span><button type="button" class="btn btn-ghost" onclick="addComputerLog()">＋ 新增日志</button></div>
+     <div id="computerLogEditor"></div>
+     <div class="card-actions"><button type="button" class="btn btn-pub" onclick="saveSiteSettings('teardownStatus')">保存拆机日志</button><div class="status" id="teardownStatus"></div></div>
+   </div>
+  </section>
+
   <section id="tab-overview" class="tabpage">
    <h1>综合 <em>Overview</em></h1>
     <p class="sub">置顶、首页与关于页内容等全站杂项集中在这里；页头页脚与友链请从上方的独立页面编辑。</p>
@@ -1240,10 +1349,6 @@ body.admin-modal-open{overflow:hidden}
        <div class="list-hd"><span>首页置顶 · <b id="pinCount">0</b>/8</span><button class="btn btn-pub" onclick="savePin()">保存置顶</button></div>
        <div class="panel-note">首页置顶会按这里的顺序展示文章和动态。</div>
        <div id="pinnedList"></div>
-       <div class="overview-add-grid">
-         <div><label>添加文章</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinPostMenu')"><span id="addPinPostLbl">选择文章…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinPostMenu" style="display:none"></div></div></div>
-         <div><label>添加动态</label><div class="dd"><button type="button" class="dd-btn" onclick="toggleDd('addPinDynMenu')"><span id="addPinDynLbl">选择动态…</span><svg class="dd-arrow" viewBox="0 0 10 6" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="currentColor"/></svg></button><div class="dd-menu" id="addPinDynMenu" style="display:none"></div></div></div>
-       </div>
        <div class="status" id="pinStatus"></div>
      </div>
       <div class="card overview-settings-card">
@@ -1390,6 +1495,52 @@ body.admin-modal-open{overflow:hidden}
     </div>
   </div>
 
+  <div class="admin-modal" id="pinModal" onclick="if(event.target===this)cancelPinModal('pinModal')">
+    <div class="admin-modal-inner pin-modal-inner">
+      <button class="moment-x" onclick="cancelPinModal('pinModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">HOME PINNING</div><div class="form-hd"><span>编辑首页置顶</span></div>
+      <div class="field-intro">调整首页置顶内容的顺序，或移除不再需要展示的文章和动态。最多保留 8 项。</div>
+      <div class="pin-editor-summary"><span>当前置顶内容</span><b id="pinModalCount">0 / 8</b></div>
+      <div id="pinModalList" class="pin-modal-list"></div>
+      <div class="modal-actions"><button class="btn btn-pub" onclick="savePin()">保存置顶</button><button class="btn btn-ghost" onclick="cancelPinModal('pinModal')">取消</button></div><div class="status" id="pinModalStatus"></div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="pinAddModal" onclick="if(event.target===this)cancelPinModal('pinAddModal')">
+    <div class="admin-modal-inner pin-add-modal-inner">
+      <button class="moment-x" onclick="cancelPinModal('pinAddModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">HOME PINNING</div><div class="form-hd"><span>添加首页置顶</span></div>
+      <div class="field-intro">从文章或动态中选择要放到首页置顶区域的内容；已置顶内容会标记为不可重复添加。</div>
+       <div class="pin-add-layout">
+         <section class="pin-add-panel">
+           <div class="pin-add-panel-head"><span class="pin-add-panel-title">最新文章</span><span class="pin-add-panel-count">最近 6 篇</span></div>
+           <div id="pinAddPostList" class="pin-add-list"></div>
+         </section>
+         <section class="pin-add-panel">
+           <div class="pin-add-panel-head"><span class="pin-add-panel-title">最新动态</span><span class="pin-add-panel-count">最近 6 条</span></div>
+           <div id="pinAddDynList" class="pin-add-list"></div>
+         </section>
+       </div>
+       <div class="modal-actions"><button class="btn btn-pub" onclick="savePin()">保存置顶</button><button class="btn btn-ghost" onclick="cancelPinModal('pinAddModal')">关闭</button></div><div class="status" id="pinAddModalStatus"></div>
+     </div>
+   </div>
+
+  <div class="admin-modal pin-full-modal" id="pinFullModal" onclick="if(event.target===this)closeAdminModal('pinFullModal')">
+    <div class="admin-modal-inner pin-full-modal-inner">
+      <button class="moment-x" onclick="closeAdminModal('pinFullModal')" aria-label="关闭">×</button>
+      <div class="modal-kicker">CONTENT BROWSER</div>
+      <div class="pin-full-view" id="pinFullPostsView">
+        <div class="pin-full-head"><div><span class="pin-full-title">全部文章</span><span class="pin-full-count">照搬文章管理页的列表样式</span></div><div class="pin-full-controls"><div class="admin-segmented" role="tablist" aria-label="全部文章视图"><button type="button" class="btn is-active" id="pinFullPostTimelineBtn" onclick="setPinFullPostMode('timeline')">文章列表</button><button type="button" class="btn" id="pinFullPostCollectionBtn" onclick="setPinFullPostMode('collections')">按合集</button></div></div></div>
+        <div id="pinFullPostList" class="plist site-like-list pin-full-list"></div>
+      </div>
+      <div class="pin-full-view" id="pinFullDynsView" hidden>
+        <div class="pin-full-head"><div><span class="pin-full-title">全部动态</span><span class="pin-full-count">照搬动态管理页的卡片样式</span></div><div class="pin-full-controls"><div class="admin-segmented" role="tablist" aria-label="全部动态视图"><button type="button" class="btn is-active" id="pinFullDynTimelineBtn" onclick="setPinFullDynMode('timeline')">动态时间线</button><button type="button" class="btn" id="pinFullDynCalendarBtn" onclick="setPinFullDynMode('calendar')">日历</button></div></div></div>
+        <div id="pinFullDynList" class="pin-full-list pin-full-dyn-feed"></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-ghost" onclick="closeAdminModal('pinFullModal')">返回添加置顶</button></div>
+    </div>
+  </div>
+
   <div class="admin-modal" id="postModal" onclick="if(event.target===this)closeAdminModal('postModal')">
    <div class="admin-modal-inner post-modal-inner">
      <button class="moment-x" onclick="closeAdminModal('postModal')" aria-label="关闭">×</button>
@@ -1507,6 +1658,7 @@ body.admin-modal-open{overflow:hidden}
      <div class="imgdetail-info" id="imgDetailInfo"></div>
    </div>
  </div>
+ <div class="publish-toast" id="publishToast" aria-live="polite"></div>
  <script src="/app.js"></script>
  </body></html>
 `;

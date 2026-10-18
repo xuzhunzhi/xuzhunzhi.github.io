@@ -1,0 +1,23 @@
+<%
+  var siteMeta = site.data.site || {};
+  var logs = Array.isArray(siteMeta.coffeeLogs) ? siteMeta.coffeeLogs.slice() : [];
+  logs.sort(function(a, b){ return String(b.date || '').localeCompare(String(a.date || '')); });
+%>
+<section class="journal-hero">
+  <span class="journal-kicker">daily drinks</span>
+  <h1 class="hero-title">Coffee <em>/ 奶茶</em></h1>
+  <p class="hero-sub">把喝过的 Coffee 和奶茶留在这里，也留下一点当时的心情。</p>
+</section>
+
+<div class="sec-hd"><span class="sec-num">coffee log</span><span class="sec-title">饮品记录</span><span class="sec-line"></span></div>
+<div class="journal-list">
+  <% if (logs.length) { logs.forEach(function(log){ %>
+    <article class="journal-card">
+      <div class="journal-card-head"><span class="journal-type"><%= log.type === 'milk-tea' ? '奶茶' : 'Coffee' %></span><time><%= log.date || '未记录日期' %></time></div>
+      <h2><%= log.name || '未命名记录' %></h2>
+      <% if (log.note) { %><p><%= log.note %></p><% } %>
+    </article>
+  <% }); } else { %>
+    <p class="empty journal-empty">还没有 Coffee / 奶茶记录。</p>
+  <% } %>
+</div>

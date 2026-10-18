@@ -1,5 +1,4 @@
 @echo off
 cd /d "%~dp0"
-start "" http://localhost:4001
-node admin.js
-pause
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0start-admin.ps1"
+if errorlevel 1 pause
